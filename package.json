@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
+    "@tailwindcss/postcss": "^4.2.1",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}
