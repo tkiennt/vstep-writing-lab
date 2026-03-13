@@ -1,266 +1,143 @@
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Brain, Trophy, TrendingUp, Users, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, BookOpen, Brain, Trophy, TrendingUp } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vstep-gray to-white">
+    <div className="min-h-screen bg-gradient-to-br from-vstep-primary-50 to-vstep-secondary-50">
       {/* Navigation */}
-      <nav className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <BookOpen className="h-8 w-8 text-vstep-blue" />
-            <span className="text-xl font-bold text-gray-900">VSTEP Writing Lab</span>
-          </div>
-          <div className="hidden md:flex items-center space-x-6">
-            <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Features
-            </Link>
-            <Link href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">
-              How It Works
-            </Link>
-            <Link href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Testimonials
-            </Link>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Link href="/login">
-              <Button variant="outline">Login</Button>
-            </Link>
-            <Link href="/register">
-              <Button className="bg-vstep-blue hover:bg-blue-700">
+      <nav className="bg-white shadow-soft">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <h1 className="text-2xl font-bold text-vstep-primary-600">VSTEP Writing Lab</h1>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link href="/login" className="nav-link">
+                Login
+              </Link>
+              <button className="btn-primary">
                 Get Started
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+              </button>
+            </div>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-          Master VSTEP Writing with{' '}
-          <span className="text-vstep-blue">AI-Powered</span> Feedback
-        </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-          Practice writing essays and get instant AI feedback tailored to VSTEP scoring criteria.
-          Improve your score faster with personalized guidance.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link href="/register">
-            <Button size="lg" className="bg-vstep-blue hover:bg-blue-700 text-lg px-8 py-6">
-              Start Practicing Free
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-vstep-gray-900 mb-6 animate-fade-in">
+            Master VSTEP Writing with
+            <span className="text-vstep-primary-500"> AI-Powered</span> Practice
+          </h1>
+          <p className="text-xl text-vstep-gray-600 mb-8 max-w-3xl mx-auto animate-slide-up">
+            Improve your English writing skills with personalized feedback, instant scoring, and targeted practice for VSTEP B1, B2, and C1 levels.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-bounce-subtle">
+            <Link href="/register" className="btn-primary flex items-center justify-center">
+              Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-          <Link href="#how-it-works">
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6">
-              Watch Demo
-            </Button>
-          </Link>
-        </div>
-        <div className="flex items-center justify-center space-x-2 text-gray-600">
-          <div className="flex">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-            ))}
+            </Link>
+            <Link href="/practice" className="btn-secondary">
+              Try Practice
+            </Link>
           </div>
-          <span>4.9/5 from 2,000+ students</span>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="container mx-auto px-4 py-20 bg-white rounded-3xl shadow-lg">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Why Choose VSTEP Writing Lab?
-          </h2>
-          <p className="text-xl text-gray-600">
-            Everything you need to ace your VSTEP writing exam
-          </p>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <FeatureCard
-            icon={<Brain className="h-12 w-12 text-vstep-blue" />}
-            title="AI Scoring"
-            description="Get instant, detailed feedback on your essays using advanced AI technology"
-          />
-          <FeatureCard
-            icon={<TrendingUp className="h-12 w-12 text-vstep-green" />}
-            title="Progress Tracking"
-            description="Visualize your improvement over time with detailed analytics"
-          />
-          <FeatureCard
-            icon={<BookOpen className="h-12 w-12 text-vstep-yellow" />}
-            title="100+ Topics"
-            description="Practice with diverse topics covering all VSTEP task types"
-          />
-          <FeatureCard
-            icon={<Trophy className="h-12 w-12 text-purple-500" />}
-            title="Gamified Learning"
-            description="Earn XP, maintain streaks, and unlock achievements as you learn"
-          />
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section id="how-it-works" className="container mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Simple 3-Step Process
-          </h2>
-          <p className="text-xl text-gray-600">
-            Start improving your writing in minutes
-          </p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-8">
-          <StepCard
-            number="1"
-            title="Choose Topic"
-            description="Select from 100+ VSTEP practice topics across different task types"
-          />
-          <StepCard
-            number="2"
-            title="Write Essay"
-            description="Write your essay with our clean editor under timed conditions"
-          />
-          <StepCard
-            number="3"
-            title="Get Feedback"
-            description="Receive detailed AI scoring and feedback instantly"
-          />
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-vstep-gray-900 mb-4">Why Choose VSTEP Writing Lab?</h2>
+            <p className="text-lg text-vstep-gray-600">Everything you need to excel in your VSTEP writing exam</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="dashboard-card text-center card-hover">
+              <div className="bg-vstep-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Brain className="h-8 w-8 text-vstep-primary-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-vstep-gray-900 mb-2">AI-Powered Feedback</h3>
+              <p className="text-vstep-gray-600">Get instant, detailed feedback on your writing with AI analysis of grammar, vocabulary, and structure.</p>
+            </div>
+            <div className="dashboard-card text-center card-hover">
+              <div className="bg-vstep-secondary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="h-8 w-8 text-vstep-secondary-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-vstep-gray-900 mb-2">VSTEP-Specific Practice</h3>
+              <p className="text-vstep-gray-600">Practice with topics and formats that match the actual VSTEP exam for B1, B2, and C1 levels.</p>
+            </div>
+            <div className="dashboard-card text-center card-hover">
+              <div className="bg-vstep-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="h-8 w-8 text-vstep-primary-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-vstep-gray-900 mb-2">Track Your Progress</h3>
+              <p className="text-vstep-gray-600">Monitor your improvement with detailed analytics, scores, and personalized recommendations.</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="container mx-auto px-4 py-20 bg-vstep-gray rounded-3xl">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Success Stories
-          </h2>
-          <p className="text-xl text-gray-600">
-            See what our students have achieved
-          </p>
-        </div>
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <TestimonialCard
-            quote="Improved my score from 6.5 to 8.0 in just 4 weeks! The AI feedback is incredibly detailed and helpful."
-            author="Nguyen Thi B"
-            location="Hanoi University"
-          />
-          <TestimonialCard
-            quote="The best platform for VSTEP writing practice. The gamification keeps me motivated every day!"
-            author="Tran Van C"
-            location="Ho Chi Minh City"
-          />
+      {/* How It Works */}
+      <section className="py-16 bg-vstep-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-vstep-gray-900 mb-4">How It Works</h2>
+            <p className="text-lg text-vstep-gray-600">Get started in three simple steps</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-vstep-primary-500 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">1</div>
+              <h3 className="text-xl font-semibold text-vstep-gray-900 mb-2">Choose Your Level</h3>
+              <p className="text-vstep-gray-600">Select your VSTEP target level (B1, B2, or C1) and get personalized practice topics.</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-vstep-primary-500 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">2</div>
+              <h3 className="text-xl font-semibold text-vstep-gray-900 mb-2">Write & Practice</h3>
+              <p className="text-vstep-gray-600">Complete timed writing exercises with real exam conditions and instant feedback.</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-vstep-primary-500 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">3</div>
+              <h3 className="text-xl font-semibold text-vstep-gray-900 mb-2">Review & Improve</h3>
+              <p className="text-vstep-gray-600">Analyze your performance, learn from mistakes, and track your progress over time.</p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="bg-gradient-to-r from-vstep-blue to-blue-700 rounded-3xl p-12 text-white">
-          <h2 className="text-4xl font-bold mb-4">
-            Ready to Improve Your Writing?
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join thousands of students achieving their target VSTEP scores
-          </p>
-          <Link href="/register">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
-              Get Started Free
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+      <section className="py-16 bg-vstep-primary-500 text-white">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <Trophy className="h-16 w-16 mx-auto mb-6 text-vstep-primary-100" />
+          <h2 className="text-3xl font-bold mb-4">Ready to Ace Your VSTEP Writing?</h2>
+          <p className="text-xl mb-8 text-vstep-primary-100">Join thousands of students who have improved their writing scores with VSTEP Writing Lab.</p>
+          <Link href="/register" className="bg-white text-vstep-primary-600 px-8 py-3 rounded-xl text-lg font-semibold hover:bg-vstep-gray-50 inline-flex items-center shadow-button hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+            Start Your Journey
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
-          <p className="mt-4 text-sm opacity-75">No credit card required</p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-white mt-20">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <BookOpen className="h-6 w-6 text-vstep-blue" />
-              <span className="font-semibold text-gray-900">VSTEP Writing Lab</span>
+      <footer className="bg-vstep-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold mb-4">VSTEP Writing Lab</h3>
+            <p className="text-vstep-gray-400 mb-6">Empowering students to excel in VSTEP writing examinations through AI-powered practice and feedback.</p>
+            <div className="flex justify-center space-x-6">
+              <Link href="/about" className="text-vstep-gray-400 hover:text-white transition-colors duration-200">About</Link>
+              <Link href="/contact" className="text-vstep-gray-400 hover:text-white transition-colors duration-200">Contact</Link>
+              <Link href="/privacy" className="text-vstep-gray-400 hover:text-white transition-colors duration-200">Privacy</Link>
+              <Link href="/terms" className="text-vstep-gray-400 hover:text-white transition-colors duration-200">Terms</Link>
             </div>
-            <div className="flex space-x-6 text-sm text-gray-600">
-              <Link href="#" className="hover:text-gray-900">Privacy Policy</Link>
-              <Link href="#" className="hover:text-gray-900">Terms of Service</Link>
-              <Link href="#" className="hover:text-gray-900">Contact</Link>
+            <div className="mt-8 pt-8 border-t border-vstep-gray-800 text-center text-vstep-gray-400">
+              <p>&copy; 2024 VSTEP Writing Lab. All rights reserved.</p>
             </div>
-            <p className="text-sm text-gray-600 mt-4 md:mt-0">
-              © 2026 VSTEP Writing Lab. All rights reserved.
-            </p>
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-// Feature Card Component
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="text-center p-6 rounded-2xl hover:shadow-xl transition-shadow">
-      <div className="flex justify-center mb-4">{icon}</div>
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
-    </div>
-  );
-}
-
-// Step Card Component
-function StepCard({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="text-center p-6">
-      <div className="w-16 h-16 bg-vstep-blue text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-        {number}
-      </div>
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
-    </div>
-  );
-}
-
-// Testimonial Card Component
-function TestimonialCard({
-  quote,
-  author,
-  location,
-}: {
-  quote: string;
-  author: string;
-  location: string;
-}) {
-  return (
-    <div className="bg-white p-8 rounded-2xl shadow-lg">
-      <div className="flex mb-4">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-        ))}
-      </div>
-      <p className="text-gray-700 text-lg mb-6">&quot;{quote}&quot;</p>
-      <div>
-        <p className="font-semibold text-gray-900">{author}</p>
-        <p className="text-gray-600 text-sm">{location}</p>
-      </div>
     </div>
   );
 }
