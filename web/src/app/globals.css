@@ -22,6 +22,10 @@
   --color-input: hsl(214.3 31.8% 91.4%);
   --color-ring: hsl(217 91% 60%);
   --radius: 0.5rem;
+  
+  --color-vstep-dark: #123524;
+  --color-vstep-badge: #E8F3EE;
+  --color-vstep-link: #4A5D54;
 }
 
 @layer base {
@@ -49,4 +53,13 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
