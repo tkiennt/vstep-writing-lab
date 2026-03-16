@@ -1,215 +1,65 @@
 @import "tailwindcss";
 
-/* ---------------- THEME ---------------- */
-
+/* Define theme using Tailwind's @theme directive for v4 */
 @theme {
-  --radius: 0.75rem;
-
-  /* shadows */
-  --shadow-soft: 0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04);
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.1);
-  --shadow-button: 0 1px 2px rgba(0,0,0,0.05);
-
-  /* primary */
-  --color-vstep-primary-50: 160 56% 97%;
-  --color-vstep-primary-500: 160 84% 39%;
-  --color-vstep-primary-600: 160 84% 28%;
-
-  /* secondary */
-  --color-vstep-secondary-100: 262 83% 93%;
-  --color-vstep-secondary-500: 262 83% 58%;
-
-  /* gray */
-  --color-vstep-gray-100: 210 20% 96%;
-  --color-vstep-gray-200: 210 14% 89%;
-  --color-vstep-gray-400: 215 14% 64%;
-  --color-vstep-gray-600: 215 19% 35%;
-  --color-vstep-gray-900: 222 47% 11%;
-
-  /* ui */
-  --color-background: 210 20% 98%;
-  --color-foreground: 222 47% 11%;
-  --color-border: 210 14% 89%;
-  --color-input: 210 14% 89%;
-  --color-ring: 160 84% 39%;
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222.2 84% 4.9%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(222.2 84% 4.9%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(222.2 84% 4.9%);
+  --color-primary: hsl(217 91% 60%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  --color-secondary: hsl(142 71% 45%);
+  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-muted: hsl(210 40% 96.1%);
+  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+  --color-accent: hsl(45 93% 47%);
+  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+  --color-border: hsl(214.3 31.8% 91.4%);
+  --color-input: hsl(214.3 31.8% 91.4%);
+  --color-ring: hsl(217 91% 60%);
+  --radius: 0.5rem;
+  
+  --color-vstep-dark: #123524;
+  --color-vstep-badge: #E8F3EE;
+  --color-vstep-link: #4A5D54;
 }
 
-/* ---------------- BASE ---------------- */
-
 @layer base {
-
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1,"calt" 1;
-  }
-
-}
-
-/* ---------------- COMPONENTS ---------------- */
-
-@layer components {
-
-  /* BUTTONS */
-
-  .btn-primary {
-    @apply bg-[hsl(var(--color-vstep-primary-500))]
-    hover:bg-[hsl(var(--color-vstep-primary-600))]
-    text-white
-    font-semibold
-    py-3 px-6
-    rounded-xl
-    shadow-md
-    transition
-    duration-200;
-  }
-
-  .btn-secondary {
-    @apply bg-white
-    border
-    border-[hsl(var(--color-vstep-primary-500))]
-    text-[hsl(var(--color-vstep-primary-500))]
-    hover:bg-[hsl(var(--color-vstep-primary-50))]
-    font-semibold
-    py-3 px-6
-    rounded-xl
-    transition;
-  }
-
-  .btn-ghost {
-    @apply bg-transparent
-    hover:bg-[hsl(var(--color-vstep-gray-100))]
-    text-[hsl(var(--color-vstep-gray-600))]
-    py-3 px-6
-    rounded-xl;
-  }
-
-
-  /* CARDS */
-
-  .card {
-    @apply bg-white
-    rounded-xl
-    shadow-md
-    border
-    border-[hsl(var(--color-border))]
-    transition;
-  }
-
-  .dashboard-card {
-    @apply bg-white
-    rounded-xl
-    p-6
-    border
-    border-[hsl(var(--color-vstep-gray-200))]
-    shadow-md
-    hover:shadow-lg
-    transition;
-  }
-
-
-  /* FORM */
-
-  .form-input {
-    @apply bg-white
-    border
-    border-[hsl(var(--color-input))]
-    rounded-lg
-    px-4 py-3
-    focus:outline-none
-    focus:ring-2
-    focus:ring-[hsl(var(--color-ring))]
-    transition;
-  }
-
-  .form-label {
-    @apply font-medium mb-2 block;
-  }
-
-
-  /* EDITOR */
-
-  .editor-container {
-    @apply bg-white
-    border
-    border-[hsl(var(--color-vstep-gray-200))]
-    rounded-lg
-    p-4
-    min-h-[300px];
-  }
-
-  .editor-textarea {
-    @apply w-full
-    min-h-[280px]
-    bg-transparent
-    outline-none
-    resize-none;
-  }
-
-
-  /* PROGRESS */
-
-  .progress-bar {
-    @apply bg-[hsl(var(--color-vstep-gray-200))]
-    rounded-full
-    h-2
-    overflow-hidden;
-  }
-
-  .progress-fill {
-    @apply bg-[hsl(var(--color-vstep-primary-500))]
-    h-full
-    transition;
-  }
-
-}
-
-/* ---------------- UTILITIES ---------------- */
-
-@layer utilities {
-
-  .animate-fade-in {
-    animation: fadeIn .5s ease-in-out;
-  }
-
-  .animate-slide-up {
-    animation: slideUp .3s ease-out;
-  }
-
-}
-
-/* ---------------- ANIMATIONS ---------------- */
-
-@keyframes fadeIn {
-  from { opacity:0 }
-  to { opacity:1 }
-}
-
-@keyframes slideUp {
-  from {
-    opacity:0;
-    transform:translateY(10px);
-  }
-  to {
-    opacity:1;
-    transform:translateY(0);
   }
 }
 
-/* ---------------- SCROLLBAR ---------------- */
-
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width:8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background:#f1f1f1;
+  background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background:#c1c1c1;
-  border-radius:4px;
+  background: #888;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }

@@ -4,15 +4,15 @@ import { Sidebar } from '@/components/Sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { Role } from '@/config/routes';
 
-export default function DashboardLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
   
-  // Use user's role if available, otherwise default to 'user' for dashboard
-  const currentRole = ((user as any)?.role || 'user') as Role;
+  // Use user's role if available, otherwise default to 'admin' for demo purposes
+  const currentRole = ((user as any)?.role || 'admin') as Role;
 
   return (
     <div className="flex h-screen bg-gray-50/50 w-full overflow-hidden">
