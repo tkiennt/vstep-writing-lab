@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="FirebaseAdmin" Version="3.4.0" />
+    <PackageReference Include="Google.Cloud.Firestore" Version="4.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.2" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.16.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
@@ -16,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VstepWritingLab.Business\VstepWritingLab.Business.csproj" />
+    <ProjectReference Include="..\VstepWritingLab.Data\VstepWritingLab.Data.csproj" />
     <ProjectReference Include="..\VstepWritingLab.Shared\VstepWritingLab.Shared.csproj" />
   </ItemGroup>
 

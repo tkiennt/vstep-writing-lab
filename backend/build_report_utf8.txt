@@ -1,0 +1,18 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  VstepWritingLab.Shared -> D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Shared\bin\Debug\net9.0\VstepWritingLab.Shared.dll
+  VSTEPWritingAI -> D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\bin\Debug\net9.0\VSTEPWritingAI.dll
+  VstepWritingLab.Data -> D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Data\bin\Debug\net9.0\VstepWritingLab.Data.dll
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\Services\AuthService.cs(1,7): error CS0246: The type or namespace name 'FirebaseAdmin' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\VstepWritingLab.Business.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\Services\AiGradingService.cs(24,26): error CS0246: The type or namespace name 'IHttpClientFactory' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\VstepWritingLab.Business.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\Services\AiGradingService.cs(31,13): error CS0246: The type or namespace name 'IHttpClientFactory' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\VstepWritingLab.Business.csproj]
+
+Build FAILED.
+
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\Services\AuthService.cs(1,7): error CS0246: The type or namespace name 'FirebaseAdmin' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\VstepWritingLab.Business.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\Services\AiGradingService.cs(24,26): error CS0246: The type or namespace name 'IHttpClientFactory' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\VstepWritingLab.Business.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\Services\AiGradingService.cs(31,13): error CS0246: The type or namespace name 'IHttpClientFactory' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VstepWritingLab.Business\VstepWritingLab.Business.csproj]
+    0 Warning(s)
+    3 Error(s)
+
+Time Elapsed 00:00:01.58

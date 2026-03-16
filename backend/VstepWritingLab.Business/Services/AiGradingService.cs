@@ -7,11 +7,11 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using VSTEPWritingAI.Models.Common;
-using VSTEPWritingAI.Models.Firestore;
-using VSTEPWritingAI.Repositories;
+using VstepWritingLab.Shared.Models.Common;
+using VstepWritingLab.Shared.Models.Entities;
+using VstepWritingLab.Data.Repositories;
 
-namespace VSTEPWritingAI.Services
+namespace VstepWritingLab.Business.Services
 {
     public class AiGradingResult
     {
@@ -53,15 +53,12 @@ namespace VSTEPWritingAI.Services
 
             try
             {
-                // 1. Fetch Rubric
                 var rubric = await _rubricRepo.GetByTaskTypeAsync(submission.TaskType);
                 if (rubric == null) throw new Exception($"Rubric not found for {submission.TaskType}");
 
-                // 2. Construct Prompt
                 var systemPrompt = ConstructSystemPrompt(rubric);
                 var userPrompt = ConstructUserPrompt(submission, question, task);
 
-                // 3. Prepare Request
                 var requestBody = new GeminiRequest
                 {
                     SystemInstruction = new GeminiSystemInstruction
@@ -78,7 +75,6 @@ namespace VSTEPWritingAI.Services
                     }
                 };
 
-                // 4. Call API
                 using var client = _httpClientFactory.CreateClient("GeminiClient");
                 var response = await client.PostAsJsonAsync(url, requestBody);
                 
@@ -94,11 +90,9 @@ namespace VSTEPWritingAI.Services
                 if (string.IsNullOrWhiteSpace(jsonResult))
                     throw new Exception("Gemini returned empty content");
 
-                // 5. Parse Result
                 var output = JsonSerializer.Deserialize<AiGradingOutput>(jsonResult, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (output == null) throw new Exception("Failed to deserialize AI output");
 
-                // 6. Map to Domain Models
                 var result = new AiGradingResult
                 {
                     Score = new AiScoreModel
@@ -122,7 +116,6 @@ namespace VSTEPWritingAI.Services
                     }
                 };
 
-                // 7. Log Usage
                 var latency = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;
                 await LogUsageAsync(submission, modelName, geminiResponse.UsageMetadata, latency);
 
