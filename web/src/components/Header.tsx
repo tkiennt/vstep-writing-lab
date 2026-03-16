@@ -2,8 +2,12 @@ import React from 'react';
 import { Bell, Search, User as UserIcon, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Header({ role }: { role: 'user' | 'teacher' | 'admin' }) {
+  const { user, logout } = useAuth();
+  const initials = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
+  
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
       
@@ -32,18 +36,20 @@ export function Header({ role }: { role: 'user' | 'teacher' | 'admin' }) {
          <div className="group relative">
             <button className="flex items-center gap-2 hover:bg-gray-50 p-1 pr-3 rounded-full transition-colors border border-transparent hover:border-gray-200">
                <div className="w-8 h-8 rounded-full bg-vstep-dark text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                  N
+                  {initials}
                </div>
-               <span className="text-sm font-semibold text-gray-700 hidden sm:block">Nguyen Van A</span>
+               <span className="text-sm font-semibold text-gray-700 hidden sm:block">
+                  {user?.name || 'User'}
+               </span>
             </button>
 
             {/* Dropdown menu */}
             <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-1 group-hover:translate-y-0 z-50 overflow-hidden">
                <div className="p-4 border-b border-gray-50 bg-gray-50/50">
-                  <p className="text-sm font-bold text-gray-900">Nguyen Van A</p>
-                  <p className="text-xs font-medium text-gray-500 truncate mt-0.5">student@vnu.edu.vn</p>
+                  <p className="text-sm font-bold text-gray-900">{user?.name || 'User'}</p>
+                  <p className="text-xs font-medium text-gray-500 truncate mt-0.5">{user?.email}</p>
                   <span className="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700">
-                     Student
+                     {role}
                   </span>
                </div>
                <div className="p-2">
@@ -55,9 +61,9 @@ export function Header({ role }: { role: 'user' | 'teacher' | 'admin' }) {
                   </Link>
                </div>
                <div className="p-2 border-t border-gray-50">
-                  <Link href="/login" className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                  <button onClick={() => logout()} className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                      <LogOut className="w-4 h-4" /> Sign Out
-                  </Link>
+                  </button>
                </div>
             </div>
          </div>

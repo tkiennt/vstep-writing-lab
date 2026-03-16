@@ -15,12 +15,15 @@ import {
 } from 'lucide-react';
 import { Role } from '@/config/routes';
 
+import { useAuth } from '@/hooks/useAuth';
+
 interface SidebarProps {
   role: Role;
 }
 
 export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   // 1. Define menu items with allowed roles
   const MENU_ITEMS = [
@@ -82,7 +85,10 @@ export function Sidebar({ role }: SidebarProps) {
       </div>
 
       <div className="p-4 border-t border-gray-100">
-        <button className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors">
+        <button 
+          onClick={() => logout()}
+          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+        >
           <LogOut className="h-5 w-5 text-gray-400 group-hover:text-red-500" />
           <span className="text-sm font-medium">Log out</span>
         </button>
