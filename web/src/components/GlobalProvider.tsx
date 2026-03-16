@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { X, CheckCircle, AlertCircle, Info, Loader2 } from 'lucide-react';
+import { AuthProvider } from './AuthProvider';
 
 type ToastType = 'success' | 'error' | 'info' | 'loading';
 
@@ -55,7 +56,9 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
 
   return (
     <GlobalContext.Provider value={{ addToast, showModal, hideModal }}>
-      {children}
+      <AuthProvider>
+        {children}
+      </AuthProvider>
       
       {/* Toast Container */}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
