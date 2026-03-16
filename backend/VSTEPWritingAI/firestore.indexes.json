@@ -1,0 +1,45 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "UserId", "order": "ASCENDING" },
+        { "fieldPath": "CreatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "UserId", "order": "ASCENDING" },
+        { "fieldPath": "TaskType", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "questions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "IsActive", "order": "ASCENDING" },
+        { "fieldPath": "TaskType", "order": "ASCENDING" },
+        { "fieldPath": "Level", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sentenceTemplates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "TaskType", "order": "ASCENDING" },
+        { "fieldPath": "Category", "order": "ASCENDING" },
+        { "fieldPath": "IsActive", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "aiUsageLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "CreatedAt", "order": "ASCENDING" }
+      ]
+    }
+  ]
+}
