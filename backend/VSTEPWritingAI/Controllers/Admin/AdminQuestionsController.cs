@@ -26,6 +26,14 @@ namespace VSTEPWritingAI.Controllers.Admin
             return Ok(questions);
         }
 
+        // GET /api/admin/questions/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var question = await _adminQuestionService.GetByIdAsync(id);
+            return Ok(question);
+        }
+
         // POST /api/admin/questions
         [HttpPost]
         public async Task<IActionResult> Create(

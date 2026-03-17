@@ -25,6 +25,15 @@ namespace VSTEPWritingAI.Services
             return users.Select(MapToResponse).ToList();
         }
 
+        public async Task<AdminUserResponse> GetUserByIdAsync(string userId)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user == null)
+                throw new NotFoundException($"User {userId} not found");
+
+            return MapToResponse(user);
+        }
+
         public async Task<AdminUserResponse> UpdateUserAsync(
             string userId,
             UpdateUserRequest request)

@@ -28,7 +28,7 @@ namespace VSTEPWritingAI.Controllers.Admin
         // Upload tasks.json file
         // Run once before system goes live
 
-        [HttpPost("import/tasks")]
+        [HttpPost("tasks/import")]
         public async Task<IActionResult> ImportTasks(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -51,7 +51,7 @@ namespace VSTEPWritingAI.Controllers.Admin
         // Upload questions.json file
         // Can be run multiple times to add more questions
 
-        [HttpPost("import/questions")]
+        [HttpPost("questions/import")]
         public async Task<IActionResult> ImportQuestions(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -78,7 +78,7 @@ namespace VSTEPWritingAI.Controllers.Admin
         // Upload sentence templates JSON file
         // Can be run multiple times per category
 
-        [HttpPost("import/sentence-templates")]
+        [HttpPost("sentence-templates/import")]
         public async Task<IActionResult> ImportSentenceTemplates(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -98,7 +98,7 @@ namespace VSTEPWritingAI.Controllers.Admin
         // Seed rubrics from hardcoded VSTEP rubric data
         // Run once. Safe to re-run (uses MergeAll)
 
-        [HttpPost("seed/rubrics")]
+        [HttpPost("rubrics/seed")]
         public async Task<IActionResult> SeedRubrics()
         {
             var result = await _importService.SeedRubricsAsync();

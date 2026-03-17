@@ -26,8 +26,8 @@ namespace VSTEPWritingAI.Controllers.Admin
             return Ok(analytics);
         }
 
-        // GET /api/admin/ai-logs?from=2024-01-01&to=2024-06-30
-        [HttpGet("ai-logs")]
+        // GET /api/admin/ai-usage-logs?from=2024-01-01&to=2024-06-30
+        [HttpGet("ai-usage-logs")]
         public async Task<IActionResult> GetAiLogs(
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to)

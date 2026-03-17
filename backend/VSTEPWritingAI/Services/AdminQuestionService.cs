@@ -26,6 +26,15 @@ namespace VSTEPWritingAI.Services
             return questions.Select(MapToResponse).ToList();
         }
 
+        public async Task<QuestionResponse> GetByIdAsync(string questionId)
+        {
+            var question = await _questionRepo.GetByIdAsync(questionId);
+            if (question == null)
+                throw new NotFoundException($"Question {questionId} not found");
+
+            return MapToResponse(question);
+        }
+
         public async Task<QuestionResponse> CreateAsync(
             CreateQuestionRequest request)
         {

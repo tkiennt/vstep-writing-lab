@@ -26,6 +26,14 @@ namespace VSTEPWritingAI.Controllers.Admin
             return Ok(users);
         }
 
+        // GET /api/admin/users/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var user = await _adminUserService.GetUserByIdAsync(id);
+            return Ok(user);
+        }
+
         // PATCH /api/admin/users/{id}
         [HttpPatch("{id}")]
         public async Task<IActionResult> Update(
