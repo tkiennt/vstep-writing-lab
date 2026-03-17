@@ -7,16 +7,24 @@ using VSTEPWritingAI.Models.DTOs.Requests;
 using VSTEPWritingAI.Models.DTOs.Responses;
 using VSTEPWritingAI.Models.Firestore;
 using VSTEPWritingAI.Repositories;
+using VSTEPWritingAI.Services;
 
 namespace VSTEPWritingAI.Services
 {
     public class AdminUserService
     {
         private readonly UserRepository _userRepo;
+        private readonly SubmissionService _submissionService;
+        private readonly ProgressService _progressService;
 
-        public AdminUserService(UserRepository userRepo)
+        public AdminUserService(
+            UserRepository userRepo,
+            SubmissionService submissionService,
+            ProgressService progressService)
         {
             _userRepo = userRepo;
+            _submissionService = submissionService;
+            _progressService = progressService;
         }
 
         public async Task<List<AdminUserResponse>> GetAllUsersAsync()
@@ -69,6 +77,18 @@ namespace VSTEPWritingAI.Services
                 throw new NotFoundException($"User {userId} not found");
 
             await _userRepo.DeleteAsync(userId);
+        }
+
+        public async Task<List<SubmissionListItemResponse>> GetUserSubmissionsAsync(
+            string userId, string? status = null, int limit = 20)
+        {
+            // Reusing SubmissionService's logic but for admin access (no ownership check)
+            return await _submissionService.GetHistoryAsync(userId, limit);
+        }
+
+        public async Task<ProgressResponse> GetUserProgressAsync(string userId)
+        {
+            return await _progressService.GetByUserIdAsync(userId);
         }
 
         private AdminUserResponse MapToResponse(UserModel u) =>

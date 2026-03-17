@@ -90,6 +90,17 @@ namespace VSTEPWritingAI.Services
                 new Dictionary<string, object> { { "IsActive", false } });
         }
 
+        public async Task RestoreAsync(string questionId)
+        {
+            var question = await _questionRepo.GetByIdAsync(questionId);
+            if (question == null)
+                throw new NotFoundException($"Question {questionId} not found");
+
+            // Restore — set isActive = true
+            await _questionRepo.UpdateAsync(questionId,
+                new Dictionary<string, object> { { "IsActive", true } });
+        }
+
         private void ValidateCreateRequest(CreateQuestionRequest r)
         {
             var errors = new List<string>();

@@ -86,6 +86,7 @@ builder.Services.AddScoped<SubmissionService>();
 builder.Services.AddScoped<ProgressService>();
 builder.Services.AddScoped<RubricService>();
 builder.Services.AddScoped<SentenceTemplateService>();
+builder.Services.AddScoped<AdminSubmissionService>();
 builder.Services.AddScoped<AiGradingService>();
 builder.Services.AddScoped<DataImportService>();
 builder.Services.AddScoped<AdminUserService>();

@@ -60,5 +60,13 @@ namespace VSTEPWritingAI.Controllers.Admin
             await _adminQuestionService.DeleteAsync(id);
             return NoContent();
         }
+
+        // PATCH /api/admin/questions/{id}/restore
+        [HttpPatch("{id}/restore")]
+        public async Task<IActionResult> Restore(string id)
+        {
+            await _adminQuestionService.RestoreAsync(id);
+            return Ok(new { questionId = id, isActive = true });
+        }
     }
 }

@@ -51,5 +51,24 @@ namespace VSTEPWritingAI.Controllers.Admin
             await _adminUserService.DeleteUserAsync(id);
             return NoContent();
         }
+
+        // GET /api/admin/users/{id}/submissions
+        [HttpGet("{id}/submissions")]
+        public async Task<IActionResult> GetSubmissions(
+            string id, 
+            [FromQuery] string? status, 
+            [FromQuery] int limit = 20)
+        {
+            var submissions = await _adminUserService.GetUserSubmissionsAsync(id, status, limit);
+            return Ok(submissions);
+        }
+
+        // GET /api/admin/users/{id}/progress
+        [HttpGet("{id}/progress")]
+        public async Task<IActionResult> GetProgress(string id)
+        {
+            var progress = await _adminUserService.GetUserProgressAsync(id);
+            return Ok(progress);
+        }
     }
 }
