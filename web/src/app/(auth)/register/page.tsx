@@ -1,53 +1,109 @@
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+interface FormData { fullName: string; email: string; password: string; }
+interface FormErrors { fullName: string; email: string; password: string; }
+
+const inputBase = 'bg-slate-50 border text-slate-900 text-sm rounded-xl block w-full p-3.5 transition-colors outline-none focus:ring-2';
+const inputNormal = `${inputBase} border-slate-200 focus:ring-emerald-500/20 focus:border-emerald-500`;
+const inputError  = `${inputBase} border-red-400 focus:ring-red-500/20 focus:border-red-500`;
+
 export default function RegisterPage() {
+  const [formData, setFormData] = useState<FormData>({ fullName: '', email: '', password: '' });
+  const [errors, setErrors]     = useState<FormErrors>({ fullName: '', email: '', password: '' });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(p => ({ ...p, [name]: value }));
+    setErrors(p => ({ ...p, [name]: '' }));
+  };
+
+  const validateForm = (): boolean => {
+    const e: FormErrors = { fullName: '', email: '', password: '' };
+    let ok = true;
+    if (!formData.fullName.trim())                                          { e.fullName = 'Full name is required'; ok = false; }
+    if (!formData.email.trim())                                             { e.email = 'Email is required'; ok = false; }
+    else if (!/^[^\s@]+@[^\s@]+\.edu\.vn$/.test(formData.email.trim()))    { e.email = 'Please use a valid university email (.edu.vn)'; ok = false; }
+    if (!formData.password)                                                 { e.password = 'Password is required'; ok = false; }
+    else if (formData.password.length < 8)                                  { e.password = 'Password must be at least 8 characters'; ok = false; }
+    setErrors(e);
+    return ok;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) console.log('Success', formData);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+    <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-slate-50">
+
+      {/* Blob 1 — top left */}
+      <div className="absolute -top-20 -left-20 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl pointer-events-none" />
+      {/* Blob 2 — bottom right */}
+      <div className="absolute -bottom-32 -right-32 w-[30rem] h-[30rem] bg-teal-100/50 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Card */}
+      <div className="relative z-10 w-full max-w-md bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-10">
+
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-4 border border-emerald-100">
-            <BookOpen className="h-6 w-6 text-emerald-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Create your account</h2>
-          <p className="text-gray-500 mt-2 text-sm">Start your journey to VSTEP mastery today.</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Create an account</h1>
+          <p className="text-slate-500 mt-2 text-sm">Start your journey to VSTEP mastery today.</p>
         </div>
 
-        <form className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+
+          {/* Full Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <input 
-              type="text" 
-              placeholder="Nguyen Van A" 
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors bg-gray-50/50"
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
+            <input
+              type="text" name="fullName" value={formData.fullName}
+              onChange={handleChange} placeholder="Nguyen Van A"
+              className={errors.fullName ? inputError : inputNormal}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email bounds</label>
-            <input 
-              type="email" 
-              placeholder="you@university.edu.vn" 
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors bg-gray-50/50"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input 
-              type="password" 
-              placeholder="Create a strong password" 
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors bg-gray-50/50"
-            />
+            {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
           </div>
 
-          <Button className="w-full bg-vstep-dark hover:bg-emerald-900 text-white rounded-xl py-6 text-base font-semibold transition-all shadow-md shadow-emerald-900/10 mt-6">
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Email bounds</label>
+            <input
+              type="email" name="email" value={formData.email}
+              onChange={handleChange} placeholder="you@university.edu.vn"
+              className={errors.email ? inputError : inputNormal}
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+            <input
+              type="password" name="password" value={formData.password}
+              onChange={handleChange} placeholder="Create a strong password"
+              className={errors.password ? inputError : inputNormal}
+            />
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          </div>
+
+          {/* CTA Button */}
+          <button
+            type="submit"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold text-base hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 transform hover:-translate-y-0.5 mt-2"
+          >
             Get Started
-          </Button>
+          </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-600">
+        {/* Footer */}
+        <p className="mt-7 text-center text-sm text-slate-600">
           Already have an account?{' '}
-          <Link href="/login" className="font-semibold text-emerald-600 hover:text-emerald-700">
+          <Link href="/login" className="text-emerald-700 font-semibold hover:underline">
             Sign in
           </Link>
         </p>
