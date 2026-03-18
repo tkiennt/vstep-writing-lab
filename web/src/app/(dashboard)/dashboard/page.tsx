@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 
 // Simple mockup of a Line Chart since we don't have Recharts installed to keep it fast
 const MockLineChart = () => (
@@ -76,6 +77,9 @@ const MOCK_HISTORY = [
 
 export default function StudentDashboard() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const { user } = useAuth();
+  
+  const firstName = user?.name ? user.name.split(' ')[0] : 'User';
 
   const toggleRow = (id: string) => {
     if (expandedRow === id) setExpandedRow(null);
@@ -87,7 +91,7 @@ export default function StudentDashboard() {
       
       {/* Welcome Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome back, Nguyen</h1>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome back, {firstName}</h1>
         <p className="text-gray-500 mt-1">Here is a summary of your writing practice progress.</p>
       </div>
 
