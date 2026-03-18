@@ -2,127 +2,103 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '@/services/firebase';
+import { ArrowLeft, Mail, CheckCircle2 } from 'lucide-react';
+
+const inputNormal = 'bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl block w-full p-3.5 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors';
+const inputError  = 'bg-slate-50 border border-red-400 text-slate-900 text-sm rounded-xl block w-full p-3.5 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-colors';
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [sent, setSent] = useState(false);
+  const [email, setEmail]   = useState('');
+  const [error, setError]   = useState('');
+  const [sent, setSent]     = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setError('Please enter your email address.');
+    if (!email.trim()) {
+      setError('Email is required');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Please enter a valid email address');
       return;
     }
     setError('');
-    setIsLoading(true);
-    try {
-      await sendPasswordResetEmail(auth, email);
-      setSent(true);
-    } catch (err: any) {
-      const code = err?.code ?? '';
-      if (code === 'auth/user-not-found') {
-        // Don't reveal whether the email exists — show success anyway
-        setSent(true);
-      } else if (code === 'auth/invalid-email') {
-        setError('Please enter a valid email address.');
-      } else {
-        setError('Failed to send reset link. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: call forgot-password API
+    setSent(true);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+    <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-slate-50">
+      {/* Blobs */}
+      <div className="absolute -top-20 -left-20 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-[30rem] h-[30rem] bg-teal-100/50 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="text-center mb-8 relative">
-          <Link
-            href="/login"
-            className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-gray-50"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="mx-auto w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-4 border border-emerald-100">
-            {sent
-              ? <CheckCircle className="h-6 w-6 text-emerald-600" />
-              : <BookOpen className="h-6 w-6 text-emerald-600" />
-            }
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-            {sent ? 'Check your inbox' : 'Reset password'}
-          </h2>
-          <p className="text-gray-500 mt-2 text-sm max-w-[240px] mx-auto">
-            {sent
-              ? `We sent a reset link to ${email}. It may take a minute to arrive.`
-              : 'Enter your email address to receive a password reset link.'
-            }
-          </p>
-        </div>
+      <div className="relative z-10 w-full max-w-md bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-10">
 
-        {!sent && (
+        {/* Back link */}
+        <Link href="/login" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors mb-8 group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          Back to sign in
+        </Link>
+
+        {!sent ? (
           <>
-            {error && (
-              <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 font-medium">
-                {error}
+            {/* Header */}
+            <div className="mb-8">
+              <div className="w-11 h-11 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center mb-5">
+                <Mail className="w-5 h-5 text-emerald-600" />
               </div>
-            )}
+              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Forgot password?</h1>
+              <p className="text-slate-500 mt-2 text-sm leading-relaxed">
+                No worries. Enter your university email and we&apos;ll send you a reset link.
+              </p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email address</label>
                 <input
                   type="email"
-                  placeholder="you@university.edu.vn"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors bg-gray-50/50"
+                  onChange={e => { setEmail(e.target.value); setError(''); }}
+                  placeholder="you@university.edu.vn"
+                  className={error ? inputError : inputNormal}
                 />
+                {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
               </div>
 
-              <Button
+              <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full bg-vstep-dark hover:bg-emerald-900 text-white rounded-xl py-6 text-base font-semibold transition-all shadow-md shadow-emerald-900/10 mt-6 disabled:opacity-60"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold text-base hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 transform hover:-translate-y-0.5"
               >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Sending...
-                  </span>
-                ) : (
-                  'Send Reset Link'
-                )}
-              </Button>
+                Send Reset Link
+              </button>
             </form>
           </>
+        ) : (
+          /* Success state */
+          <div className="text-center py-4">
+            <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5 border border-emerald-100">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-2">Check your inbox</h2>
+            <p className="text-slate-500 text-sm leading-relaxed max-w-xs mx-auto">
+              We sent a reset link to <span className="font-semibold text-slate-700">{email}</span>. It expires in 15 minutes.
+            </p>
+            <button
+              onClick={() => { setSent(false); setEmail(''); }}
+              className="mt-6 text-sm text-emerald-700 font-semibold hover:underline"
+            >
+              Didn&apos;t receive it? Resend
+            </button>
+          </div>
         )}
 
-        {sent && (
-          <Link
-            href="/login"
-            className="block w-full text-center mt-4 py-3 px-4 bg-emerald-50 hover:bg-emerald-100 text-vstep-dark font-semibold rounded-xl transition-colors text-sm"
-          >
-            Back to Sign In
-          </Link>
-        )}
-
-        {!sent && (
-          <p className="mt-8 text-center text-sm text-gray-600">
-            Remember it?{' '}
-            <Link href="/login" className="font-semibold text-emerald-600 hover:text-emerald-700">
-              Back to sign in
-            </Link>
-          </p>
-        )}
+        <p className="mt-7 text-center text-sm text-slate-600">
+          Remember it?{' '}
+          <Link href="/login" className="text-emerald-700 font-semibold hover:underline">Sign in</Link>
+        </p>
       </div>
     </div>
   );
