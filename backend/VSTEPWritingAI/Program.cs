@@ -3,11 +3,15 @@ using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+
 using VSTEPWritingAI.Middleware;
 using VSTEPWritingAI.Repositories;
 using VSTEPWritingAI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Data Services ─────────────────────────────────────────────────────────
+// (SQLite removed, moving to Firestore entirely)
 
 // ── Firebase Admin SDK ────────────────────────────────────────────────────
 var credentialPath = builder.Configuration["Firebase:CredentialPath"];
@@ -73,7 +77,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<QuestionRepository>();
 builder.Services.AddScoped<SubmissionRepository>();
-builder.Services.AddScoped<ProgressRepository>();
+builder.Services.AddScoped<GradingRepository>();
 builder.Services.AddScoped<RubricRepository>();
 builder.Services.AddScoped<TaskRepository>();
 builder.Services.AddScoped<SentenceTemplateRepository>();
@@ -83,7 +87,7 @@ builder.Services.AddScoped<AiUsageLogRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<QuestionService>();
 builder.Services.AddScoped<SubmissionService>();
-builder.Services.AddScoped<ProgressService>();
+builder.Services.AddScoped<GradingService>();
 builder.Services.AddScoped<RubricService>();
 builder.Services.AddScoped<SentenceTemplateService>();
 builder.Services.AddScoped<AdminSubmissionService>();
@@ -129,4 +133,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+
 app.Run();

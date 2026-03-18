@@ -15,12 +15,12 @@ namespace VSTEPWritingAI.Services
     {
         private readonly UserRepository _userRepo;
         private readonly SubmissionService _submissionService;
-        private readonly ProgressService _progressService;
+        private readonly GradingService _progressService;
 
         public AdminUserService(
             UserRepository userRepo,
             SubmissionService submissionService,
-            ProgressService progressService)
+            GradingService progressService)
         {
             _userRepo = userRepo;
             _submissionService = submissionService;

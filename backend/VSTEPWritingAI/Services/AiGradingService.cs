@@ -9,7 +9,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using VSTEPWritingAI.Models.Common;
 using VSTEPWritingAI.Models.Firestore;
+using VSTEPWritingAI.Models.DTOs;
 using VSTEPWritingAI.Repositories;
+using Google.Apis.Auth.OAuth2;
+using System.Net.Http.Headers;
 
 namespace VSTEPWritingAI.Services
 {
@@ -27,19 +30,33 @@ namespace VSTEPWritingAI.Services
         private readonly AiUsageLogRepository _aiLogRepo;
         private readonly ILogger<AiGradingService> _logger;
 
+        private readonly QuestionRepository _questionRepo;
+        private readonly TaskRepository _taskRepo;
+
         public AiGradingService(
             IHttpClientFactory httpClientFactory,
             IConfiguration config,
             RubricRepository rubricRepo,
+            QuestionRepository questionRepo,
+            TaskRepository taskRepo,
             AiUsageLogRepository aiLogRepo,
             ILogger<AiGradingService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _config            = config;
             _rubricRepo        = rubricRepo;
+            _questionRepo      = questionRepo;
+            _taskRepo          = taskRepo;
             _aiLogRepo         = aiLogRepo;
             _logger            = logger;
         }
+        private string MapScoreToCefr(double score) => score switch
+        {
+            >= 8.5 => "C1",
+            >= 6.5 => "B2",
+            >= 4.0 => "B1",
+            _      => "A2"
+        };
 
         public async Task<AiGradingResult> GradeAsync(
             SubmissionModel submission,
@@ -47,9 +64,20 @@ namespace VSTEPWritingAI.Services
             TaskModel task)
         {
             var startTime = DateTime.UtcNow;
-            var apiKey = _config["Gemini:ApiKey"];
             var modelName = _config["Gemini:Model"] ?? "gemini-2.0-flash";
-            var url = $"v1beta/models/{modelName}:generateContent?key={apiKey}";
+            
+            string url;
+            if (modelName.StartsWith("projects/"))
+            {
+                // Parse location from string (e.g., projects/123/locations/us-central1/...)
+                var parts = modelName.Split('/');
+                var location = parts.Length > 3 ? parts[3] : "us-central1";
+                url = $"https://{location}-aiplatform.googleapis.com/v1/{modelName}:generateContent";
+            }
+            else
+            {
+                url = $"v1beta/models/{modelName}:generateContent";
+            }
 
             try
             {
@@ -80,6 +108,11 @@ namespace VSTEPWritingAI.Services
 
                 // 4. Call API
                 using var client = _httpClientFactory.CreateClient("GeminiClient");
+                
+                var credential = await GoogleCredential.GetApplicationDefaultAsync();
+                var token      = await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
                 var response = await client.PostAsJsonAsync(url, requestBody);
                 
                 if (!response.IsSuccessStatusCode)

@@ -1,0 +1,17 @@
+﻿  Determining projects to restore...
+  Restored D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\VSTEPWritingAI.csproj (in 1.93 sec).
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\Services\AiGradingService.cs(55,53): error CS0246: The type or namespace name 'GradingRequest' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\VSTEPWritingAI.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\Services\GradingService.cs(173,86): error CS0246: The type or namespace name 'AiScoreModel' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\VSTEPWritingAI.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\Services\AiGradingService.cs(55,27): error CS0246: The type or namespace name 'GradingResult' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\VSTEPWritingAI.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\Services\GradingService.cs(195,27): error CS0246: The type or namespace name 'ProgressResponse' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\VSTEPWritingAI.csproj]
+
+Build FAILED.
+
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\Services\AiGradingService.cs(55,53): error CS0246: The type or namespace name 'GradingRequest' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\VSTEPWritingAI.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\Services\GradingService.cs(173,86): error CS0246: The type or namespace name 'AiScoreModel' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\VSTEPWritingAI.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\Services\AiGradingService.cs(55,27): error CS0246: The type or namespace name 'GradingResult' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\VSTEPWritingAI.csproj]
+D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\Services\GradingService.cs(195,27): error CS0246: The type or namespace name 'ProgressResponse' could not be found (are you missing a using directive or an assembly reference?) [D:\FPT STUDY\8_SPRING 2026\SWD392\vstep-writing-lab\backend\VSTEPWritingAI\VSTEPWritingAI.csproj]
+    0 Warning(s)
+    4 Error(s)
+
+Time Elapsed 00:00:05.06

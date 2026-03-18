@@ -18,7 +18,7 @@ namespace VSTEPWritingAI.Services
         private readonly QuestionRepository _questionRepo;
         private readonly TaskRepository _taskRepo;
         private readonly AiGradingService _aiGradingService;
-        private readonly ProgressService _progressService;
+        private readonly GradingService _progressService;
         private readonly ILogger<SubmissionService> _logger;
 
         public SubmissionService(
@@ -26,7 +26,7 @@ namespace VSTEPWritingAI.Services
             QuestionRepository questionRepo,
             TaskRepository taskRepo,
             AiGradingService aiGradingService,
-            ProgressService progressService,
+            GradingService progressService,
             ILogger<SubmissionService> logger)
         {
             _submissionRepo   = submissionRepo;
