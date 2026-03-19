@@ -12,7 +12,7 @@ const PROTECTED_ROUTES = [
 ];
 
 // Routes only for unauthenticated users
-const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
+const AUTH_ROUTES = ['/login', '/forgot-password'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -29,11 +29,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // If already authenticated and trying to access login/register → redirect to /dashboard
+  // If already authenticated and trying to access login/register, 
+  // we now handle this client-side in the pages themselves to avoid "fake" logins from stale cookies.
+  /*
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
   if (isAuthRoute && isAuthenticated) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
+  */
 
   return NextResponse.next();
 }

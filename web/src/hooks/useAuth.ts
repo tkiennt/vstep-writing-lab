@@ -1,9 +1,18 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { onIdTokenChanged, User as FirebaseUser } from 'firebase/auth';
-import { auth } from '@/services/firebase';
+import { 
+  onIdTokenChanged, 
+  User as FirebaseUser, 
+  signInWithPopup, 
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut as firebaseSignOut
+} from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { useAuthStore } from '@/store/useAuthStore';
-import { authService } from '@/services/authService';
+import { syncUser } from '@/lib/auth-sync';
 
 function clearAuthCookie() {
   document.cookie = 'firebase-token=; path=/; max-age=0; SameSite=Strict';
@@ -11,28 +20,42 @@ function clearAuthCookie() {
 
 export const useAuth = () => {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, setUser, setLoading, logout } = useAuthStore();
+  const { user, userDoc, isAuthenticated, isLoading, setUser, setLoading, logout } = useAuthStore();
 
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      // Only show global loading if we don't have a user yet
+      if (!isAuthenticated) {
+        setLoading(true);
+      }
+
       if (firebaseUser) {
         try {
-          // Refresh the cookie on every auth state change (e.g., page reload)
           const token = await firebaseUser.getIdToken();
-          document.cookie = `firebase-token=${token}; path=/; max-age=3600; SameSite=Strict`;
+          document.cookie = `firebase-token=${token}; path=/; SameSite=Strict`;
+
+          // Sync with backend (non-blocking if we already have a user)
+          const doc = await syncUser(firebaseUser);
 
           setUser({
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
-            name: firebaseUser.displayName || '',
-            avatarUrl: firebaseUser.photoURL || undefined,
-            targetLevel: 'B2',
+            name: doc.displayName || firebaseUser.displayName || '',
+            avatarUrl: doc.avatarUrl || firebaseUser.photoURL || undefined,
+            targetLevel: (doc.targetLevel as any) || 'B2',
             createdAt: new Date(),
             updatedAt: new Date(),
-          });
-        } catch (error) {
-          console.error('Error refreshing auth token:', error);
-          setUser(null);
+          }, doc);
+
+        } catch (error: any) {
+          console.error('Error syncing user:', error);
+          // If it's a timeout or network error, and we already have a user, just log it
+          if (isAuthenticated) {
+            console.warn('Background sync failed, keeping current session');
+          } else {
+            alert(`Lỗi đồng bộ tài khoản: ${error.message || 'Vui lòng thử lại sau.'}`);
+            setUser(null, null);
+          }
         }
       } else {
         clearAuthCookie();
@@ -42,21 +65,28 @@ export const useAuth = () => {
     });
 
     return () => unsubscribe();
-  }, [setUser, setLoading, logout]);
+  }, [setUser, setLoading, logout, isAuthenticated]);
 
-  const requireAuth = (callback: () => void) => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    callback();
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const signUpWithEmail = async (email: string, password: string, name: string) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(userCredential.user, { displayName: name });
+    // onIdTokenChanged will handle the rest
   };
 
   const handleLogout = async () => {
     try {
-      await authService.logout(); // Firebase signOut
+      await firebaseSignOut(auth);
       clearAuthCookie();
-      logout(); // Zustand store clear
+      logout();
       router.push('/login');
     } catch (error) {
       console.error('Logout error:', error);
@@ -65,9 +95,12 @@ export const useAuth = () => {
 
   return {
     user,
+    userDoc,
     isAuthenticated,
     isLoading,
-    requireAuth,
+    signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
     logout: handleLogout,
   };
 };

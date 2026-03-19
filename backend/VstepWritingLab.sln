@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VstepWritingLab.Data", "Vst
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VstepWritingLab.Shared", "VstepWritingLab.Shared\VstepWritingLab.Shared.csproj", "{ECCEDAB0-F3ED-47A8-B310-DBFE7C246758}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VstepWritingLab.Domain", "VstepWritingLab.Domain\VstepWritingLab.Domain.csproj", "{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{ECCEDAB0-F3ED-47A8-B310-DBFE7C246758}.Release|x64.Build.0 = Release|Any CPU
 		{ECCEDAB0-F3ED-47A8-B310-DBFE7C246758}.Release|x86.ActiveCfg = Release|Any CPU
 		{ECCEDAB0-F3ED-47A8-B310-DBFE7C246758}.Release|x86.Build.0 = Release|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Debug|x64.Build.0 = Debug|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Debug|x86.Build.0 = Debug|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Release|x64.ActiveCfg = Release|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Release|x64.Build.0 = Release|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Release|x86.ActiveCfg = Release|Any CPU
+		{BB03B0FF-7C0D-43F2-BDDA-8A03D3804E8D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
