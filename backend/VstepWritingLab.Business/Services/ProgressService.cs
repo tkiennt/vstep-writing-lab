@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using VstepWritingLab.Shared.Models.Common;
 using VstepWritingLab.Shared.Models.DTOs.Responses;
 using VstepWritingLab.Shared.Models.Entities;
-using VstepWritingLab.Data.Repositories;
+using VstepWritingLab.Business.Interfaces;
 
 namespace VstepWritingLab.Business.Services
 {
     public class ProgressService
     {
-        private readonly ProgressRepository _progressRepo;
+        private readonly ILegacyProgressRepository _progressRepo;
 
-        public ProgressService(ProgressRepository progressRepo)
+        public ProgressService(ILegacyProgressRepository progressRepo)
         {
             _progressRepo = progressRepo;
         }

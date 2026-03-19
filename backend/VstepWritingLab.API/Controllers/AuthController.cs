@@ -20,33 +20,67 @@ namespace VstepWritingLab.API.Controllers
             _authService = authService;
         }
 
-        [HttpPost("register")]
+        [HttpPost("sync")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Sync()
         {
-            if (string.IsNullOrWhiteSpace(request.FirebaseToken))
-                return BadRequest(new { message = "firebaseToken is required" });
+            var authHeader = Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                return Unauthorized(new { message = "Bearer token required" });
 
-            if (string.IsNullOrWhiteSpace(request.DisplayName))
-                return BadRequest(new { message = "displayName is required" });
+            var token = authHeader.Substring(7);
 
             try
             {
-                var user = await _authService.RegisterAsync(
-                    request.FirebaseToken,
-                    request.DisplayName);
+                var (user, isNew) = await _authService.SyncUserAsync(token);
 
-                return Ok(new
+                var response = new
                 {
-                    userId      = user.UserId,
-                    email       = user.Email,
+                    userId = user.UserId,
+                    email = user.Email,
                     displayName = user.DisplayName,
-                    role        = user.Role
-                });
+                    avatarUrl = user.AvatarUrl,
+                    role = user.Role,
+                    onboardingCompleted = user.OnboardingCompleted,
+                    currentLevel = user.CurrentLevel,
+                    targetLevel = user.TargetLevel,
+                    isNewUser = isNew
+                };
+
+                if (isNew)
+                    return Created($"/api/users/{user.UserId}", response);
+
+                return Ok(response);
             }
-            catch (UnauthorizedException ex)
+            catch (Exception ex)
             {
                 return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("onboarding")]
+        [Authorize]
+        public async Task<IActionResult> UpdateOnboarding([FromBody] OnboardingRequest request)
+        {
+            var uid = this.GetUserId();
+            if (string.IsNullOrEmpty(uid)) 
+                return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(request.DisplayName) || 
+                string.IsNullOrWhiteSpace(request.CurrentLevel) || 
+                string.IsNullOrWhiteSpace(request.TargetLevel))
+            {
+                return BadRequest(new { message = "All fields are required" });
+            }
+
+            try
+            {
+                await _authService.UpdateOnboardingAsync(uid, request.DisplayName, request.CurrentLevel, request.TargetLevel);
+                return Ok(new { message = "Onboarding completed" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
 

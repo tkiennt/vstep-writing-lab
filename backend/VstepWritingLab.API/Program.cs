@@ -7,6 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using VstepWritingLab.API.Middleware;
 using VstepWritingLab.Data.Repositories;
 using VstepWritingLab.Business.Services;
+using VstepWritingLab.Business.Interfaces;
+using VstepWritingLab.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,13 +58,13 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("admin"));
 });
 
-// ── CORS ──────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
                 "http://localhost:3000",   // React dev
+                "http://localhost:3001",   // Next.js dev alternate port
                 "http://localhost:5173",   // Vite dev
                 "https://your-production-domain.com")
             .AllowAnyHeader()
@@ -70,17 +72,20 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ── Repositories ──────────────────────────────────────────────────────────
-builder.Services.AddScoped<UserRepository>();
-builder.Services.AddScoped<QuestionRepository>();
-builder.Services.AddScoped<SubmissionRepository>();
-builder.Services.AddScoped<ProgressRepository>();
-builder.Services.AddScoped<RubricRepository>();
-builder.Services.AddScoped<TaskRepository>();
-builder.Services.AddScoped<SentenceTemplateRepository>();
-builder.Services.AddScoped<AiUsageLogRepository>();
+// ── Infrastructure & Application (Clean Architecture) ────────────────────────
+builder.Services.AddInfrastructure();
 
-// ── Services ──────────────────────────────────────────────────────────────
+// ── Legacy Repositories ──────────────────────────────────────────────────────
+builder.Services.AddScoped<ILegacyUserRepository, UserRepository>();
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<ISubmissionRepository, SubmissionRepository>();
+builder.Services.AddScoped<ILegacyProgressRepository, ProgressRepository>();
+builder.Services.AddScoped<IRubricRepository, RubricRepository>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<ISentenceTemplateRepository, SentenceTemplateRepository>();
+builder.Services.AddScoped<IAiUsageLogRepository, AiUsageLogRepository>();
+
+// ── Legacy Services ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<QuestionService>();
 builder.Services.AddScoped<SubmissionService>();
@@ -91,6 +96,7 @@ builder.Services.AddScoped<AdminUserService>();
 builder.Services.AddScoped<AdminQuestionService>();
 builder.Services.AddScoped<AdminAnalyticsService>();
 builder.Services.AddScoped<RubricService>();
+builder.Services.AddScoped<IOutlineService, OutlineService>();
 
 // ── HttpClient for Gemini API ─────────────────────────────────────────────
 builder.Services.AddHttpClient("GeminiClient", client =>
@@ -101,6 +107,9 @@ builder.Services.AddHttpClient("GeminiClient", client =>
 
 // ── Middleware ───────────────────────────────────────────────────────────
 builder.Services.AddTransient<GlobalExceptionHandler>();
+
+builder.Services.AddMemoryCache();
+builder.Services.AddResponseCaching();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -122,9 +131,8 @@ app.UseCors("AllowFrontend");
 app.UseMiddleware<GlobalExceptionHandler>();
 
 // Firebase custom middleware (role check)
-app.UseFirebaseAuth();
-
 app.UseAuthentication();
+app.UseMiddleware<FirebaseAuthMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

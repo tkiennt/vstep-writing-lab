@@ -9,10 +9,10 @@
  *  - Custom ApiError with HTTP status
  */
 import { auth } from '@/lib/firebase';
-import type { GradingResult, ExamPrompt, GradingRequest } from '@/types/grading';
+import type { GradingResult, ExamPrompt } from '@/types/grading';
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://localhost:5001';
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://localhost:7133';
 
 // ── Error class ──────────────────────────────────────────────
 export class ApiError extends Error {
@@ -27,10 +27,26 @@ export class ApiError extends Error {
 
 // ── Helpers ──────────────────────────────────────────────────
 
+// ── Token Cache ───────────────────────────────────────────────
+let _cachedToken: string | null = null;
+let _tokenExpiresAt = 0;
+
 async function getIdToken(): Promise<string | null> {
   try {
     const user = auth.currentUser;
-    return user ? await user.getIdToken() : null;
+    if (!user) return null;
+    
+    const now = Date.now();
+    // Reuse cached token if still valid (with 60s buffer before expiry)
+    if (_cachedToken && now < _tokenExpiresAt - 60_000) {
+      return _cachedToken;
+    }
+    
+    // false = don't force-refresh (uses Firebase's built-in cache)
+    _cachedToken = await user.getIdToken(false);
+    // Firebase tokens expire in 1 hour
+    _tokenExpiresAt = now + 60 * 60 * 1000;
+    return _cachedToken;
   } catch {
     return null;
   }
@@ -69,7 +85,7 @@ interface FetchOptions {
 
 async function fetchWithRetry<T>(
   path: string,
-  { method = 'GET', body, timeoutMs = 10_000 }: FetchOptions,
+  { method = 'GET', body, timeoutMs = 5_000 }: FetchOptions,
   attempt = 0
 ): Promise<T> {
   const token = await getIdToken();
@@ -109,15 +125,6 @@ async function fetchWithRetry<T>(
  * Submit an essay for AI grading.
  * Timeout: 30 s (AI takes a while), 1 retry on 5xx/network error.
  */
-export async function gradeEssay(
-  request: GradingRequest
-): Promise<GradingResult> {
-  const { studentId, ...body } = request;
-  return fetchWithRetry<GradingResult>(
-    `/api/grading/grade?studentId=${encodeURIComponent(studentId)}`,
-    { method: 'POST', body, timeoutMs: 30_000 }
-  );
-}
 
 /**
  * Fetch active exam prompts, optionally filtered by taskType / cefrLevel.
@@ -131,7 +138,7 @@ export async function getExamPrompts(params?: {
   if (params?.taskType) qs.set('taskType', params.taskType);
   if (params?.cefrLevel) qs.set('cefrLevel', params.cefrLevel);
   const query = qs.toString() ? `?${qs.toString()}` : '';
-  return fetchWithRetry<ExamPrompt[]>(`/api/exam-prompts${query}`, {
-    timeoutMs: 10_000,
+  return fetchWithRetry<ExamPrompt[]>(`/api/v2/ExamPrompts${query}`, {
+    timeoutMs: 3_000,
   });
 }

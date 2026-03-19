@@ -53,55 +53,30 @@ export interface Correction {
 
 // ── Full grading result (API response) ──────────────────────
 export interface GradingResult {
-  essayId: string;
-  taskType: 'task1' | 'task2';
+  score: {
+    taskFulfilment: number;
+    organization: number;
+    vocabulary: number;
+    grammar: number;
+    overall: number;
+  };
+  summary: string;
+  suggestions: string[];
+  annotations: Annotation[];
+  sentenceAnalysis: SentenceAnalysis[];
+  suggestedStructures: SuggestedStructure[];
   taskRelevance: TaskRelevanceResult;
-  taskFulfilment: CriterionResult;
-  organization: CriterionResult;
-  vocabulary: CriterionResult;
-  grammar: CriterionResult;
-  totalScore: number; // 0-10
-  cefrLevel: string; // "B1" | "B2" | "C1" | "C1+"
-  vstepComparison: string;
-  strengthsVi: string[];
-  improvementsVi: string[];
-  corrections: Correction[];
-}
-
-// ── Grading request payload ──────────────────────────────────
-export interface GradingRequest {
-  essayId: string;
-  taskType: 'task1' | 'task2';
-  prompt: string;
-  essayText: string;
-  wordCount: number;
-  studentId: string;
 }
 
 // ── Firestore grading_results document ──────────────────────
 export interface GradingResultDoc extends GradingResult {
-  docId: string; // Firestore auto-ID
-  studentId: string;
-  examId: string;
-  gradedAt: Date;
+  id?: string;
+  userUid: string;
+  promptId: string;
   essayText: string;
   wordCount: number;
-  aiModel: string;
-  isRelevant: boolean;
-  relevanceScore: number;
-  verdictVi: string;
-  missingPointsVi: string[];
-  offTopicSentences: string[];
-  taskFulfilmentScore: number;
-  organizationScore: number;
-  vocabularyScore: number;
-  grammarScore: number;
-  feedbackByCategory: {
-    taskFulfilment: CriterionResult;
-    organization: CriterionResult;
-    vocabulary: CriterionResult;
-    grammar: CriterionResult;
-  };
+  cefrLevel: string;
+  createdAt: any;
 }
 
 // ── Progress summary (Firestore: users/{uid}/progress/summary) ──
@@ -140,3 +115,62 @@ export const MIN_WORD_COUNT: Record<'task1' | 'task2', number> = {
   task1: 120,
   task2: 250,
 };
+
+export type AnnotationType = "grammar"|"vocab_weak"|"vocab_repeat"|"off_topic"|"strength";
+export type AnnotationSeverity = "error"|"warning"|"info"|"good";
+
+export interface Annotation {
+  startIndex:  number;
+  endIndex:    number;
+  type:        AnnotationType;
+  message:     string;
+  suggestion:  string | null;
+  severity:    AnnotationSeverity;
+}
+
+export interface SentenceAnalysis {
+  sentence:        string;
+  quality:         "strong" | "adequate" | "weak";
+  feedbackVi:      string;
+  improvedVersion: string | null;
+  structureUsed:   string;
+}
+
+export interface SuggestedStructure {
+  structure: string;
+  example:   string;
+  usageTip:  string;
+}
+
+export interface LearningRoadmapItem {
+  criterion:    string;
+  currentScore: number;
+  targetScore:  number;
+  weeklyGoal:   string;
+  resources:    string[];
+}
+
+export interface DraftState {
+  examId:        string;
+  taskType:      "task1" | "task2";
+  essayText:     string;
+  wordCount:     number;
+  mode:          "free" | "guided";
+  guidedState?:  GuidedState;
+  elapsedSeconds:number;
+  isPaused:      boolean;
+  updatedAt?:    any; // FieldValue or Date
+}
+
+export interface GuidedState {
+  currentStep:    number;
+  outline:        OutlineStep[];
+  completedSteps: number[];
+  hints:          Record<number, string>;
+}
+
+export interface OutlineStep {
+  index: number;
+  title: string;
+  hint: string;
+}

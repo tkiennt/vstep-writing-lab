@@ -2,94 +2,72 @@ using FirebaseAdmin.Auth;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
-namespace VstepWritingLab.API.Middleware
+namespace VstepWritingLab.API.Middleware;
+
+public class FirebaseAuthMiddleware(
+    RequestDelegate next,
+    ILogger<FirebaseAuthMiddleware> logger)
 {
-    public class FirebaseAuthMiddleware
+    public async Task InvokeAsync(HttpContext context, FirestoreDb db)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<FirebaseAuthMiddleware> _logger;
+        var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
 
-        public FirebaseAuthMiddleware(
-            RequestDelegate next,
-            ILogger<FirebaseAuthMiddleware> logger)
+        if (authHeader != null && authHeader.StartsWith("Bearer "))
         {
-            _next = next;
-            _logger = logger;
-        }
+            var token = authHeader.Substring("Bearer ".Length).Trim();
 
-        public async Task InvokeAsync(HttpContext context, FirestoreDb db)
-        {
-            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-
-            if (authHeader != null && authHeader.StartsWith("Bearer "))
+            try
             {
-                var token = authHeader.Substring("Bearer ".Length).Trim();
+                var decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(token);
+                var uid = decodedToken.Uid;
 
-                try
+                var userDoc = await db.Collection("users").Document(uid).GetSnapshotAsync();
+
+                var role = "student"; 
+                var isActive = true;
+
+                if (userDoc.Exists)
                 {
-                    var decodedToken = await FirebaseAuth.DefaultInstance
-                        .VerifyIdTokenAsync(token);
+                    if (userDoc.TryGetValue<string>("Role", out var r1)) role = r1;
+                    else if (userDoc.TryGetValue<string>("role", out var r2)) role = r2;
 
-                    var uid = decodedToken.Uid;
-
-                    var userDoc = await db.Collection("users")
-                        .Document(uid)
-                        .GetSnapshotAsync();
-
-                    var role = "student"; 
-                    var isActive = true;
-
-                    if (userDoc.Exists)
-                    {
-                        role     = userDoc.GetValue<string>("Role") ?? "student";
-                        isActive = userDoc.GetValue<bool>("IsActive");
-                    }
-
-                    if (!isActive)
-                    {
-                        context.Response.StatusCode = 403;
-                        await context.Response.WriteAsJsonAsync(new
-                        {
-                            message = "Account has been deactivated"
-                        });
-                        return;
-                    }
-
-                    var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.NameIdentifier, uid),
-                        new Claim(ClaimTypes.Email,
-                            decodedToken.Claims.GetValueOrDefault("email")
-                                ?.ToString() ?? ""),
-                        new Claim(ClaimTypes.Role, role),
-                        new Claim("uid", uid),
-                        new Claim("role", role)
-                    };
-
-                    var identity  = new ClaimsIdentity(claims, "Firebase");
-                    var principal = new ClaimsPrincipal(identity);
-                    context.User  = principal;
-
-                    _ = db.Collection("users").Document(uid).UpdateAsync(
-                        "LastLoginAt", Timestamp.GetCurrentTimestamp());
+                    if (userDoc.TryGetValue<bool>("IsActive", out var ia1)) isActive = ia1;
+                    else if (userDoc.TryGetValue<bool>("isActive", out var ia2)) isActive = ia2;
                 }
-                catch (FirebaseAuthException ex)
+
+                if (!isActive)
                 {
-                    _logger.LogWarning("Invalid Firebase token: {Message}", ex.Message);
+                    context.Response.StatusCode = 403;
+                    await context.Response.WriteAsJsonAsync(new { message = "Account has been deactivated" });
+                    return;
                 }
-                catch (Exception ex)
+
+                var claims = new List<Claim>
                 {
-                    _logger.LogError(ex, "Unexpected error in auth middleware");
-                }
+                    new Claim(ClaimTypes.NameIdentifier, uid),
+                    new Claim(ClaimTypes.Email, decodedToken.Claims.GetValueOrDefault("email")?.ToString() ?? ""),
+                    new Claim(ClaimTypes.Role, role),
+                    new Claim("uid", uid),
+                    new Claim("role", role)
+                };
+
+                var identity = new ClaimsIdentity(claims, "Firebase");
+                context.User = new ClaimsPrincipal(identity);
+
+                _ = db.Collection("users").Document(uid).UpdateAsync("LastActiveAt", Google.Cloud.Firestore.Timestamp.GetCurrentTimestamp());
             }
-
-            await _next(context);
+            catch (FirebaseAuthException ex)
+            {
+                logger.LogWarning("Invalid Firebase token: {Message}", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Unexpected error in auth middleware");
+            }
         }
+
+        await next(context);
     }
 }

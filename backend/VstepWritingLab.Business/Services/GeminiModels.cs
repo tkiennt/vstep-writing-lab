@@ -89,10 +89,13 @@ namespace VstepWritingLab.Business.Services
 
     public class AiGradingOutput
     {
-        public AiGradingOutputScore Score { get; set; }
-        public string Summary { get; set; }
-        public List<string> Suggestions { get; set; }
-        public List<AiGradingOutputHighlight> Highlights { get; set; }
+        public AiGradingOutputScore Score { get; set; } = new();
+        public string Summary { get; set; } = string.Empty;
+        public List<string> Suggestions { get; set; } = new();
+        public List<AiAnnotation> Annotations { get; set; } = new();
+        public List<AiSentenceAnalysis> SentenceAnalysis { get; set; } = new();
+        public List<AiSuggestedStructure> SuggestedStructures { get; set; } = new();
+        public TaskRelevanceResult TaskRelevance { get; set; } = new();
     }
 
     public class AiGradingOutputScore
@@ -104,10 +107,38 @@ namespace VstepWritingLab.Business.Services
         public double Overall { get; set; }
     }
 
-    public class AiGradingOutputHighlight
+    public class AiAnnotation
     {
-        public string Text { get; set; }
-        public string Issue { get; set; }
-        public string Type { get; set; } // "grammar" | "vocabulary" | "structure"
+        public int StartIndex { get; set; }
+        public int EndIndex { get; set; }
+        public string Type { get; set; } = string.Empty; // "grammar"|"vocab_weak"|"vocab_repeat"|"off_topic"|"strength"
+        public string Message { get; set; } = string.Empty;
+        public string? Suggestion { get; set; }
+        public string Severity { get; set; } = "info"; // "error"|"warning"|"info"|"good"
+    }
+
+    public class AiSentenceAnalysis
+    {
+        public string Sentence { get; set; } = string.Empty;
+        public string Quality { get; set; } = "adequate"; // "strong"|"adequate"|"weak"
+        public string FeedbackVi { get; set; } = string.Empty;
+        public string? ImprovedVersion { get; set; }
+        public string StructureUsed { get; set; } = string.Empty;
+    }
+
+    public class AiSuggestedStructure
+    {
+        public string Structure { get; set; } = string.Empty;
+        public string Example { get; set; } = string.Empty;
+        public string UsageTip { get; set; } = string.Empty;
+    }
+
+    public class TaskRelevanceResult
+    {
+        public bool IsRelevant { get; set; }
+        public int RelevanceScore { get; set; }
+        public string VerdictVi { get; set; } = string.Empty;
+        public List<string> MissingPointsVi { get; set; } = new();
+        public List<string> OffTopicSentencesEn { get; set; } = new();
     }
 }

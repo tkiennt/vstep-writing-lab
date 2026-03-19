@@ -1,20 +1,15 @@
+using VstepWritingLab.Business.Interfaces;
 using Google.Cloud.Firestore;
 using VstepWritingLab.Shared.Models.Entities;
 using VstepWritingLab.Data.Repositories.Base;
-using System.Threading.Tasks;
 
-namespace VstepWritingLab.Data.Repositories
+namespace VstepWritingLab.Data.Repositories;
+
+public class RubricRepository(FirestoreDb db) : BaseRepository<RubricModel>(db, "rubrics"), IRubricRepository
 {
-    public class RubricRepository : BaseRepository<RubricModel>
+    public async Task<RubricModel?> GetByTaskTypeAsync(string taskType, CancellationToken ct = default)
     {
-        public RubricRepository(FirestoreDb db)
-            : base(db, "rubrics") { }
-
-        public async Task<RubricModel?> GetByTaskTypeAsync(string taskType)
-        {
-            // Document ID convention: "vstep_task1" | "vstep_task2"
-            var id = $"vstep_{taskType}";
-            return await GetByIdAsync(id);
-        }
+        var snapshot = await Collection.WhereEqualTo("TaskType", taskType).GetSnapshotAsync(ct);
+        return snapshot.Documents.FirstOrDefault()?.ConvertTo<RubricModel>();
     }
 }

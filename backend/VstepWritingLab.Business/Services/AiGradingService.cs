@@ -9,29 +9,34 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using VstepWritingLab.Shared.Models.Common;
 using VstepWritingLab.Shared.Models.Entities;
-using VstepWritingLab.Data.Repositories;
+using VstepWritingLab.Business.Interfaces;
 
 namespace VstepWritingLab.Business.Services
 {
     public class AiGradingResult
     {
-        public AiScoreModel Score { get; set; }
-        public AiFeedbackModel Feedback { get; set; }
+        public AiGradingOutputScore Score { get; set; } = new();
+        public string Summary { get; set; } = string.Empty;
+        public List<string> Suggestions { get; set; } = new();
+        public List<AiAnnotation> Annotations { get; set; } = new();
+        public List<AiSentenceAnalysis> SentenceAnalysis { get; set; } = new();
+        public List<AiSuggestedStructure> SuggestedStructures { get; set; } = new();
+        public TaskRelevanceResult TaskRelevance { get; set; } = new();
     }
 
     public class AiGradingService
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _config;
-        private readonly RubricRepository _rubricRepo;
-        private readonly AiUsageLogRepository _aiLogRepo;
+        private readonly IRubricRepository _rubricRepo;
+        private readonly IAiUsageLogRepository _aiLogRepo;
         private readonly ILogger<AiGradingService> _logger;
 
         public AiGradingService(
             IHttpClientFactory httpClientFactory,
             IConfiguration config,
-            RubricRepository rubricRepo,
-            AiUsageLogRepository aiLogRepo,
+            IRubricRepository rubricRepo,
+            IAiUsageLogRepository aiLogRepo,
             ILogger<AiGradingService> logger)
         {
             _httpClientFactory = httpClientFactory;
@@ -95,25 +100,13 @@ namespace VstepWritingLab.Business.Services
 
                 var result = new AiGradingResult
                 {
-                    Score = new AiScoreModel
-                    {
-                        TaskFulfilment = output.Score.TaskFulfilment,
-                        Organization   = output.Score.Organization,
-                        Vocabulary     = output.Score.Vocabulary,
-                        Grammar        = output.Score.Grammar,
-                        Overall        = output.Score.Overall
-                    },
-                    Feedback = new AiFeedbackModel
-                    {
-                        Summary     = output.Summary,
-                        Suggestions = output.Suggestions,
-                        Highlights  = output.Highlights.Select(h => new HighlightModel
-                        {
-                            Text  = h.Text,
-                            Issue = h.Issue,
-                            Type  = h.Type
-                        }).ToList()
-                    }
+                    Score = output.Score,
+                    Summary = output.Summary,
+                    Suggestions = output.Suggestions,
+                    Annotations = output.Annotations,
+                    SentenceAnalysis = output.SentenceAnalysis,
+                    SuggestedStructures = output.SuggestedStructures,
+                    TaskRelevance = output.TaskRelevance
                 };
 
                 var latency = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;

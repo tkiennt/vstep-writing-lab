@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using VstepWritingLab.Shared.Models.DTOs.Requests;
 using VstepWritingLab.Shared.Models.DTOs.Responses;
 using VstepWritingLab.Shared.Models.Entities;
-using VstepWritingLab.Data.Repositories;
+using VstepWritingLab.Business.Interfaces;
 
 namespace VstepWritingLab.Business.Services
 {
     public class AdminQuestionService
     {
-        private readonly QuestionRepository _questionRepo;
+        private readonly IQuestionRepository _questionRepo;
 
-        public AdminQuestionService(QuestionRepository questionRepo)
+        public AdminQuestionService(IQuestionRepository questionRepo)
         {
             _questionRepo = questionRepo;
         }

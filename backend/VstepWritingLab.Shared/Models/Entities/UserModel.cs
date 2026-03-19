@@ -11,6 +11,7 @@ namespace VstepWritingLab.Shared.Models.Entities
 
         [FirestoreProperty] public string Email { get; set; }
         [FirestoreProperty] public string DisplayName { get; set; }
+        [FirestoreProperty] public string? AvatarUrl { get; set; }
 
         [FirestoreProperty] public string Role { get; set; }
         // "student" | "admin"
@@ -18,7 +19,11 @@ namespace VstepWritingLab.Shared.Models.Entities
         [FirestoreProperty] public bool IsActive { get; set; }
         // false = banned/deactivated by admin
 
+        [FirestoreProperty] public bool OnboardingCompleted { get; set; }
+        [FirestoreProperty] public string? CurrentLevel { get; set; }
+        [FirestoreProperty] public string? TargetLevel { get; set; }
+
         [FirestoreProperty] public Timestamp CreatedAt { get; set; }
-        [FirestoreProperty] public Timestamp LastLoginAt { get; set; }
+        [FirestoreProperty] public Timestamp LastActiveAt { get; set; }
     }
 }

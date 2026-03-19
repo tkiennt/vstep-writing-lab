@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VstepWritingLab.Shared.Models.DTOs.Responses;
-using VstepWritingLab.Data.Repositories;
+using VstepWritingLab.Business.Interfaces;
 
 namespace VstepWritingLab.Business.Services
 {
     public class AdminAnalyticsService
     {
-        private readonly UserRepository _userRepo;
-        private readonly SubmissionRepository _submissionRepo;
-        private readonly AiUsageLogRepository _aiLogRepo;
+        private readonly ILegacyUserRepository _userRepo;
+        private readonly ISubmissionRepository _submissionRepo;
+        private readonly IAiUsageLogRepository _aiLogRepo;
 
         public AdminAnalyticsService(
-            UserRepository userRepo,
-            SubmissionRepository submissionRepo,
-            AiUsageLogRepository aiLogRepo)
+            ILegacyUserRepository userRepo,
+            ISubmissionRepository submissionRepo,
+            IAiUsageLogRepository aiLogRepo)
         {
             _userRepo       = userRepo;
             _submissionRepo = submissionRepo;
@@ -46,7 +46,7 @@ namespace VstepWritingLab.Business.Services
                 ScoredSubmissions     = scored.Count,
                 FailedSubmissions     = failed.Count,
                 AverageOverallScore   = avgScore,
-                TotalTokensUsed       = totalTokens,
+                TotalTokensUsed       = (int)totalTokens,
                 TotalTask1Submissions = submissions.Count(s => s.TaskType == "task1"),
                 TotalTask2Submissions = submissions.Count(s => s.TaskType == "task2"),
                 GeneratedAt           = DateTime.UtcNow

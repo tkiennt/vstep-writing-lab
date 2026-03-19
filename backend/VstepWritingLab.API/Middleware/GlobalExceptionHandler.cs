@@ -50,7 +50,7 @@ namespace VstepWritingLab.API.Middleware
                 _logger.LogError(ex, "Unhandled exception");
                 context.Response.StatusCode = 500;
                 await context.Response.WriteAsJsonAsync(
-                    new { message = "An unexpected error occurred" });
+                    new { message = ex.Message, stackTrace = ex.StackTrace });
             }
         }
     }

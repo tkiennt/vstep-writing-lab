@@ -5,26 +5,24 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VstepWritingLab.Shared.Models.Entities;
-using VstepWritingLab.Data.Repositories;
+using VstepWritingLab.Business.Interfaces;
 
 namespace VstepWritingLab.Business.Services
 {
     public class AuthService
     {
-        private readonly UserRepository _userRepo;
+        private readonly ILegacyUserRepository _userRepo;
         private readonly ILogger<AuthService> _logger;
 
         public AuthService(
-            UserRepository userRepo,
+            ILegacyUserRepository userRepo,
             ILogger<AuthService> logger)
         {
             _userRepo = userRepo;
             _logger   = logger;
         }
 
-        public async Task<UserModel> RegisterAsync(
-            string firebaseToken,
-            string displayName)
+        public async Task<(UserModel User, bool IsNew)> SyncUserAsync(string firebaseToken)
         {
             FirebaseToken decoded;
             try
@@ -34,34 +32,58 @@ namespace VstepWritingLab.Business.Services
             }
             catch (FirebaseAuthException ex)
             {
-                // Note: Exceptions should be moved to Shared or API as well, 
-                // but for now I'll just use the standard Exception if I haven't moved them yet.
-                // Assuming they will be in VstepWritingLab.API or Shared.
+                _logger.LogError(ex, "Firebase token verification failed");
                 throw new Exception($"Invalid token: {ex.Message}");
             }
 
             var uid   = decoded.Uid;
             var email = decoded.Claims.GetValueOrDefault("email")?.ToString() ?? "";
+            var name  = decoded.Claims.GetValueOrDefault("name")?.ToString() ?? "";
+            var picture = decoded.Claims.GetValueOrDefault("picture")?.ToString() ?? "";
 
             var existing = await _userRepo.GetByIdAsync(uid);
             if (existing != null)
-                return existing;
+            {
+                existing.LastActiveAt = Timestamp.GetCurrentTimestamp();
+                await _userRepo.UpdateAsync(uid, new Dictionary<string, object>
+                {
+                    { "LastActiveAt", existing.LastActiveAt }
+                });
+                return (existing, false);
+            }
 
             var user = new UserModel
             {
                 UserId      = uid,
                 Email       = email,
-                DisplayName = displayName,
+                DisplayName = string.IsNullOrWhiteSpace(name) ? email.Split('@')[0] : name,
+                AvatarUrl   = picture,
                 Role        = "student",
                 IsActive    = true,
+                OnboardingCompleted = false,
                 CreatedAt   = Timestamp.GetCurrentTimestamp(),
-                LastLoginAt = Timestamp.GetCurrentTimestamp()
+                LastActiveAt = Timestamp.GetCurrentTimestamp()
             };
 
             await _userRepo.SetAsync(uid, user);
-            _logger.LogInformation("New user registered: {Uid} ({Email})", uid, email);
+            _logger.LogInformation("New user synced: {Uid} ({Email})", uid, email);
 
-            return user;
+            return (user, true);
+        }
+
+        public async Task UpdateOnboardingAsync(string uid, string displayName, string currentLevel, string targetLevel)
+        {
+            var updates = new Dictionary<string, object>
+            {
+                { "DisplayName", displayName },
+                { "CurrentLevel", currentLevel },
+                { "TargetLevel", targetLevel },
+                { "OnboardingCompleted", true },
+                { "LastActiveAt", Timestamp.GetCurrentTimestamp() }
+            };
+
+            await _userRepo.UpdateAsync(uid, updates);
+            _logger.LogInformation("User {Uid} completed onboarding", uid);
         }
 
         public async Task<UserModel?> GetCurrentUserAsync(string uid)

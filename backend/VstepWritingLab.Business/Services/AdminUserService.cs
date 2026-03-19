@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 using VstepWritingLab.Shared.Models.DTOs.Requests;
 using VstepWritingLab.Shared.Models.DTOs.Responses;
 using VstepWritingLab.Shared.Models.Entities;
-using VstepWritingLab.Data.Repositories;
+using VstepWritingLab.Business.Interfaces;
 
 namespace VstepWritingLab.Business.Services
 {
     public class AdminUserService
     {
-        private readonly UserRepository _userRepo;
+        private readonly ILegacyUserRepository _userRepo;
 
-        public AdminUserService(UserRepository userRepo)
+        public AdminUserService(ILegacyUserRepository userRepo)
         {
             _userRepo = userRepo;
         }
@@ -69,7 +69,7 @@ namespace VstepWritingLab.Business.Services
                 Role        = u.Role,
                 IsActive    = u.IsActive,
                 CreatedAt   = u.CreatedAt.ToDateTime(),
-                LastLoginAt = u.LastLoginAt.ToDateTime()
+                LastLoginAt = u.LastActiveAt.ToDateTime()
             };
     }
 }

@@ -7,23 +7,25 @@ using System.Threading.Tasks;
 using VstepWritingLab.Shared.Models.DTOs.Requests;
 using VstepWritingLab.Shared.Models.DTOs.Responses;
 using VstepWritingLab.Shared.Models.Entities;
-using VstepWritingLab.Data.Repositories;
+using VstepWritingLab.Shared.Models.Common;
+using VstepWritingLab.Business.Interfaces;
+using VstepWritingLab.Domain.Interfaces;
 
 namespace VstepWritingLab.Business.Services
 {
     public class SubmissionService
     {
-        private readonly SubmissionRepository _submissionRepo;
-        private readonly QuestionRepository _questionRepo;
-        private readonly TaskRepository _taskRepo;
+        private readonly ISubmissionRepository _submissionRepo;
+        private readonly IQuestionRepository _questionRepo;
+        private readonly ITaskRepository _taskRepo;
         private readonly AiGradingService _aiGradingService;
         private readonly ProgressService _progressService;
         private readonly ILogger<SubmissionService> _logger;
 
         public SubmissionService(
-            SubmissionRepository submissionRepo,
-            QuestionRepository questionRepo,
-            TaskRepository taskRepo,
+            ISubmissionRepository submissionRepo,
+            IQuestionRepository questionRepo,
+            ITaskRepository taskRepo,
             AiGradingService aiGradingService,
             ProgressService progressService,
             ILogger<SubmissionService> logger)
@@ -86,20 +88,43 @@ namespace VstepWritingLab.Business.Services
                 var result = await _aiGradingService.GradeAsync(
                     submission, question, task);
 
+                var aiScore = new AiScoreModel
+                {
+                    TaskFulfilment = (int)result.Score.TaskFulfilment,
+                    Organization = (int)result.Score.Organization,
+                    Vocabulary = (int)result.Score.Vocabulary,
+                    Grammar = (int)result.Score.Grammar,
+                    Overall = result.Score.Overall
+                };
+
+                var aiFeedback = new AiFeedbackModel
+                {
+                    Summary = result.Summary,
+                    Suggestions = result.Suggestions,
+                    Highlights = result.Annotations.Select(a => new HighlightModel
+                    {
+                        Text = submission.EssayContent.Substring(
+                            Math.Min(a.StartIndex, submission.EssayContent.Length),
+                            Math.Min(a.EndIndex - a.StartIndex, submission.EssayContent.Length - a.StartIndex)),
+                        Issue = a.Message,
+                        Type = a.Type
+                    }).ToList()
+                };
+
                 await _submissionRepo.UpdateStatusAsync(
                     submission.SubmissionId,
                     "scored",
-                    result.Score,
-                    result.Feedback);
+                    aiScore,
+                    aiFeedback);
 
                 await _progressService.UpdateAfterSubmissionAsync(
                     submission.UserId,
                     submission.TaskType,
-                    result.Score);
+                    aiScore);
 
                 _logger.LogInformation(
                     "Submission {Id} graded. Overall: {Score}",
-                    submission.SubmissionId, result.Score.Overall);
+                    submission.SubmissionId, aiScore.Overall);
             }
             catch (Exception ex)
             {

@@ -1,20 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <ItemGroup>
-    <ProjectReference Include="..\VstepWritingLab.Data\VstepWritingLab.Data.csproj" />
     <ProjectReference Include="..\VstepWritingLab.Shared\VstepWritingLab.Shared.csproj" />
+    <ProjectReference Include="..\VstepWritingLab.Domain\VstepWritingLab.Domain.csproj" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="FirebaseAdmin" Version="3.4.0" />
-    <PackageReference Include="Google.Cloud.Firestore" Version="4.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.2" />
+    <PackageReference Include="FirebaseAdmin" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Google.Cloud.Firestore" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
   </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
 </Project>

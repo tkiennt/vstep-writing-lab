@@ -2,20 +2,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VstepWritingLab.Shared.Models.DTOs.Responses;
-using VstepWritingLab.Data.Repositories;
+using VstepWritingLab.Business.Interfaces;
 
 namespace VstepWritingLab.Business.Services
 {
     public class QuestionService
     {
-        private readonly QuestionRepository _questionRepo;
-        private readonly TaskRepository _taskRepo;
-        private readonly SentenceTemplateRepository _templateRepo;
+        private readonly IQuestionRepository _questionRepo;
+        private readonly ITaskRepository _taskRepo;
+        private readonly ISentenceTemplateRepository _templateRepo;
 
         public QuestionService(
-            QuestionRepository questionRepo,
-            TaskRepository taskRepo,
-            SentenceTemplateRepository templateRepo)
+            IQuestionRepository questionRepo,
+            ITaskRepository taskRepo,
+            ISentenceTemplateRepository templateRepo)
         {
             _questionRepo = questionRepo;
             _taskRepo     = taskRepo;
