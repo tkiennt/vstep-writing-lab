@@ -1,6 +1,71 @@
-@VstepWritingLab.API_HostAddress = http://localhost:5260
+# =========================================================================
+# VSTEP Writing Lab — API Tests (.http)
+# Tip: Use "REST Client" extension in VS Code or Visual Studio's built-in HTTP client.
+# =========================================================================
 
-GET {{VstepWritingLab.API_HostAddress}}/weatherforecast/
+@Host = http://localhost:5260
+@AuthService = {{Host}}/api/auth
+@ExamV2 = {{Host}}/api/v2/ExamPrompts
+@GradingV2 = {{Host}}/api/v2/Grading
+
+# 1. AUTHENTICATION & SYNC
+# Note: You typically need a real Firebase ID token for these.
+# You can get one from the browser console `await auth.currentUser.getIdToken()`
+
+### Sync Firebase User
+POST {{AuthService}}/sync
+Content-Type: application/json
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN
+
+{
+  "token": "YOUR_FIREBASE_ID_TOKEN_HERE"
+}
+
+### Complete Onboarding
+PUT {{AuthService}}/onboarding
+Content-Type: application/json
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN
+
+{
+  "userUid": "USER_UID_HERE",
+  "displayName": "Test Student",
+  "currentLevel": "B1",
+  "targetLevel": "B2"
+}
+
+###
+
+# 2. EXAMS & PROMPTS
+
+### Get All Active Exams
+GET {{ExamV2}}
+Accept: application/json
+
+### Get Exam Outline (Guided Mode Planning)
+# Replace {id} with a valid exam ID from the list above
+GET {{ExamV2}}/EMAIL_EXAM_001/outline
 Accept: application/json
 
 ###
+
+# 3. AI GRADING
+
+### Submit Essay for AI Grading (Direct Result)
+POST {{GradingV2}}/grade
+Content-Type: application/json
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN
+
+{
+  "userUid": "USER_UID_HERE",
+  "promptId": "EMAIL_EXAM_001",
+  "content": "Dear Sir or Madam, I am writing to inquire about the position of...",
+  "taskType": "task1"
+}
+
+###
+
+# 4. LEGACY / UTILITY (If needed)
+
+### Get Legacy Question
+GET {{Host}}/api/questions/TEST_Q_001
+Accept: application/json

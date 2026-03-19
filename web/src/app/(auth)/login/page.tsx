@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const ROLE_ROUTES: Record<string, string> = {
   user:    '/dashboard',
@@ -13,21 +14,60 @@ const ROLE_ROUTES: Record<string, string> = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { signInWithEmail, signInWithGoogle, isAuthenticated, isLoading } = useAuth();
   const [isLoggingIn, setIsLoggingIn]   = useState(false);
+  
+  // Client-side redirect if already authenticated
+  React.useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isLoading, isAuthenticated, router]);
   const [selectedRole, setSelectedRole] = useState('user');
   const [showPw, setShowPw]             = useState(false);
+  const [email, setEmail]               = useState('');
+  const [password, setPassword]         = useState('');
+  const [error, setError]               = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Vui lòng sử dụng email hợp lệ');
+      return;
+    }
+
     setIsLoggingIn(true);
-    setTimeout(() => router.push(ROLE_ROUTES[selectedRole] || '/dashboard'), 800);
+    try {
+      await signInWithEmail(email, password);
+      // useAuth automatically syncs and sets isAuthenticated to true
+      // The effect above will redirect to dashboard
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
+  const handleGoogleLogin = async () => {
+    setError('');
+    setIsLoggingIn(true);
+    try {
+      await signInWithGoogle();
+    } catch (err: any) {
+      console.error('Google login error:', err);
+      setError(err.message || 'Google login failed.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
   return (
     <div className="min-h-screen flex">
 
       {/* ── Left Panel — Branding ── */}
-      <div className="hidden lg:flex w-1/2 relative flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-vstep-dark via-emerald-800 to-teal-700 p-14">
+      <div className="hidden lg:flex w-1/2 relative flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#0f766e] p-14">
         {/* Decorative blobs */}
         <div className="absolute -top-24 -left-24 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -right-16 w-[28rem] h-[28rem] bg-teal-400/10 rounded-full blur-3xl" />
@@ -91,7 +131,10 @@ export default function LoginPage() {
             </div>
 
             {/* Google btn */}
-            <button className="w-full flex items-center justify-center gap-3 py-3 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm mb-6">
+            <button 
+              onClick={handleGoogleLogin}
+              disabled={isLoggingIn}
+              className="w-full flex items-center justify-center gap-3 py-3 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm mb-6 disabled:opacity-70 disabled:cursor-not-allowed">
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -111,11 +154,19 @@ export default function LoginPage() {
             {/* Form */}
             <form onSubmit={handleLogin} className="space-y-4">
 
+              {error && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-bold animate-in fade-in slide-in-from-top-1">
+                  {error}
+                </div>
+              )}
+
               {/* Email */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Email Address</label>
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@university.edu.vn"
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
                 />
@@ -130,6 +181,8 @@ export default function LoginPage() {
                 <div className="relative">
                   <input
                     type={showPw ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="w-full px-4 py-3 pr-11 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
                   />
@@ -177,7 +230,7 @@ export default function LoginPage() {
           {/* Footer */}
           <p className="mt-6 text-center text-sm text-slate-500">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-emerald-700 font-semibold hover:underline">Create one</Link>
+            <Link href="/register" className="text-emerald-700 font-semibold hover:underline">Register</Link>
           </p>
         </div>
       </div>

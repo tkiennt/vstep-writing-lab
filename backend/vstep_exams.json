@@ -1,0 +1,192 @@
+[
+  {
+    "exam_id": "vstep_t1_011",
+    "task_type": "task1",
+    "cefr_level": "B1",
+    "letter_type": "informal",
+    "tone": "informal",
+    "topic_category": "travel",
+    "scenario": "Your English friend, Mark, is planning to visit your hometown next month and has asked for some travel advice.",
+    "instruction": "Write an email to Mark. In your email, you should:\n• suggest the best tourist attractions to see\n• recommend some local dishes he must try\n• advise him on what clothes to bring for the current weather\nWrite at least 120 words.",
+    "recipient": "Mark (a friend)",
+    "sender_role": "A local friend",
+    "key_points_required": [
+      "Suggestions for local attractions",
+      "Recommendations for local food",
+      "Advice on clothing based on weather"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  },
+  {
+    "exam_id": "vstep_t1_012",
+    "task_type": "task1",
+    "cefr_level": "B1",
+    "letter_type": "request",
+    "tone": "formal",
+    "topic_category": "housing",
+    "scenario": "You are a tenant in an apartment building and the air conditioner in your living room has stopped working during a heatwave.",
+    "instruction": "Write a letter to the building manager, Mr. Smith. In your letter, you should:\n• explain the problem with the air conditioner\n• describe how this issue is affecting your daily life\n• request a specific date and time for the repair\nWrite at least 120 words.",
+    "recipient": "Mr. Smith (Building Manager)",
+    "sender_role": "A tenant",
+    "key_points_required": [
+      "Explanation of the technical problem",
+      "Impact of the broken AC on the writer",
+      "Request for a repair schedule"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  },
+  {
+    "exam_id": "vstep_t1_013",
+    "task_type": "task1",
+    "cefr_level": "B1",
+    "letter_type": "invitation",
+    "tone": "informal",
+    "topic_category": "community",
+    "scenario": "Your local community is organizing a traditional food festival next weekend and you want to invite your friend, Anna.",
+    "instruction": "Write an email to Anna. In your email, you should:\n• invite her to the traditional food festival\n• provide details about the time and location\n• describe some interesting activities that will take place\nWrite at least 120 words.",
+    "recipient": "Anna (a friend)",
+    "sender_role": "A community member",
+    "key_points_required": [
+      "Invitation to the festival",
+      "Logistical details (time/place)",
+      "Description of festival activities"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  },
+  {
+    "exam_id": "vstep_t1_014",
+    "task_type": "task1",
+    "cefr_level": "B1",
+    "letter_type": "apology",
+    "tone": "semi-formal",
+    "topic_category": "education",
+    "scenario": "You missed an important group presentation for your English class because you were feeling unwell.",
+    "instruction": "Write an email to your teacher, Ms. Green. In your email, you should:\n• apologize for your absence from the presentation\n• explain your health situation briefly\n• ask how you can compensate for the missed grade\nWrite at least 120 words.",
+    "recipient": "Ms. Green (Teacher)",
+    "sender_role": "A student",
+    "key_points_required": [
+      "Sincere apology for missing class",
+      "Brief explanation of illness",
+      "Inquiry about make-up work"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  },
+  {
+    "exam_id": "vstep_t1_015",
+    "task_type": "task1",
+    "cefr_level": "B2",
+    "letter_type": "complaint",
+    "tone": "formal",
+    "topic_category": "service",
+    "scenario": "You recently stayed at the 'Grand View' hotel, but the room was not cleaned properly and the staff were unresponsive to your requests.",
+    "instruction": "Write a letter to the Hotel Manager. In your letter, you should:\n• give details of your stay and the condition of the room\n• complain about the poor attitude of the service staff\n• demand a partial refund for the unsatisfactory experience\nWrite at least 120 words.",
+    "recipient": "Hotel Manager",
+    "sender_role": "A former guest",
+    "key_points_required": [
+      "Details of room hygiene issues",
+      "Complaint about staff behavior",
+      "Request for compensation/refund"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  },
+  {
+    "exam_id": "vstep_t1_016",
+    "task_type": "task1",
+    "cefr_level": "B2",
+    "letter_type": "inquiry",
+    "tone": "formal",
+    "topic_category": "workplace",
+    "scenario": "You saw an advertisement for a part-time marketing assistant position at an international firm, but some key details are missing.",
+    "instruction": "Write an email to the HR Department. In your email, you should:\n• state where you saw the ad and why you are interested\n• ask about the specific working hours and salary range\n• inquire if the company provides any professional training\nWrite at least 120 words.",
+    "recipient": "HR Department",
+    "sender_role": "A job applicant",
+    "key_points_required": [
+      "Purpose of writing and interest in the role",
+      "Request for hours and pay details",
+      "Inquiry about training opportunities"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  },
+  {
+    "exam_id": "vstep_t1_017",
+    "task_type": "task1",
+    "cefr_level": "B2",
+    "letter_type": "request",
+    "tone": "formal",
+    "topic_category": "shopping",
+    "scenario": "You bought an expensive laptop from an online store, but it arrived with a cracked screen and the wrong operating system installed.",
+    "instruction": "Write a letter to the Customer Service Department. In your letter, you should:\n• provide your order number and describe the defects\n• explain why you need the correct model urgently for work\n• request an immediate replacement or a full refund\nWrite at least 120 words.",
+    "recipient": "Customer Service Department",
+    "sender_role": "A customer",
+    "key_points_required": [
+      "Order information and description of damage",
+      "Reason for urgency regarding work",
+      "Request for specific resolution (replacement/refund)"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  },
+  {
+    "exam_id": "vstep_t1_018",
+    "task_type": "task1",
+    "cefr_level": "B2",
+    "letter_type": "invitation",
+    "tone": "semi-formal",
+    "topic_category": "education",
+    "scenario": "You are organizing a career orientation week at your university and want to invite a successful alumnus to give a speech.",
+    "instruction": "Write an email to Mr. Vinh, a successful former student. In your email, you should:\n• invite him to speak at the career orientation week\n• explain why his experience would be valuable to current students\n• offer flexibility regarding the date and online/offline format\nWrite at least 120 words.",
+    "recipient": "Mr. Vinh (Alumnus)",
+    "sender_role": "Event Organizer",
+    "key_points_required": [
+      "Invitation to the career event",
+      "Justification for his selection as a speaker",
+      "Logistical options and flexibility"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  },
+  {
+    "exam_id": "vstep_t1_019",
+    "task_type": "task1",
+    "cefr_level": "C1",
+    "letter_type": "complaint",
+    "tone": "formal",
+    "topic_category": "service",
+    "scenario": "Your company hired a catering service for a high-profile international conference, but the food quality was poor and dietary requirements were ignored.",
+    "instruction": "Write a letter to the Manager of 'Elite Catering'. In your letter, you should:\n• outline the discrepancies between the agreed contract and actual service\n• argue how this failure damaged your company's professional reputation\n• insist on a significant financial settlement and a formal apology\nWrite at least 120 words.",
+    "recipient": "Manager of Elite Catering",
+    "sender_role": "Corporate Event Coordinator",
+    "key_points_required": [
+      "Analysis of contract violations (quality/dietary)",
+      "Argument on reputational damage to the firm",
+      "Demand for settlement and apology"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  },
+  {
+    "exam_id": "vstep_t1_020",
+    "task_type": "task1",
+    "cefr_level": "C1",
+    "letter_type": "informal",
+    "tone": "informal",
+    "topic_category": "community",
+    "scenario": "You have been living abroad for a year and are writing to your childhood friend about the cultural identity challenges you have faced.",
+    "instruction": "Write a letter to your friend, Nam. In your letter, you should:\n• share your experiences of adjusting to a foreign lifestyle\n• reflect on how being away has changed your perspective on Vietnamese traditions\n• ask for updates on your local neighborhood and mutual friends\nWrite at least 120 words.",
+    "recipient": "Nam (a close friend)",
+    "sender_role": "An overseas Vietnamese",
+    "key_points_required": [
+      "Experience of cultural adjustment",
+      "Reflection on cultural identity and traditions",
+      "Inquiry about local community updates"
+    ],
+    "word_limit": 120,
+    "time_limit_minutes": 20
+  }
+]

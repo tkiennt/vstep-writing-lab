@@ -1,77 +1,108 @@
-using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VstepWritingLab.Data.Firebase;
-using VstepWritingLab.Shared.Models;
+using System;
+using System.Threading.Tasks;
+using VstepWritingLab.Shared.Exceptions;
+using VstepWritingLab.API.Helpers;
+using VstepWritingLab.Shared.Models.DTOs.Requests;
+using VstepWritingLab.Business.Services;
 
-namespace VstepWritingLab.API.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+namespace VstepWritingLab.API.Controllers
 {
-    private readonly FirestoreProvider _firestoreProvider;
-
-    public AuthController(FirestoreProvider firestoreProvider)
+    [ApiController]
+    [Route("api/auth")]
+    public class AuthController : ControllerBase
     {
-        _firestoreProvider = firestoreProvider;
-    }
+        private readonly AuthService _authService;
 
-    /// <summary>
-    /// Called by the frontend AFTER Firebase client-side registration to persist the user in Firestore.
-    /// No authentication required here — Firebase UID is trusted because it comes right after signUp.
-    /// </summary>
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] FirebaseRegisterRequest request)
-    {
-        if (string.IsNullOrWhiteSpace(request.FirebaseUid) ||
-            string.IsNullOrWhiteSpace(request.Email))
+        public AuthController(AuthService authService)
         {
-            return BadRequest(ApiResponse<string>.ErrorResponse("FirebaseUid and Email are required."));
+            _authService = authService;
         }
 
-        var db = _firestoreProvider.GetDb();
-        var userRef = db.Collection("users").Document(request.FirebaseUid);
-        var snapshot = await userRef.GetSnapshotAsync();
-
-        if (snapshot.Exists)
+        [HttpPost("sync")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Sync()
         {
-            // User already registered — idempotent, return 200
-            return Ok(ApiResponse<string>.SuccessResponse("User already exists."));
+            var authHeader = Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                return Unauthorized(new { message = "Bearer token required" });
+
+            var token = authHeader.Substring(7);
+
+            try
+            {
+                var (user, isNew) = await _authService.SyncUserAsync(token);
+
+                var response = new
+                {
+                    userId = user.UserId,
+                    email = user.Email,
+                    displayName = user.DisplayName,
+                    avatarUrl = user.AvatarUrl,
+                    role = user.Role,
+                    onboardingCompleted = user.OnboardingCompleted,
+                    currentLevel = user.CurrentLevel,
+                    targetLevel = user.TargetLevel,
+                    isNewUser = isNew
+                };
+
+                if (isNew)
+                    return Created($"/api/users/{user.UserId}", response);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
         }
 
-        var userData = new Dictionary<string, object>
+        [HttpPut("onboarding")]
+        [Authorize]
+        public async Task<IActionResult> UpdateOnboarding([FromBody] OnboardingRequest request)
         {
-            { "email", request.Email },
-            { "name", request.Name ?? "" },
-            { "firebaseUid", request.FirebaseUid },
-            { "role", "user" },
-            { "targetLevel", "B2" },
-            { "createdAt", Timestamp.GetCurrentTimestamp() },
-            { "updatedAt", Timestamp.GetCurrentTimestamp() }
-        };
+            var uid = this.GetUserId();
+            if (string.IsNullOrEmpty(uid)) 
+                return Unauthorized();
 
-        await userRef.SetAsync(userData);
+            if (string.IsNullOrWhiteSpace(request.DisplayName) || 
+                string.IsNullOrWhiteSpace(request.CurrentLevel) || 
+                string.IsNullOrWhiteSpace(request.TargetLevel))
+            {
+                return BadRequest(new { message = "All fields are required" });
+            }
 
-        return Ok(ApiResponse<string>.SuccessResponse("User registered successfully."));
-    }
+            try
+            {
+                await _authService.UpdateOnboardingAsync(uid, request.DisplayName, request.CurrentLevel, request.TargetLevel);
+                return Ok(new { message = "Onboarding completed" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
-    /// <summary>
-    /// Returns the authenticated user's claims from the Firebase JWT token.
-    /// </summary>
-    [Authorize]
-    [HttpGet("me")]
-    public IActionResult GetMe()
-    {
-        var userId  = User.Claims.FirstOrDefault(c => c.Type == "user_id")?.Value;
-        var email   = User.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
-        var name    = User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
-
-        return Ok(ApiResponse<object>.SuccessResponse(new
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> Me()
         {
-            UserId = userId,
-            Email  = email,
-            Name   = name
-        }, "Authenticated user details retrieved."));
+            var uid  = this.GetUserId();
+            var user = await _authService.GetCurrentUserAsync(uid);
+
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(new
+            {
+                userId      = user.UserId,
+                email       = user.Email,
+                displayName = user.DisplayName,
+                role        = user.Role,
+                isActive    = user.IsActive,
+                createdAt   = user.CreatedAt.ToDateTime()
+            });
+        }
     }
 }

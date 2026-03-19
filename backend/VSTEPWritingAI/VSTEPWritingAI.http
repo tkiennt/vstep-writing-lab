@@ -1,0 +1,6 @@
+@VSTEPWritingAI_HostAddress = http://localhost:5091
+
+GET {{VSTEPWritingAI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
