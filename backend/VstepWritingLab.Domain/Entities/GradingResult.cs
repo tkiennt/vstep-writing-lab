@@ -36,6 +36,11 @@ public class GradingResult
     public RewriteSample[]        RewriteSamples        { get; private set; } = Array.Empty<RewriteSample>();
     public GradingRoadmap         Roadmap               { get; private set; } = default!;
 
+    // NEW:
+    public SentenceFeedback[]    SentenceFeedback      { get; private set; } = Array.Empty<SentenceFeedback>();
+    public ImprovementTracking?  ImprovementTracking   { get; private set; }
+    public string                Mode                   { get; private set; } = "exam";
+
     // Constructor for mapping/deserialization
     public GradingResult(
         string id, string studentId, string examId, string taskType,
@@ -45,7 +50,9 @@ public class GradingResult
         string[] strengthsVi, string[] improvementsVi,
         Correction[] corrections, string aiModel,
         InlineHighlight[] highlights, RecommendedStructure[] structures,
-        RewriteSample[] rewrites, GradingRoadmap roadmap)
+        RewriteSample[] rewrites, GradingRoadmap roadmap,
+        SentenceFeedback[] sentenceFeedback, ImprovementTracking? improvementTracking,
+        string mode = "exam")
     {
         Id = id;
         StudentId = studentId;
@@ -66,6 +73,10 @@ public class GradingResult
         RecommendedStructures = structures ?? Array.Empty<RecommendedStructure>();
         RewriteSamples = rewrites ?? Array.Empty<RewriteSample>();
         Roadmap = roadmap;
+
+        SentenceFeedback = sentenceFeedback ?? Array.Empty<SentenceFeedback>();
+        ImprovementTracking = improvementTracking;
+        Mode = mode;
 
         TotalScore = ComputeTotal(
             taskFulfilment.Score, organization.Score,

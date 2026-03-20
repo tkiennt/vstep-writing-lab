@@ -36,9 +36,15 @@ public class GradeEssayUseCase(
         var rubricContext = await rubricTask;
 
         // 2. Call AI Service (tuned model with fallback)
+        var domainHistory = command.UserHistory == null ? null : new Domain.ValueObjects.UserHistory(
+            command.UserHistory.Weaknesses,
+            command.UserHistory.PastScores,
+            command.UserHistory.Level);
+
         var aiResult = await aiService.GradeAsync(
             rubricContext, command.TaskType, command.Prompt,
-            exam.KeyPoints, command.WordCount, command.EssayText, ct);
+            exam.KeyPoints, command.WordCount, command.EssayText,
+            command.Mode, domainHistory, ct);
 
         if (!aiResult.IsSuccess || aiResult.Value == null) 
             return Result<FullAnalysisResponse>.Fail(aiResult.Error ?? "AI grading failed");
@@ -64,7 +70,10 @@ public class GradeEssayUseCase(
             ai.InlineHighlights,
             ai.RecommendedStructures,
             ai.RewriteSamples,
-            ai.Roadmap
+            ai.Roadmap,
+            ai.SentenceFeedback,
+            ai.ImprovementTracking,
+            command.Mode
         );
 
         // 4. Map to Response DTO
@@ -88,20 +97,27 @@ public class GradeEssayUseCase(
             gradingResult.InlineHighlights,
             gradingResult.RecommendedStructures,
             gradingResult.RewriteSamples,
-            gradingResult.Roadmap,
-            gradingResult.AiModel
+            gradingResult.Roadmap!,
+            gradingResult.AiModel,
+            gradingResult.SentenceFeedback,
+            gradingResult.ImprovementTracking,
+            ai.GuideMode,
+            gradingResult.Mode
         );
 
         // 5. Save to Firestore + update progress (fire-and-forget)
-        _ = Task.Run(async () => {
-            try {
-                await repository.SaveAsync(gradingResult, command.EssayText, command.WordCount);
-                await promptRepository.IncrementUsageAsync(command.EssayId);
-                await progressUseCase.UpdateAsync(command.StudentId);
-            } catch (Exception ex) {
-                logger.LogError(ex, "Background save failed for User {StudentId}", command.StudentId);
-            }
-        });
+        if (command.Mode != "guide")
+        {
+            _ = Task.Run(async () => {
+                try {
+                    await repository.SaveAsync(gradingResult, command.EssayText, command.WordCount);
+                    await promptRepository.IncrementUsageAsync(command.EssayId);
+                    await progressUseCase.UpdateAsync(command.StudentId);
+                } catch (Exception ex) {
+                    logger.LogError(ex, "Background save failed for User {StudentId}", command.StudentId);
+                }
+            });
+        }
 
         return Result<FullAnalysisResponse>.Ok(response);
     }

@@ -32,7 +32,11 @@ public class GradingResultDocument
     [FirestoreProperty] public InlineHighlight[]      InlineHighlights      { get; set; } = Array.Empty<InlineHighlight>();
     [FirestoreProperty] public RecommendedStructure[] RecommendedStructures { get; set; } = Array.Empty<RecommendedStructure>();
     [FirestoreProperty] public RewriteSample[]        RewriteSamples        { get; set; } = Array.Empty<RewriteSample>();
-    [FirestoreProperty] public GradingRoadmap         Roadmap               { get; set; } = default!;
+    [FirestoreProperty] public GradingRoadmap?         Roadmap               { get; set; } = default!;
+
+    [FirestoreProperty] public SentenceFeedback[]    SentenceFeedback      { get; set; } = Array.Empty<SentenceFeedback>();
+    [FirestoreProperty] public ImprovementTracking?  ImprovementTracking   { get; set; }
+    [FirestoreProperty] public string                Mode                   { get; set; } = "exam";
 
     [FirestoreProperty] public string EssayText { get; set; } = string.Empty;
     [FirestoreProperty] public int    WordCount { get; set; }
@@ -60,6 +64,9 @@ public class GradingResultDocument
         RecommendedStructures = domain.RecommendedStructures,
         RewriteSamples = domain.RewriteSamples,
         Roadmap = domain.Roadmap,
+        SentenceFeedback = domain.SentenceFeedback,
+        ImprovementTracking = domain.ImprovementTracking,
+        Mode = domain.Mode,
         EssayText = essayText,
         WordCount = wordCount
     };
@@ -71,7 +78,8 @@ public class GradingResultDocument
             Relevance, TaskFulfilment, Organization,
             Vocabulary, Grammar, StrengthsVi, ImprovementsVi,
             Corrections, AiModel, InlineHighlights,
-            RecommendedStructures, RewriteSamples, Roadmap
+            RecommendedStructures, RewriteSamples, Roadmap!,
+            SentenceFeedback, ImprovementTracking, Mode
         );
     }
 }

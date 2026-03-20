@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IGradingResultRepository, FirestoreGradingResultRepository>();
         services.AddScoped<IUserRepository, FirestoreUserRepository>();
         services.AddScoped<IProgressRepository, FirestoreProgressRepository>();
+        services.AddScoped<IExamSessionRepository, FirestoreExamSessionRepository>();
 
         // Gemini Services
         services.AddHttpClient<GeminiClient>();
@@ -49,6 +50,8 @@ public static class DependencyInjection
         services.AddScoped<IGradeEssayUseCase, GradeEssayUseCase>();
         services.AddScoped<IExamPromptUseCase, ExamPromptUseCase>();
         services.AddScoped<IProgressUseCase, ProgressUseCase>();
+        services.AddScoped<IStartSessionUseCase, StartSessionUseCase>();
+        services.AddScoped<IUpdateSessionUseCase, UpdateSessionUseCase>();
 
         return services;
     }

@@ -32,7 +32,12 @@ public class GradingController(IGradeEssayUseCase useCase) : ControllerBase
             TaskType:  request.TaskType,
             Prompt:    request.Prompt,
             EssayText: request.EssayText,
-            WordCount: request.WordCount
+            WordCount: request.WordCount,
+            Mode:      request.Mode,
+            UserHistory: request.UserHistory == null ? null : new UserHistory(
+                request.UserHistory.Weaknesses,
+                request.UserHistory.PastScores,
+                request.UserHistory.Level)
         );
 
         var result = await useCase.ExecuteAsync(command, ct);

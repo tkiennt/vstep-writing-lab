@@ -15,7 +15,7 @@ namespace VSTEPWritingAI.Models.Firestore
         // ref → users collection
 
         [FirestoreProperty] public string Model { get; set; }
-        // e.g. "gemini-2.0-flash"
+        // e.g. "gemini-2.5-flash"
 
         [FirestoreProperty] public int PromptTokens { get; set; }
         [FirestoreProperty] public int CompletionTokens { get; set; }

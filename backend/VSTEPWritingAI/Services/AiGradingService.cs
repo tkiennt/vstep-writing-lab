@@ -64,7 +64,7 @@ namespace VSTEPWritingAI.Services
             TaskModel task)
         {
             var startTime = DateTime.UtcNow;
-            var modelName = _config["Gemini:Model"] ?? "gemini-2.0-flash";
+            var modelName = _config["Gemini:Model"] ?? "gemini-2.5-flash";
             
             string url;
             if (modelName.StartsWith("projects/"))
@@ -127,7 +127,14 @@ namespace VSTEPWritingAI.Services
                 if (string.IsNullOrWhiteSpace(jsonResult))
                     throw new Exception("Gemini returned empty content");
 
-                // 5. Parse Result
+                // 5. Clean JSON and Parse Result
+                var startIndex = jsonResult.IndexOf('{');
+                var endIndex = jsonResult.LastIndexOf('}');
+                if (startIndex >= 0 && endIndex >= startIndex)
+                {
+                    jsonResult = jsonResult.Substring(startIndex, endIndex - startIndex + 1);
+                }
+
                 var output = JsonSerializer.Deserialize<AiGradingOutput>(jsonResult, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (output == null) throw new Exception("Failed to deserialize AI output");
 

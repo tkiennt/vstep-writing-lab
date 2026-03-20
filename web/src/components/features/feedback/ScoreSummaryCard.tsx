@@ -9,6 +9,13 @@ interface ScoreSummaryCardProps {
   cefrLevel: string;
 }
 
+function getVstepTier(cefr: string): string {
+  if (cefr.includes('C1')) return 'Bậc 5';
+  if (cefr.includes('B2')) return 'Bậc 4';
+  if (cefr.includes('B1')) return 'Bậc 3';
+  return 'Dưới B1';
+}
+
 export const ScoreSummaryCard: React.FC<ScoreSummaryCardProps> = ({ score, cefrLevel }) => {
   const items = [
     { label: 'Hoàn thành nhiệm vụ', val: score.taskFulfilment, icon: Target, color: 'text-sky-600', bg: 'bg-sky-50' },
@@ -40,7 +47,9 @@ export const ScoreSummaryCard: React.FC<ScoreSummaryCardProps> = ({ score, cefrL
           </div>
           <div className="text-left">
             <h3 className="text-2xl font-black text-white leading-tight">Điểm tổng kết VSTEP</h3>
-            <p className="text-emerald-100/60 font-medium mt-1">Ước tính trình độ tương đương: <span className="text-white font-black">{cefrLevel}</span></p>
+            <p className="text-emerald-100/60 font-medium mt-1">
+              Ước tính trình độ: <span className="text-white font-black">{getVstepTier(cefrLevel)} ({cefrLevel})</span>
+            </p>
           </div>
         </div>
         <div className="flex gap-4">
