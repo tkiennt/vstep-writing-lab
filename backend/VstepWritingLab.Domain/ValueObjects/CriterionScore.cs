@@ -1,11 +1,14 @@
+using Google.Cloud.Firestore;
+
 namespace VstepWritingLab.Domain.ValueObjects;
 
+[FirestoreData]
 public record CriterionScore(
-    int    Score,                 // 0-10
-    string BandLabel,
-    string FeedbackEn,
-    string FeedbackVi,
-    string EvidenceEn
+    [property: FirestoreProperty("score")] int    Score,                 // 0-10
+    [property: FirestoreProperty("band")]  string BandLabel,
+    [property: FirestoreProperty("feedbackEn")] string FeedbackEn,
+    [property: FirestoreProperty("feedbackVi")] string FeedbackVi,
+    [property: FirestoreProperty("evidenceEn")] string EvidenceEn
 )
 {
     public static string GetBandLabel(int score) => score switch {

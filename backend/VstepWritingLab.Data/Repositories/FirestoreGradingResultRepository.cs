@@ -1,36 +1,45 @@
 using Google.Cloud.Firestore;
 using VstepWritingLab.Domain.Entities;
 using VstepWritingLab.Domain.Interfaces;
+using VstepWritingLab.Domain.ValueObjects;
+using VstepWritingLab.Data.PersistenceModels;
 
 namespace VstepWritingLab.Data.Repositories;
 
-public class FirestoreGradingResultRepository(FirestoreDb db) : IGradingResultRepository
+public class FirestoreGradingResultRepository(FirestoreDb _db) : IGradingResultRepository
 {
-    private readonly CollectionReference _collection = db.Collection("gradingResults");
+    private const string COLLECTION = "grading_results";
 
     public async Task<string> SaveAsync(GradingResult result, string essayText, int wordCount, CancellationToken ct = default)
     {
-        var doc = await _collection.AddAsync(new {
-            result.Id, result.StudentId, result.ExamId, result.TaskType,
-            result.GradedAt, result.TotalScore, result.CefrLevel,
-            EssayText = essayText, WordCount = wordCount
-        }, ct);
-        return doc.Id;
+        var doc = GradingResultDocument.FromDomain(result, essayText, wordCount);
+        await _db.Collection(COLLECTION).Document(result.Id).SetAsync(doc, cancellationToken: ct);
+        return result.Id;
+    }
+
+    public async Task<GradingResult?> GetByIdAsync(string id, CancellationToken ct = default)
+    {
+        var snapshot = await _db.Collection(COLLECTION).Document(id).GetSnapshotAsync(ct);
+        if (!snapshot.Exists) return null;
+        
+        var doc = snapshot.ConvertTo<GradingResultDocument>();
+        return doc.ToDomain();
     }
 
     public async Task<IReadOnlyList<GradingResult>> GetHistoryAsync(
         string studentId, string? taskType = null, int limit = 20, CancellationToken ct = default)
     {
-        Query query = _collection.WhereEqualTo("StudentId", studentId);
-        if (taskType != null) query = query.WhereEqualTo("TaskType", taskType);
+        var query = _db.Collection(COLLECTION)
+            .WhereEqualTo("StudentId", studentId);
 
-        var snapshot = await query.Limit(limit).GetSnapshotAsync(ct);
-        return snapshot.Documents.Select(d => d.ConvertTo<GradingResult>()).ToList();
-    }
+        if (!string.IsNullOrEmpty(taskType))
+            query = query.WhereEqualTo("TaskType", taskType);
 
-    public async Task<GradingResult?> GetByIdAsync(string id, CancellationToken ct = default)
-    {
-        var doc = await _collection.Document(id).GetSnapshotAsync(ct);
-        return doc.Exists ? doc.ConvertTo<GradingResult>() : null;
+        query = query.OrderByDescending("GradedAt").Limit(limit);
+
+        var snapshots = await query.GetSnapshotAsync(ct);
+        return snapshots.Documents
+            .Select(d => d.ConvertTo<GradingResultDocument>().ToDomain())
+            .ToList();
     }
 }

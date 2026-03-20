@@ -321,7 +321,7 @@ function HistoryTable({ history }: { history: GradingResultDoc[] }) {
           <tbody>
             {history.map((row) => (
               <tr
-                key={row.docId}
+                key={row.id}
                 className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
               >
                 <td className="px-5 py-3 tabular-nums text-gray-600">
@@ -351,7 +351,7 @@ function HistoryTable({ history }: { history: GradingResultDoc[] }) {
                 </td>
                 <td className="px-5 py-3">
                   <Link
-                    href={`/practice/result/${row.docId}`}
+                    href={`/practice/${row.promptId}/result?id=${row.id}`}
                     className="text-indigo-500 hover:text-indigo-700 underline text-xs"
                   >
                     Xem chi tiết

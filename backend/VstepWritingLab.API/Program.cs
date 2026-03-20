@@ -9,26 +9,25 @@ using VstepWritingLab.Data.Repositories;
 using VstepWritingLab.Business.Services;
 using VstepWritingLab.Business.Interfaces;
 using VstepWritingLab.Data;
+using VstepWritingLab.Data.Services.Qdrant;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Firebase Admin SDK ────────────────────────────────────────────────────
 var credentialPath = builder.Configuration["Firebase:CredentialPath"];
-Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialPath);
-
-if (FirebaseApp.DefaultInstance == null)
+if (!string.IsNullOrEmpty(credentialPath))
 {
-    using var stream = new FileStream(credentialPath!, FileMode.Open, FileAccess.Read);
-    FirebaseApp.Create(new AppOptions
-    {
-        Credential = GoogleCredential.FromStream(stream)
-    });
-}
+    Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialPath);
 
-// ── Firestore (Singleton) ─────────────────────────────────────────────────
-var projectId = builder.Configuration["Firebase:ProjectId"];
-builder.Services.AddSingleton<FirestoreDb>(_ =>
-    FirestoreDb.Create(projectId));
+    if (FirebaseApp.DefaultInstance == null)
+    {
+        using var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read);
+        FirebaseApp.Create(new AppOptions
+        {
+            Credential = GoogleCredential.FromStream(stream)
+        });
+    }
+}
 
 // ── JWT Authentication (Firebase tokens) ─────────────────────────────────
 var validIssuer   = builder.Configuration["Jwt:ValidIssuer"];
@@ -73,9 +72,9 @@ builder.Services.AddCors(options =>
 });
 
 // ── Infrastructure & Application (Clean Architecture) ────────────────────────
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(builder.Configuration);
 
-// ── Legacy Repositories ──────────────────────────────────────────────────────
+// ── Legacy Repositories (some might be redundant but kept for now) ────────────
 builder.Services.AddScoped<ILegacyUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<ISubmissionRepository, SubmissionRepository>();
@@ -96,14 +95,9 @@ builder.Services.AddScoped<AdminUserService>();
 builder.Services.AddScoped<AdminQuestionService>();
 builder.Services.AddScoped<AdminAnalyticsService>();
 builder.Services.AddScoped<RubricService>();
+builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<IEssayService, EssayService>();
 builder.Services.AddScoped<IOutlineService, OutlineService>();
-
-// ── HttpClient for Gemini API ─────────────────────────────────────────────
-builder.Services.AddHttpClient("GeminiClient", client =>
-{
-    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
-    client.Timeout = TimeSpan.FromSeconds(60);
-});
 
 // ── Middleware ───────────────────────────────────────────────────────────
 builder.Services.AddTransient<GlobalExceptionHandler>();
@@ -116,6 +110,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+
 
 // ── Middleware Pipeline (ORDER MATTERS) ───────────────────────────────────
 if (app.Environment.IsDevelopment())

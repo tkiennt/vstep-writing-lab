@@ -1,4 +1,11 @@
+using Google.Cloud.Firestore;
+
 namespace VstepWritingLab.Domain.ValueObjects;
 
+[FirestoreData]
 public record Correction(
-    string Original, string Corrected, string ReasonEn, string ReasonVi);
+    [property: FirestoreProperty("original")] string Original,
+    [property: FirestoreProperty("corrected")] string Corrected,
+    [property: FirestoreProperty("reasonEn")] string ReasonEn,
+    [property: FirestoreProperty("reasonVi")] string ReasonVi
+);

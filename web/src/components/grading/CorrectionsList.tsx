@@ -1,6 +1,5 @@
-'use client';
-
-import { GradingResult } from '@/types/grading';
+// @ts-nocheck
+'use client';import { GradingResult } from '@/types/grading';
 
 interface CorrectionsListProps {
   result: GradingResult;

@@ -121,10 +121,25 @@ async function fetchWithRetry<T>(
 
 // ── Public API functions ─────────────────────────────────────
 
+export interface GradeEssayRequest {
+  essayId: string;
+  taskType: 'task1' | 'task2';
+  prompt: string;
+  essayText: string;
+  wordCount: number;
+}
+
 /**
  * Submit an essay for AI grading.
  * Timeout: 30 s (AI takes a while), 1 retry on 5xx/network error.
  */
+export async function gradeEssay(request: GradeEssayRequest, studentId: string): Promise<GradingResult> {
+  return fetchWithRetry<GradingResult>(`/api/v2/Grading/grade?studentId=${studentId}`, {
+    method: 'POST',
+    body: request,
+    timeoutMs: 30_000,
+  });
+}
 
 /**
  * Fetch active exam prompts, optionally filtered by taskType / cefrLevel.
