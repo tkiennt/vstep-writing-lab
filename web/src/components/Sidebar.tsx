@@ -29,7 +29,7 @@ export function Sidebar({ role }: SidebarProps) {
   const MENU_ITEMS = [
     // User routes
     { title: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['user'] },
-    { title: 'Practice List', path: '/practice-list', icon: PenTool, roles: ['guest', 'user'] },
+    { title: 'Exam System', path: '/practice-list', icon: PenTool, roles: ['guest', 'user'] },
     { title: 'My Results', path: '/results/list', icon: FileText, roles: ['user'] },
     { title: 'Resources', path: '/resources', icon: Database, roles: ['user'] },
     

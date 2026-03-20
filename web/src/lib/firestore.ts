@@ -17,7 +17,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { ProgressSummary, GradingResultDoc } from '@/types/grading';
+import type { ProgressSummary, GradingResultDoc, ExamPrompt } from '@/types/grading';
 
 // ── Internal converters ──────────────────────────────────────
 
@@ -31,10 +31,10 @@ function toDate(value: unknown): Date {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function docToGradingResult(id: string, data: Record<string, any>): GradingResultDoc {
   return {
-    docId: id,
+    id: id,
     essayId: data.essayId ?? id,
     taskType: data.taskType ?? 'task2',
-    studentId: data.studentId ?? '',
+    userUid: data.userUid ?? data.studentId ?? '',
     examId: data.examId ?? '',
     gradedAt: toDate(data.gradedAt),
     essayText: data.essayText ?? '',
@@ -96,10 +96,19 @@ function docToGradingResult(id: string, data: Record<string, any>): GradingResul
       vocabulary:     { score: 0, bandLabel: 'Đạt yêu cầu', feedbackEn: '', feedbackVi: '', evidenceEn: '' },
       grammar:        { score: 0, bandLabel: 'Đạt yêu cầu', feedbackEn: '', feedbackVi: '', evidenceEn: '' },
     },
-  };
+  } as any as GradingResultDoc;
 }
 
 // ── Public helpers ───────────────────────────────────────────
+
+/**
+ * Fetch a specific exam prompt by ID from Firestore
+ */
+export async function getExamPrompt(examId: string): Promise<ExamPrompt | null> {
+  const snap = await getDoc(doc(db, 'exam_prompts', examId));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as ExamPrompt;
+}
 
 /**
  * One-time read of a user's progress summary.

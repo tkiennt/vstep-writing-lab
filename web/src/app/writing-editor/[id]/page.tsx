@@ -2,105 +2,92 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  ArrowLeft, 
-  Clock, 
-  Lightbulb,
-  ThumbsUp,
-  ThumbsDown,
-  Info,
-  Maximize2,
-  Minimize2,
-  Bold,
-  Italic,
-  Underline,
-  List,
-  ListOrdered,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  Timer,
+  Sparkles,
+  Loader2,
+  Languages,
+  Clock,
+  Target,
+  Trophy,
+  BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { useGlobal } from '@/components/GlobalProvider';
-import { useRouter } from 'next/navigation';
-
-// ========== MOCK DATA matching Practice List ==========
-const MOCK_TOPICS: Record<string, {
-  id: string; title: string; type: string; level: string;
-  timeLimit: number; minWords: number;
-  prompt: string; hints: { title: string; content: string }[];
-}> = {
-  T001: {
-    id: 'T001', title: 'Advantages of Studying Abroad', type: 'Task 2', level: 'B2',
-    timeLimit: 40, minWords: 250,
-    prompt: 'In the modern world, an increasing number of students choose to go abroad for their higher education.\n\nDiscuss the advantages and disadvantages of studying abroad. Give reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.',
-    hints: [
-      { title: 'Suggested Structure', content: 'Intro: Hook, Paraphrase prompt, Thesis statement.\nBody 1: Advantages (World-class education, cultural exposure).\nBody 2: Disadvantages (Culture shock, high costs).\nOutro: Summary and final opinion.' },
-      { title: 'High-scoring Vocabulary', content: 'Broaden horizons, Language barrier, Exorbitant fees, Immerse in culture, Global perspective' },
-    ]
-  },
-  T002: {
-    id: 'T002', title: 'Formal Email to Hotel Manager', type: 'Task 1', level: 'B1',
-    timeLimit: 20, minWords: 120,
-    prompt: 'You recently stayed at a hotel and left your laptop charger in your room. Write an email to the hotel manager.\n\nIn your email:\n- Give details of your stay (room number, dates)\n- Explain what you left and where it might be\n- Ask them to send it back to you and explain how you will pay for the postage.\n\nWrite at least 120 words.',
-    hints: [
-      { title: 'Suggested Structure', content: '1. Greeting (Dear Sir/Madam,)\n2. Purpose of email & Stay details\n3. Description and location of the item\n4. Request for return & Postage payment\n5. Sign-off (Yours faithfully,)' },
-      { title: 'Useful Vocabulary', content: 'recently stayed, accidentally left behind, appreciate your assistance, tracking number, cover the postage costs, at your earliest convenience' },
-      { title: 'Grammar Note', content: 'Use formal modals for requests: "Could you please check...", "Would it be possible to...", "I would be grateful if..."' }
-    ]
-  },
-  T003: {
-    id: 'T003', title: 'Impact of AI on Modern Jobs', type: 'Task 2', level: 'C1',
-    timeLimit: 40, minWords: 250,
-    prompt: 'Artificial intelligence is increasingly being used to automate tasks in many industries.\n\nDiscuss the potential impacts of AI on the modern job market. Consider both the opportunities and the challenges.\n\nWrite at least 250 words.',
-    hints: [
-      { title: 'Suggested Structure', content: 'Intro: Define AI briefly, state its growing influence.\nBody 1: Opportunities (new job creation, productivity gains).\nBody 2: Challenges (job displacement, skill gaps).\nOutro: Balanced conclusion with personal opinion.' },
-      { title: 'C1-level Vocabulary', content: 'Automation, displacement, upskilling, augment human capabilities, unprecedented, paradigm shift, redundancy' },
-    ]
-  },
-  T004: {
-    id: 'T004', title: 'Informal Letter to a Friend', type: 'Task 1', level: 'B1',
-    timeLimit: 20, minWords: 120,
-    prompt: 'Your friend has recently moved to a new city. Write a letter to your friend.\n\nIn your letter:\n- Ask about their new home and neighborhood\n- Tell them about something interesting that happened recently\n- Suggest a time to visit them\n\nWrite at least 120 words.',
-    hints: [
-      { title: 'Suggested Structure', content: '1. Informal greeting (Hi / Hey [Name],)\n2. Ask about their new life\n3. Share your news\n4. Propose a visit\n5. Casual sign-off (Take care, / See you soon,)' },
-      { title: 'Useful Phrases', content: 'How are you settling in?, I bet you\'re loving..., You won\'t believe what happened!, How about I come visit you...?, Drop me a line when you\'re free' },
-    ]
-  },
-};
+import { useRouter, useSearchParams } from 'next/navigation';
+import { questionService } from '@/services/questionService';
+import { submissionService } from '@/services/submissionService';
+import { Question, ExamPrompt, SentenceTemplate } from '@/types';
 
 export default function WritingEditor({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const mode = searchParams.get('mode') || 'practice';
   const { showModal, addToast } = useGlobal();
 
-  // Look up topic data by ID from URL params
-  const topic = MOCK_TOPICS[params.id] || MOCK_TOPICS['T001'];
+  const [data, setData] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [essayContent, setEssayContent] = useState('');
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [text, setText] = useState('');
-  const [timeLeft, setTimeLeft] = useState(topic.timeLimit * 60);
-  const [showHints, setShowHints] = useState(true);
-  const [isReady, setIsReady] = useState(false);
-
-  // Word count calc
-  const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-  const minWords = topic.minWords;
-  const isSufficient = wordCount >= minWords;
-
-  // Auto-save simulation
+  // Fetch data based on mode
   useEffect(() => {
-    if (text.length > 50) {
-      const timer = setInterval(() => {
-        addToast('success', 'Draft auto-saved');
-      }, 60000); // every 1 min
-      return () => clearInterval(timer);
-    }
-  }, [text, addToast]);
+    const fetchData = async () => {
+      try {
+        if (mode === 'exam') {
+          const examPrompt = await questionService.getExamPromptById(params.id);
+          // Normalize ExamPrompt to common structure
+          setData({
+            id: examPrompt.id,
+            title: examPrompt.topicKeyword || 'Official Exam Task',
+            instructions: examPrompt.instruction,
+            level: examPrompt.cefrLevel,
+            taskType: examPrompt.taskType === 'task1' ? 'Task 1: Email/Letter' : 'Task 2: Essay',
+            duration: examPrompt.taskType === 'task1' ? 20 : 40,
+            minWords: examPrompt.taskType === 'task1' ? 120 : 250,
+            category: examPrompt.topicCategory,
+            difficulty: examPrompt.difficulty
+          });
+          setTimeLeft((examPrompt.taskType === 'task1' ? 20 : 40) * 60);
+        } else {
+          const question = await questionService.getById(params.id);
+          setData({
+            id: question.questionId,
+            title: question.title,
+            instructions: question.instructions,
+            level: question.level,
+            taskType: question.taskType,
+            duration: question.task?.duration || 40,
+            minWords: question.task?.minWords || 250,
+            sentenceTemplates: question.sentenceTemplates,
+            category: question.category,
+            difficulty: 2 // default
+          });
+          if (question.task) {
+            setTimeLeft(question.task.duration * 60);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching writing data:', error);
+        addToast('error', 'Failed to load writing task');
+        router.push('/practice-list');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [params.id, mode, router, addToast]);
 
   // Timer logic
   useEffect(() => {
+    if (loading || isSubmitting) return;
     const timer = setInterval(() => {
       setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [loading, isSubmitting]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -108,26 +95,46 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const isLowTime = timeLeft < 300; // less than 5 minutes
+  const wordCount = essayContent.trim() === '' ? 0 : essayContent.trim().split(/\s+/).length;
+  const minWords = data?.minWords || 250;
+  const isSufficient = wordCount >= minWords * 0.5;
+  const progress = Math.min((wordCount / minWords) * 100, 100);
+  const isLowTime = timeLeft < 300; 
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (wordCount < minWords * 0.5) {
+      addToast('error', `Your essay is too short (${wordCount} words). Please write at least ${Math.round(minWords * 0.5)} words before submitting.`);
+      return;
+    }
+
     showModal({
-      title: 'Submit your essay?',
-      description: 'Are you sure you want to submit your writing for AI evaluation? You cannot modify it afterwards.',
+      title: mode === 'exam' ? 'Submit Official Exam?' : 'Submit for AI Grading?',
+      description: 'Your essay will be evaluated by our AI based on official VSTEP rubrics. This takes 10-20 seconds.',
       confirmText: 'Yes, Submit',
-      cancelText: 'Keep writing',
-      type: 'warning',
-      onConfirm: () => {
-        addToast('loading', 'AI is analyzing your submission...');
-        setTimeout(() => {
-          router.push(`/results/${params.id}`);
-        }, 1500); // fake network delay
+      cancelText: 'Keep Writing',
+      type: 'info',
+      onConfirm: async () => {
+        setIsSubmitting(true);
+        try {
+          const result = await submissionService.submit({
+            questionId: params.id,
+            mode: mode === 'exam' ? 'exam' : 'practice',
+            essayContent: essayContent
+          });
+          
+          addToast('success', 'Essay submitted successfully!');
+          router.push(`/results/${result.submissionId}`);
+        } catch (err) {
+          console.error('Submission error:', err);
+          addToast('error', 'Failed to submit essay. Please try again.');
+          setIsSubmitting(false);
+        }
       }
     });
   };
 
   const handleLeave = () => {
-    if (wordCount > 10) {
+    if (essayContent.length > 50) {
       showModal({
          title: 'Discard draft?',
          description: 'You have unsaved changes. Are you sure you want to leave this page?',
@@ -141,135 +148,198 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+             <Loader2 className="h-16 w-16 animate-spin text-emerald-600" />
+             <Target className="absolute inset-0 m-auto h-6 w-6 text-emerald-600 animate-pulse" />
+          </div>
+          <p className="font-black text-gray-500 uppercase tracking-widest text-sm">Preparing Environment...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50/50">
+    <div className="flex flex-col h-screen bg-gray-50/50 overflow-hidden">
       
-      {/* Top Navbar */}
-      <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 shrink-0 relative z-20">
+      {/* Dynamic Header */}
+      <header className={`h-16 flex items-center justify-between px-6 shrink-0 relative z-20 shadow-lg transition-colors duration-500 ${mode === 'exam' ? 'bg-vstep-dark' : 'bg-emerald-900'} text-white`}>
          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={handleLeave} className="text-gray-500 hover:bg-gray-100 rounded-full">
-               <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex items-center gap-3">
-               <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-md ${topic.type === 'Task 1' ? 'bg-indigo-50 text-indigo-700' : 'bg-fuchsia-50 text-fuchsia-700'}`}>{topic.type}</span>
-               <h1 className="text-lg font-bold text-gray-900 hidden sm:block">{topic.title}</h1>
+            <button onClick={handleLeave} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+               <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div className="flex flex-col">
+               <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">VSTEP {data.level}</span>
+                  {mode === 'exam' && <span className="px-1.5 py-0.5 bg-red-500 text-[8px] font-black rounded uppercase">LIVE EXAM</span>}
+               </div>
+               <h1 className="text-sm font-bold truncate max-w-[400px]">{data.title}</h1>
             </div>
+         </div>
+
+         <div className="flex items-center gap-8">
+            <div className={`flex items-center gap-3 px-5 py-2 rounded-2xl border transition-all ${isLowTime ? 'bg-red-500/20 border-red-500 animate-pulse' : 'bg-white/10 border-white/10'}`}>
+               <Timer className={`w-5 h-5 ${isLowTime ? 'text-red-400' : 'text-emerald-400'}`} />
+               <span className="font-mono text-2xl font-black tabular-nums tracking-tight">
+                  {formatTime(timeLeft)}
+               </span>
+            </div>
+            
+            <Button 
+               onClick={handleSubmit}
+               disabled={isSubmitting}
+               className="bg-emerald-500 hover:bg-emerald-600 text-vstep-dark h-11 px-8 rounded-xl font-black transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50 active:scale-95"
+            >
+               {isSubmitting ? (
+                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> GRADING...</>
+               ) : (
+                 mode === 'exam' ? 'FINISH EXAM' : 'SUBMIT & GRADE'
+               )}
+            </Button>
          </div>
       </header>
 
-      {/* Split View Container */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
          
-         {/* Left Column: Prompt & Hints (40%) */}
-         <div className={`w-full md:w-[40%] bg-white border-r border-gray-100 flex flex-col ${!isReady ? 'hidden md:flex' : 'hidden'}`}>
-            <div className="p-6 md:p-8 overflow-y-auto flex-1 custom-scrollbar">
+         {/* Left Side: Context Panel */}
+         <div className="w-[35%] bg-white border-r border-gray-100 flex flex-col shadow-inner">
+            <div className="p-8 overflow-y-auto flex-1 custom-scrollbar space-y-8">
                
-               <div className="mb-8">
-                  <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Writing Prompt</h2>
-                  <div className="prose prose-sm prose-gray max-w-none text-gray-700 leading-relaxed bg-gray-50 p-6 rounded-2xl border border-gray-100 shadow-inner">
-                    <p className="whitespace-pre-line">{topic.prompt}</p>
+               {/* Metadata Card */}
+               <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                     <span className="text-[9px] font-black text-gray-400 uppercase block mb-1">Task Type</span>
+                     <span className="text-xs font-bold text-gray-900">{data.taskType}</span>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                     <span className="text-[9px] font-black text-gray-400 uppercase block mb-1">Difficulty</span>
+                     <div className="flex gap-1">
+                        {[1,2,3].map(i => (
+                           <Trophy key={i} className={`w-3 h-3 ${i <= data.difficulty ? 'text-amber-500' : 'text-gray-200'}`} />
+                        ))}
+                     </div>
                   </div>
                </div>
 
-               {/* Hint Panel Accordion */}
-               <div className="rounded-2xl border border-emerald-100 overflow-hidden shadow-sm">
-                  <button 
-                    onClick={() => setShowHints(!showHints)}
-                    className="w-full bg-emerald-50/50 px-5 py-4 flex items-center justify-between text-left hover:bg-emerald-50 transition-colors"
-                  >
-                     <div className="flex items-center gap-2">
-                        <Lightbulb className="w-5 h-5 text-emerald-500" />
-                        <span className="font-bold text-emerald-900">AI Assistant Hints</span>
+               {/* Instruction Box */}
+               <div className="p-6 md:p-8 bg-gradient-to-br from-emerald-50/50 to-white rounded-3xl border-2 border-emerald-50 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                     <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg">
+                        <BookOpen className="w-4 h-4" />
                      </div>
-                     <ChevronDown className={`w-4 h-4 text-emerald-700 transition-transform ${showHints ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {showHints && (
-                    <div className="p-5 bg-white space-y-5 animate-in slide-in-from-top-2 duration-200">
-                       {topic.hints.map((hint, idx) => (
-                         <div key={idx} className="space-y-2">
-                           {idx > 0 && <div className="h-px bg-gray-100 w-full"></div>}
-                           <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5"><Info className="w-3.5 h-3.5 text-gray-400"/> {hint.title}</h4>
-                           <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100 whitespace-pre-line">
-                             {hint.content}
-                           </p>
-                           <div className="flex gap-2 justify-end mt-1">
-                              <button className="text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 p-1.5 rounded transition-colors"><ThumbsUp className="w-3.5 h-3.5" /></button>
-                              <button className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition-colors"><ThumbsDown className="w-3.5 h-3.5" /></button>
-                           </div>
-                         </div>
-                       ))}
-                    </div>
-                  )}
+                     <h3 className="text-lg font-black text-gray-900 tracking-tight">Writing Task</h3>
+                  </div>
+                  <div className="prose prose-sm prose-gray max-w-none">
+                    <p className="text-gray-700 leading-relaxed font-serif text-lg italic bg-white/50 p-4 rounded-xl border border-white whitespace-pre-line shadow-sm">
+                       {data.instructions}
+                    </p>
+                  </div>
                </div>
 
+               {/* Sentence Templates (Practice Mode Only) */}
+               {mode !== 'exam' && data.sentenceTemplates && data.sentenceTemplates.length > 0 && (
+                 <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
+                    <div className="flex items-center justify-between mb-4">
+                       <div className="flex items-center gap-2">
+                          <Sparkles className="w-5 h-5 text-emerald-600" />
+                          <h4 className="font-bold text-gray-900">AI Guided Transitions</h4>
+                       </div>
+                    </div>
+                    {data.sentenceTemplates.map((part: any, idx: number) => (
+                       <details key={idx} className="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all">
+                         <summary className="p-4 cursor-pointer hover:bg-gray-50 font-bold text-sm text-gray-700 flex items-center justify-between list-none">
+                            <span className="capitalize">{part.part}</span>
+                            <ChevronDown className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" />
+                         </summary>
+                         <div className="p-4 pt-0 space-y-2">
+                            {part.templates.map((template: string, tIdx: number) => (
+                              <button 
+                                key={tIdx}
+                                onClick={() => setEssayContent(prev => prev + ' ' + template)}
+                                className="w-full text-left p-3 text-xs text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl border border-transparent hover:border-emerald-100 transition-all font-medium"
+                              >
+                                 {template}
+                              </button>
+                            ))}
+                         </div>
+                       </details>
+                    ))}
+                 </div>
+               )}
+               
+               {mode === 'exam' && (
+                  <div className="p-6 bg-red-50 rounded-3xl border border-red-100 text-center space-y-3">
+                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-600">
+                        <Clock className="w-6 h-6 animate-pulse" />
+                     </div>
+                     <h4 className="font-black text-red-900 text-sm">EXAM SECURITY LOCK</h4>
+                     <p className="text-[11px] text-red-700 font-medium leading-relaxed">
+                        AI assistance and hints are disabled for this official exam. Focus on your own original writing and grammar control.
+                     </p>
+                  </div>
+               )}
             </div>
          </div>
 
-         {/* Right Column: Editor (60%) */}
-         <div className={`w-full md:w-[60%] flex flex-col bg-[#FDFDFD] ${!isReady ? 'hidden md:flex' : 'flex'}`}>
-            
-            {/* Formatting Toolbar */}
-            <div className="h-12 border-b border-gray-100 bg-white flex items-center px-4 gap-1 shrink-0">
-               <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"><Bold className="w-4 h-4" /></button>
-               <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"><Italic className="w-4 h-4" /></button>
-               <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"><Underline className="w-4 h-4" /></button>
-               <div className="w-px h-5 bg-gray-200 mx-2"></div>
-               <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"><List className="w-4 h-4" /></button>
-               <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"><ListOrdered className="w-4 h-4" /></button>
+         {/* Right Side: High-Performance Editor */}
+         <div className="flex-1 flex flex-col bg-[#FDFDFD] relative">
+            {/* Editor Toolbar */}
+            <div className="h-14 border-b border-gray-100 bg-white/80 backdrop-blur-md flex items-center justify-between px-8 shrink-0 relative z-10">
+               <div className="flex items-center gap-10">
+                  <div className="flex flex-col">
+                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Live Metrics</span>
+                     <div className="flex items-baseline gap-2">
+                        <span className={`text-base font-black ${wordCount < minWords ? 'text-amber-500' : 'text-emerald-600'}`}>
+                           {wordCount} <span className="text-[10px] text-gray-400 uppercase font-bold">Words</span>
+                        </span>
+                        <span className="text-[10px] text-gray-300 font-bold">/ {minWords} MIN</span>
+                     </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                     <div className="w-48 h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                        <div 
+                          className={`h-full transition-all duration-700 rounded-full ${wordCount >= minWords ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.3)]'}`}
+                          style={{ width: `${progress}%` }}
+                        ></div>
+                     </div>
+                     <span className="text-[10px] font-black text-gray-400 w-10">{Math.round(progress)}%</span>
+                  </div>
+               </div>
+               
+               <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-gray-100 mx-2"></div>
+                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-emerald-600 rounded-xl h-9">
+                     <Languages className="w-4 h-4 mr-2" /> Spell Check
+                  </Button>
+               </div>
             </div>
 
-            {/* Rich Text Editor Mock */}
-            <div className="flex-1 relative">
+            {/* Premium Drafting Canvas */}
+            <div className="flex-1 relative group">
+               <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500/0 group-focus-within:bg-emerald-500/100 transition-all duration-300"></div>
                <textarea 
-                  className="absolute inset-0 w-full h-full p-8 md:p-12 resize-none outline-none font-serif text-lg leading-loose text-gray-800 bg-transparent placeholder-gray-300 custom-scrollbar"
-                  placeholder="Start writing your essay here..."
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
+                  className="absolute inset-0 w-full h-full p-12 md:p-20 resize-none outline-none font-serif text-2xl leading-[1.8] text-gray-800 bg-transparent placeholder-gray-200 custom-scrollbar selection:bg-emerald-100 selection:text-emerald-900"
+                  placeholder="The countdown has started. Begin drafting your response here..."
+                  value={essayContent}
+                  onChange={(e) => setEssayContent(e.target.value)}
                   spellCheck={false}
+                  autoFocus
                />
+               
+               {/* Contextual watermark */}
+               <div className="absolute bottom-8 right-12 opacity-[0.03] pointer-events-none select-none">
+                  <span className="text-8xl font-black italic tracking-tighter uppercase">{mode === 'exam' ? 'OFFICIAL' : 'PRACTICE'}</span>
+               </div>
             </div>
          </div>
       </div>
-
-      {/* Crucial: Status Bar Fixed Bottom */}
-      <footer className="h-16 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] flex items-center justify-between px-4 sm:px-6 shrink-0 z-20">
-         
-         <div className="flex items-center gap-6">
-            {/* Word Count */}
-            <div className="flex flex-col">
-               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Word Count</span>
-               <div className={`flex items-baseline gap-1.5 font-bold ${isSufficient ? 'text-emerald-600' : 'text-red-500'}`}>
-                  <span className="text-lg leading-none">{wordCount}</span>
-                  <span className="text-xs text-gray-400">/ {minWords} min</span>
-               </div>
-            </div>
-
-            {/* Timer */}
-            <div className="flex flex-col">
-               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Time Left</span>
-               <div className={`flex items-center gap-1.5 font-bold ${isLowTime ? 'text-red-500 animate-pulse' : 'text-gray-900'}`}>
-                  <Clock className="w-4 h-4" />
-                  <span className="text-lg leading-none font-mono tracking-tight">{formatTime(timeLeft)}</span>
-               </div>
-            </div>
-         </div>
-
-         {/* Actions */}
-         <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-block text-xs font-semibold text-gray-400">Draft saved 1m ago</span>
-            <Button 
-              onClick={handleSubmit}
-              disabled={!isSufficient} 
-              className={`rounded-xl h-11 px-6 font-bold shadow-sm transition-all
-               ${isSufficient ? 'bg-vstep-dark hover:bg-emerald-900 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}
-              `}
-            >
-               Submit Essay
-            </Button>
-         </div>
-
-      </footer>
     
     </div>
   );

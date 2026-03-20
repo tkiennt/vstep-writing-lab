@@ -18,19 +18,94 @@ export function ResultClient({ essayId }: ResultClientProps) {
   const [status, setStatus] = useState<'pending' | 'ready' | 'error'>('pending');
 
   useEffect(() => {
-    if (!essayId) return;
+    try {
+      const cached = sessionStorage.getItem('lastGradingResult');
+      if (cached) {
+        const raw = JSON.parse(cached);
+        // Map backend FullAnalysisResponse -> GradingResultDoc
+        
+        let essayText = raw.essayText || '';
+        if (typeof window !== 'undefined') {
+             // In PracticeClient, we didn't save essayText to the response, but it might be there. We'll fallback if missing.
+             // Actually, the new API doesn't return essayText. We could save it in sessionStorage too.
+        }
 
-    const unsub = onSnapshot(doc(db, 'grading_results', essayId), (snap) => {
-      if (snap.exists()) {
-        setResult(snap.data() as GradingResultDoc);
+        const annotations = (raw.inlineHighlights || []).map((h: any) => {
+          let st = 0, en = 0;
+          if (essayText && h.quote) {
+            st = essayText.indexOf(h.quote);
+            en = st >= 0 ? st + h.quote.length : 0;
+          }
+          return {
+            startIndex: Math.max(0, st),
+            endIndex: Math.max(0, en),
+            type: h.type === 'strength' ? 'strength' : 'grammar',
+            message: h.issueVi || h.issue || 'Lỗi',
+            suggestion: h.fix || null,
+            severity: h.type === 'strength' ? 'good' : 'error'
+          };
+        });
+
+        const sentences = (raw.rewriteSamples || []).map((r: any) => ({
+          sentence: r.original,
+          quality: 'weak',
+          feedbackVi: r.explanationVi,
+          improvedVersion: r.rewritten,
+          structureUsed: 'Biến đổi cấu trúc'
+        }));
+
+        const mapped: GradingResultDoc = {
+          id: raw.id || essayId,
+          userUid: raw.studentId || '',
+          promptId: raw.examId || '',
+          essayText: essayText,
+          wordCount: 0,
+          cefrLevel: raw.cefrLevel || 'B1',
+          createdAt: raw.gradedAt || new Date(),
+          gradedAt: raw.gradedAt || new Date(),
+          totalScore: raw.totalScore || 0,
+          taskType: raw.taskType || 'task1',
+          isRelevant: raw.relevance?.isRelevant ?? true,
+          score: {
+            taskFulfilment: raw.taskFulfilment?.score || 0,
+            organization: raw.organization?.score || 0,
+            vocabulary: raw.vocabulary?.score || 0,
+            grammar: raw.grammar?.score || 0,
+            overall: raw.totalScore || 0
+          },
+          summary: "Đã chấm điểm hoàn tất",
+          suggestions: raw.improvementsVi || [],
+          annotations: annotations,
+          sentenceAnalysis: sentences,
+          suggestedStructures: [],
+          taskRelevance: {
+            isRelevant: raw.relevance?.isRelevant ?? true,
+            relevanceScore: raw.relevance?.relevanceScore || 0,
+            verdictVi: raw.relevance?.verdictVi || '',
+            missingPointsVi: raw.relevance?.missingPointsVi || [],
+            offTopicSentencesEn: raw.relevance?.offTopicSentences || []
+          }
+        };
+
+        setResult(mapped);
         setStatus('ready');
+      } else {
+        // Fallback to Firestore listener if sessionStorage is empty
+        const unsub = onSnapshot(doc(db, 'grading_results', essayId), (snap) => {
+          if (snap.exists()) {
+            setResult(snap.data() as GradingResultDoc);
+            setStatus('ready');
+          }
+        }, (err) => {
+          console.error('Firestore listen error:', err);
+          setStatus('error');
+        });
+        return () => unsub();
       }
-    }, (err) => {
-      console.error('Firestore listen error:', err);
+    } catch (err) {
+      console.error("Result mapping error", err);
       setStatus('error');
-    });
-
-    return () => unsub();
+    }
   }, [essayId]);
 
   if (status === 'pending') {

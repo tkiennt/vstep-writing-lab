@@ -7,13 +7,14 @@ public class GradeEssayRequestValidator : AbstractValidator<GradeEssayRequest>
 {
     public GradeEssayRequestValidator()
     {
-        RuleFor(x => x.UserUid).NotEmpty().WithMessage("User identification is required.");
-        RuleFor(x => x.PromptId).NotEmpty().WithMessage("Exam prompt identification is required.");
-        RuleFor(x => x.Content)
+        RuleFor(x => x.EssayId).NotEmpty().WithMessage("Essay identification is required.");
+        RuleFor(x => x.Prompt).NotEmpty().WithMessage("Original prompt instruction is required.");
+        RuleFor(x => x.EssayText)
             .NotEmpty().WithMessage("Essay content is required.")
-            .MinimumLength(50).WithMessage("Essay content is too short.");
+            .MinimumLength(50).WithMessage("Essay content is too short (min 50 chars).");
         RuleFor(x => x.TaskType)
-            .Must(x => x == "Task1" || x == "Task2")
-            .WithMessage("Task type must be Task1 or Task2.");
+            .Must(x => x.ToLower() == "task1" || x.ToLower() == "task2")
+            .WithMessage("Task type must be task1 or task2.");
+        RuleFor(x => x.WordCount).GreaterThan(0).WithMessage("Word count must be greater than zero.");
     }
 }

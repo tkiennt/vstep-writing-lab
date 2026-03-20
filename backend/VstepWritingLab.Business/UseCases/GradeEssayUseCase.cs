@@ -1,72 +1,108 @@
+using Microsoft.Extensions.Logging;
 using VstepWritingLab.Domain.Entities;
 using VstepWritingLab.Domain.Interfaces;
 using VstepWritingLab.Domain.ValueObjects;
 using VstepWritingLab.Business.DTOs;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace VstepWritingLab.Business.UseCases;
 
 public interface IGradeEssayUseCase
 {
-    Task<Result<GradingResultDto>> ExecuteAsync(GradeEssayRequest request);
+    Task<Result<FullAnalysisResponse>> ExecuteAsync(GradeEssayCommand command, CancellationToken ct = default);
 }
 
 public class GradeEssayUseCase(
     IGradingResultRepository repository,
     IGradingAiService aiService,
     IExamPromptRepository promptRepository,
-    IRubricContextService rubricService) : IGradeEssayUseCase
+    IRubricContextService rubricService,
+    IProgressUseCase progressUseCase,
+    ILogger<GradeEssayUseCase> logger) : IGradeEssayUseCase
 {
-    public async Task<Result<GradingResultDto>> ExecuteAsync(GradeEssayRequest request)
+    public async Task<Result<FullAnalysisResponse>> ExecuteAsync(GradeEssayCommand command, CancellationToken ct = default)
     {
-        // 1. Get Prompt
-        var prompt = await promptRepository.GetByIdAsync(request.PromptId);
-        if (prompt == null) return Result<GradingResultDto>.Fail("Prompt not found");
+        // 1. Load exam + rubric context in parallel
+        var examTask   = promptRepository.GetByIdAsync(command.EssayId, ct);
+        var rubricTask = rubricService.GetContextAsync(command.EssayText, command.TaskType, ct);
+        
+        await Task.WhenAll(examTask, rubricTask);
 
-        // 2. Get Rubric Context
-        var context = await rubricService.GetContextAsync(request.Content, request.TaskType);
+        var exam = await examTask;
+        if (exam is null)
+            return Result<FullAnalysisResponse>.Fail($"Exam '{command.EssayId}' not found");
 
-        // 3. Call AI Service
+        var rubricContext = await rubricTask;
+
+        // 2. Call AI Service (tuned model with fallback)
         var aiResult = await aiService.GradeAsync(
-            context, request.TaskType, prompt.Instruction,
-            prompt.KeyPoints, request.Content.Split(' ').Length, request.Content);
+            rubricContext, command.TaskType, command.Prompt,
+            exam.KeyPoints, command.WordCount, command.EssayText, ct);
 
         if (!aiResult.IsSuccess || aiResult.Value == null) 
-            return Result<GradingResultDto>.Fail(aiResult.Error ?? "AI grading failed");
+            return Result<FullAnalysisResponse>.Fail(aiResult.Error ?? "AI grading failed");
         
-        var aiOutput = aiResult.Value;
+        var ai = aiResult.Value;
 
-        // 4. Create Domain Entity (Types already match from AiGradingOutput)
+        // 3. Create Domain Entity
         var gradingResult = new GradingResult(
             Guid.NewGuid().ToString(),
-            request.UserUid,
-            request.PromptId,
-            request.TaskType,
+            command.StudentId,
+            command.EssayId,
+            command.TaskType,
             DateTime.UtcNow,
-            aiOutput.Relevance,
-            aiOutput.TaskFulfilment,
-            aiOutput.Organization,
-            aiOutput.Vocabulary,
-            aiOutput.Grammar,
-            aiOutput.StrengthsVi,
-            aiOutput.ImprovementsVi,
-            aiOutput.Corrections,
-            aiOutput.AiModel
+            ai.Relevance,
+            ai.TaskFulfilment,
+            ai.Organization,
+            ai.Vocabulary,
+            ai.Grammar,
+            ai.StrengthsVi,
+            ai.ImprovementsVi,
+            ai.Corrections,
+            ai.AiModel,
+            ai.InlineHighlights,
+            ai.RecommendedStructures,
+            ai.RewriteSamples,
+            ai.Roadmap
         );
 
-        // 5. Persist
-        await repository.SaveAsync(gradingResult, request.Content, request.Content.Split(' ').Length);
-
-        // 6. Map to DTO
-        var feedback = aiOutput.StrengthsVi.Length > 0 ? aiOutput.StrengthsVi[0] : "Grading complete";
-
-        return Result<GradingResultDto>.Ok(new GradingResultDto(
+        // 4. Map to Response DTO
+        var response = new FullAnalysisResponse(
             gradingResult.Id,
             gradingResult.StudentId,
             gradingResult.ExamId,
+            gradingResult.TaskType,
+            gradingResult.GradedAt,
             gradingResult.TotalScore,
             gradingResult.CefrLevel,
-            feedback,
-            gradingResult.GradedAt
-        ));
+            gradingResult.VstepComparison,
+            gradingResult.Relevance,
+            gradingResult.TaskFulfilment,
+            gradingResult.Organization,
+            gradingResult.Vocabulary,
+            gradingResult.Grammar,
+            gradingResult.StrengthsVi,
+            gradingResult.ImprovementsVi,
+            gradingResult.Corrections,
+            gradingResult.InlineHighlights,
+            gradingResult.RecommendedStructures,
+            gradingResult.RewriteSamples,
+            gradingResult.Roadmap,
+            gradingResult.AiModel
+        );
+
+        // 5. Save to Firestore + update progress (fire-and-forget)
+        _ = Task.Run(async () => {
+            try {
+                await repository.SaveAsync(gradingResult, command.EssayText, command.WordCount);
+                await promptRepository.IncrementUsageAsync(command.EssayId);
+                await progressUseCase.UpdateAsync(command.StudentId);
+            } catch (Exception ex) {
+                logger.LogError(ex, "Background save failed for User {StudentId}", command.StudentId);
+            }
+        });
+
+        return Result<FullAnalysisResponse>.Ok(response);
     }
 }
