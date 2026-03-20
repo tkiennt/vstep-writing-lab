@@ -9,7 +9,7 @@
  *  - Custom ApiError with HTTP status
  */
 import { auth } from '@/lib/firebase';
-import type { GradingResult, ExamPrompt } from '@/types/grading';
+import type { GradingResult, ExamPrompt, UserHistoryType } from '@/types/grading';
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://localhost:7133';
@@ -127,6 +127,9 @@ export interface GradeEssayRequest {
   prompt: string;
   essayText: string;
   wordCount: number;
+  // NEW:
+  mode?:     "exam" | "practice" | "guide";
+  userHistory?: UserHistoryType;
 }
 
 export interface StartSessionRequest {

@@ -30,36 +30,61 @@ export function ResultClient({ essayId }: ResultClientProps) {
              // Actually, the new API doesn't return essayText. We could save it in sessionStorage too.
         }
 
-        const annotations = (raw.inlineHighlights || []).map((h: any) => {
-          let st = 0, en = 0;
-          if (essayText && h.quote) {
-            st = essayText.indexOf(h.quote);
-            en = st >= 0 ? st + h.quote.length : 0;
+        const finalAnnotations: any[] = [];
+        
+        // 1. Map inline highlights
+        (raw.inlineHighlights || []).forEach((h: any) => {
+          let st = essayText.indexOf(h.quote);
+          if (st >= 0) {
+            finalAnnotations.push({
+              startIndex: st,
+              endIndex: st + h.quote.length,
+              type: h.type === 'strength' ? 'strength' : (h.category || 'grammar'),
+              message: h.issueVi || h.issue || 'Lỗi',
+              suggestion: h.fix || null,
+              severity: h.type === 'strength' ? 'good' : 'error'
+            });
           }
-          return {
-            startIndex: Math.max(0, st),
-            endIndex: Math.max(0, en),
-            type: h.type === 'strength' ? 'strength' : 'grammar',
-            message: h.issueVi || h.issue || 'Lỗi',
-            suggestion: h.fix || null,
-            severity: h.type === 'strength' ? 'good' : 'error'
-          };
         });
 
-        const sentences = (raw.rewriteSamples || []).map((r: any) => ({
-          sentence: r.original,
-          quality: 'weak',
-          feedbackVi: r.explanationVi,
-          improvedVersion: r.rewritten,
-          structureUsed: 'Biến đổi cấu trúc'
-        }));
+        // 2. Map sentence-level feedback
+        (raw.sentenceFeedback || []).forEach((s: any) => {
+          let st = essayText.indexOf(s.sentence);
+          if (st >= 0) {
+            finalAnnotations.push({
+              startIndex: st,
+              endIndex: st + s.sentence.length,
+              type: 'sentence',
+              message: s.explanation,
+              suggestion: s.suggestion || null,
+              severity: s.isGood ? 'good' : 'warning',
+              isSentence: true
+            });
+          }
+        });
+
+        // 3. Map additional inline improvements
+        (raw.inlineSentenceImprovement || []).forEach((s: any) => {
+          let st = essayText.indexOf(s.original);
+          if (st >= 0) {
+            finalAnnotations.push({
+              startIndex: st,
+              endIndex: st + s.original.length,
+              type: 'sentence',
+              message: s.reason,
+              suggestion: s.improved || null,
+              severity: 'warning',
+              isSentence: true
+            });
+          }
+        });
 
         const mapped: GradingResultDoc = {
           id: raw.id || essayId,
           userUid: raw.studentId || '',
           promptId: raw.examId || '',
           essayText: essayText,
-          wordCount: 0,
+          wordCount: raw.wordCount || 0,
           cefrLevel: raw.cefrLevel || 'B1',
           createdAt: raw.gradedAt || new Date(),
           gradedAt: raw.gradedAt || new Date(),
@@ -73,18 +98,33 @@ export function ResultClient({ essayId }: ResultClientProps) {
             grammar: raw.grammar?.score || 0,
             overall: raw.totalScore || 0
           },
-          summary: "Đã chấm điểm hoàn tất",
+          summary: "Chấm điểm hoàn tất bởi chuyên gia AI",
           suggestions: raw.improvementsVi || [],
-          annotations: annotations,
-          sentenceAnalysis: sentences,
-          suggestedStructures: [],
+          annotations: finalAnnotations,
+          sentenceAnalysis: [],
           taskRelevance: {
             isRelevant: raw.relevance?.isRelevant ?? true,
             relevanceScore: raw.relevance?.relevanceScore || 0,
             verdictVi: raw.relevance?.verdictVi || '',
             missingPointsVi: raw.relevance?.missingPointsVi || [],
             offTopicSentencesEn: raw.relevance?.offTopicSentences || []
-          }
+          },
+          sentenceFeedback: raw.sentenceFeedback || [],
+          improvementTracking: raw.improvementTracking,
+          guideMode: raw.guideMode,
+          inlineSentenceImprovement: raw.inlineSentenceImprovement || [],
+          suggestedStructures: (raw.recommended_structures || []).map((s: any) => ({
+            structure: s.structure_name,
+            example: s.example,
+            usageTip: s.why_use_it_vi
+          })),
+          roadmap: raw.roadmap ? {
+            currentCefr: raw.roadmap.current_level,
+            targetCefr: raw.roadmap.target_level,
+            estimatedWeeks: raw.roadmap.estimated_weeks,
+            weekly_plan: raw.roadmap.weekly_plan
+          } : undefined,
+          mode: raw.mode as any,
         };
 
         setResult(mapped);
@@ -170,8 +210,17 @@ export function ResultClient({ essayId }: ResultClientProps) {
 
       <main className="max-w-7xl mx-auto px-6 pt-10 space-y-12">
         
-        {/* Scores */}
-        <ScoreSummaryCard score={result.score} cefrLevel={result.cefrLevel} />
+        {/* Scores - Hidden in Guide Mode */}
+        {result.mode !== 'guide' ? (
+          <ScoreSummaryCard score={result.score} cefrLevel={result.cefrLevel} />
+        ) : (
+          <div className="bg-emerald-600 rounded-[2.5rem] p-10 text-white shadow-xl shadow-emerald-950/20">
+            <h3 className="text-3xl font-black mb-4">Chế độ Hướng dẫn (Guide Mode)</h3>
+            <p className="text-emerald-100 font-medium text-lg leading-relaxed max-w-2xl">
+              Chúng mình đã phân tích bài viết của bạn. Hãy xem gợi ý bên dưới để hoàn thiện bài viết nhé!
+            </p>
+          </div>
+        )}
 
         {/* Relevance Alert if score low */}
         {!result.taskRelevance.isRelevant && (
@@ -203,10 +252,6 @@ export function ResultClient({ essayId }: ResultClientProps) {
               </div>
               <AnnotatedEssay text={result.essayText} annotations={result.annotations} />
             </section>
-
-            <section>
-              <SentenceBreakdown sentences={result.sentenceAnalysis} />
-            </section>
           </div>
 
           {/* Sidebar: Suggestions & Roadmap */}
@@ -228,21 +273,52 @@ export function ResultClient({ essayId }: ResultClientProps) {
 
             <section className="bg-[#064e3b] rounded-[2.5rem] p-8 text-white shadow-xl shadow-emerald-950/20">
               <h3 className="text-xl font-black mb-4">Lộ trình học tập</h3>
-              <p className="text-emerald-100/60 font-medium text-sm leading-relaxed mb-8">Dựa trên kết quả này, AI gợi ý bạn chuyển sang cấp độ <span className="text-white font-black">B2 Upper</span>.</p>
+              <p className="text-emerald-100/60 font-medium text-sm leading-relaxed mb-8">
+                Dựa trên kết quả này, AI gợi ý bạn chuyển sang cấp độ <span className="text-white font-black">
+                  {result.cefrLevel === 'B1' ? 'Bậc 4 (B2)' : (result.cefrLevel === 'B2' ? 'Bậc 5 (C1)' : 'C2')}
+                </span>.
+              </p>
               
               <div className="space-y-6">
-                 {[
-                   { t: 'Luyện câu ghép', d: 'Dùng bù trừ cho câu đơn' },
-                   { t: 'Collocations công sở', d: 'Tăng điểm Vocabulary' }
-                 ].map((item, i) => (
-                   <div key={i} className="flex gap-4">
-                     <div className="w-1.5 h-auto bg-emerald-500/30 rounded-full" />
-                     <div>
-                       <div className="font-black text-sm">{item.t}</div>
-                       <div className="text-[10px] text-emerald-200 uppercase tracking-widest font-black mt-1">{item.d}</div>
+                {result.improvementTracking && (
+                  <div className="space-y-6">
+                    {result.improvementTracking.improved.length > 0 && (
+                      <div className="space-y-4">
+                        <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Đã tiến bộ</div>
+                        {result.improvementTracking.improved.map((item, i) => (
+                          <div key={i} className="flex gap-4">
+                            <div className="w-1.5 h-auto bg-emerald-400 rounded-full" />
+                            <div className="font-black text-sm">{item}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Dynamic 8-Week Roadmap */}
+                {(result as any).roadmap?.weekly_plan && (
+                   <div className="mt-8 space-y-4">
+                     <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-4">Kế hoạch 8 tuần</div>
+                     <div className="space-y-3">
+                       {(result as any).roadmap.weekly_plan.slice(0, 4).map((step: any, i: number) => (
+                         <div key={i} className="bg-white/5 rounded-xl p-4 border border-white/5">
+                           <div className="flex items-center justify-between mb-2">
+                             <span className="text-[9px] font-black uppercase text-emerald-400 tracking-tighter">Tuần {step.week}</span>
+                             <span className="text-[9px] font-bold text-emerald-100/40">{step.goal}</span>
+                           </div>
+                           <p className="text-xs font-bold text-white leading-relaxed">{step.focus}</p>
+                         </div>
+                       ))}
                      </div>
                    </div>
-                 ))}
+                )}
+
+                {!result.improvementTracking && !(result as any).roadmap && (
+                  <div className="text-emerald-100/40 text-sm font-medium italic">
+                    Hãy tiếp tục luyện tập để AI theo dõi sự tiến bộ của bạn nhé!
+                  </div>
+                )}
               </div>
 
               <button className="w-full py-4 bg-emerald-500 rounded-2xl font-black text-sm mt-10 hover:bg-emerald-400 transition-colors shadow-lg">

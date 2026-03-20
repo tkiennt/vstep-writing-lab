@@ -7,6 +7,7 @@ public interface IGradingAiService
     Task<Result<AiGradingOutput>> GradeAsync(
         string rubricContext, string taskType, string instruction,
         string[] keyPoints, int wordCount, string essayText,
+        string mode = "exam", UserHistory? history = null,
         CancellationToken ct = default);
 }
 
@@ -31,5 +32,9 @@ public record AiGradingOutput(
     RecommendedStructure[] RecommendedStructures,
     RewriteSample[]        RewriteSamples,
     GradingRoadmap         Roadmap,
-    string         AiModel
+    string         AiModel,
+    // NEW:
+    SentenceFeedback[]   SentenceFeedback,
+    ImprovementTracking? ImprovementTracking,
+    GuideOutput?         GuideMode
 );

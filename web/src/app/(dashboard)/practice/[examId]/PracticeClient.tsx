@@ -10,16 +10,18 @@ import { Save, Loader2, BookOpen, Layers, CheckCircle2, ChevronUp, ChevronDown }
 import { ModeSelector } from '@/components/features/practice/ModeSelector';
 import { GuidedPanel } from '@/components/features/practice/GuidedPanel';
 import { CountdownTimer } from '@/components/features/practice/CountdownTimer';
+import { getProgressSummary, getGradingHistory } from '@/lib/firestore';
+import { UserHistoryType } from '@/types/grading';
 
 interface PracticeClientProps {
   exam: ExamPrompt;
 }
 
-type PracticeMode = 'selecting' | 'guided' | 'unguided';
+type PracticeMode = 'selecting' | 'exam' | 'practice' | 'guide';
 
 export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, userDoc } = useAuth();
   
   const [mode, setMode] = useState<PracticeMode>('selecting');
   const [isPromptExpanded, setIsPromptExpanded] = useState(true);
@@ -114,20 +116,50 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
     setIsSubmitting(true);
     setSubmitError('');
 
+    // Fetch real history for the AI
+    let userHistory: UserHistoryType = {
+      weaknesses: [],
+      pastScores: [],
+      level: userDoc?.currentLevel || "B1"
+    };
+
+    try {
+      const [summary, history] = await Promise.all([
+        getProgressSummary(user.id),
+        getGradingHistory(user.id, 5)
+      ]);
+
+      if (summary && summary.weakestCriterion) {
+        userHistory.weaknesses = [summary.weakestCriterion];
+      }
+      if (history && history.length > 0) {
+        userHistory.pastScores = history.map(h => h.totalScore);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch user history for AI context, proceeding with empty history', err);
+    }
+
     const request: GradeEssayRequest = {
       essayId: exam.id,
       taskType: exam.taskType,
       prompt: exam.instruction,
       essayText: essayText,
       wordCount: wordCount,
+      mode: (mode === 'selecting' ? 'practice' : mode) as any,
+      userHistory: userHistory
     };
 
     try {
       // API call to the .NET backend API /api/Grading/grade
-      const result = await gradeEssay(request, user.id) as any;
+      const result = await gradeEssay(request, user.id);
       
-      // Save full result + essayText to sessionStorage to be picked up by the result page
+      // Save full result + essayText to sessionStorage
       sessionStorage.setItem('lastGradingResult', JSON.stringify({ ...result, essayText }));
+      
+      if (mode === 'guide') {
+         // Special handling for guide mode if needed, for now just go to result
+      }
+      
       router.push(`/practice/${exam.id}/result?id=${result.id}`);
 
     } catch (err: any) {
@@ -266,8 +298,8 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
           )}
         </div>
 
-        {/* RIGHT COLUMN: Guided Panel (Only if Guided mode is selected) */}
-        {mode === 'guided' && (
+        {/* RIGHT COLUMN: Guided Panel (Only if Guide mode is selected) */}
+        {mode === 'guide' && (
           <div className="flex-1 hidden lg:flex flex-col min-h-0 bg-slate-50 rounded-3xl border border-slate-100 p-2">
             <GuidedPanel exam={exam} />
           </div>

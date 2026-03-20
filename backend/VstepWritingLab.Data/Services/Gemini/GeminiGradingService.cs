@@ -12,17 +12,206 @@ public class GeminiGradingService(
     ILogger<GeminiGradingService> _logger)
     : IGradingAiService
 {
-    private const string SYSTEM_PROMPT = @"
-You are an official VSTEP examiner from ULIS-VNU Hanoi with 10+ years experience.
-Grade essays strictly per the VSTEP rubric. Score each criterion 0-10 (integers only).
-Provide bilingual feedback. Return ONLY valid JSON, no markdown, no preamble.
-";
+    private static string BuildSystemPrompt(string mode) => mode switch
+    {
+        "guide" => @"
+You are an expert VSTEP writing coach from ULIS-VNU Hanoi.
+The student wants GUIDANCE ONLY — do NOT grade, do NOT write full sentences.
+Analyze the topic, create an outline, suggest sentence STARTERS only.
+Match suggestions to student's level: B1=simple, B2=complex, C1=advanced.
+Personalize based on student's known weaknesses.
+Return ONLY valid JSON, no markdown.",
+
+        "practice" => @"
+You are a VSTEP writing tutor from ULIS-VNU Hanoi.
+Grade lightly — focus on 2 key improvements, keep feedback encouraging.
+Return ONLY valid JSON, no markdown.",
+
+        _ => @"
+You are an expert English writing tutor. Your task is to evaluate a student’s essay and provide structured feedback according to the rules provided. Follow these steps precisely:
+
+1. Sentence Feedback: Analyze meaningful sentences, skip boilerplate/standard signatures. Mark good sentences as is_good:true. Provide clear explanation and suggestions for weak sentences.
+2. Improvement Tracking: Compare with user history provided.
+3. Estimated Level: Use the VSTEP scoring logic (4.0-5.5=Bậc 3, etc.).
+4. Inline Highlights: Min 3 errors, min 1 strength.
+5. Rewrite Samples: 2 weakest sentences.
+6. Roadmap: Dynamic 8-week plan based on this specific essay analysis.
+
+Return ONLY valid JSON, no markdown, no preamble."
+    };
+
+    private static string BuildHistoryContext(UserHistory? h)
+    {
+        if (h == null) return "";
+        var avg = h.PastScores.Length > 0
+            ? h.PastScores.Average().ToString("F1") : "N/A";
+        return $"""
+
+=== STUDENT HISTORY (use for improvement_tracking) ===
+Level : {h.Level}
+Avg   : {avg}
+Known weaknesses:
+{string.Join("\n", h.Weaknesses.Select(w => $"- {w}"))}
+""";
+    }
+
+    private static string BuildJsonTemplate(string mode) => mode switch
+    {
+        "guide" => """
+=== REQUIRED JSON (guide mode — no scores) ===
+{
+  "guide_mode": {
+    "outline": {
+      "introduction": ["point to cover 1", "point to cover 2"],
+      "body":         ["main argument 1", "main argument 2", "main argument 3"],
+      "conclusion":   ["restate thesis", "final thought"]
+    },
+    "sentence_suggestions": {
+      "introduction": ["sentence starter 1", "sentence starter 2"],
+      "body":         ["body sentence starter 1", "body sentence starter 2"],
+      "conclusion":   ["conclusion starter"]
+    }
+  },
+  "overall_score": null,
+  "estimated_level": null,
+  "task_relevance": null,
+  "taskFulfilment": null, "organization": null,
+  "vocabulary": null,     "grammar": null,
+  "sentence_feedback": [], "improvement_tracking": {"improved":[],"not_improved":[],"new_issues":[]},
+  "corrections": [], "inline_highlights": [],
+  "recommended_structures": [], "rewrite_samples": [],
+  "strengths_en": [], "strengths_vi": [],
+  "improvements_en": [], "improvements_vi": [],
+  "roadmap": null
+}
+
+GUIDE RULES:
+- sentence_suggestions: STARTERS ONLY, NOT complete paragraphs
+- NEVER write a full essay or complete body paragraph
+- outline points must be specific to THIS topic
+- match complexity to level: B1=simple, B2=complex, C1=sophisticated
+""",
+
+        "practice" => """
+=== REQUIRED JSON (practice mode) ===
+{
+  "task_relevance": {
+    "is_relevant": bool, "relevance_score": 0-10,
+    "verdict_en": "", "verdict_vi": "",
+    "missing_points_en": [], "missing_points_vi": [],
+    "off_topic_sentences": []
+  },
+  "taskFulfilment": {"score":0-10,"evidence_en":"","feedback_en":"","feedback_vi":""},
+  "organization":   {"score":0-10,"evidence_en":"","feedback_en":"","feedback_vi":""},
+  "vocabulary":     {"score":0-10,"evidence_en":"","feedback_en":"","feedback_vi":""},
+  "grammar":        {"score":0-10,"evidence_en":"","feedback_en":"","feedback_vi":""},
+  "overall_score": 0.0,
+  "estimated_level": "B1|B2|C1",
+  "strengths_vi": ["top 2 only"],
+  "improvements_vi": ["top 2 only — most impactful"],
+  "improvements_en": [],
+  "strengths_en": [],
+  "sentence_feedback": [
+    {"sentence":"","is_good":true,"issue_type":"grammar|vocab|coherence|task|none","explanation":"","suggestion":""}
+  ],
+  "improvement_tracking": {"improved":[],"not_improved":[],"new_issues":[]},
+  "corrections": [],
+  "inline_highlights": [],
+  "recommended_structures": [],
+  "rewrite_samples": [],
+  "roadmap": null,
+  "guide_mode": null
+}
+
+PRACTICE RULES:
+- sentence_feedback: only flag sentences with SIGNIFICANT issues
+- improvements_vi: MAX 2 items
+- roadmap: null
+""",
+
+        _ => """
+=== REQUIRED JSON (exam mode — full analysis) ===
+{
+  "task_relevance": {
+    "is_relevant": bool, "relevance_score": 0-10,
+    "verdict_en": "", "verdict_vi": "",
+    "missing_points_en": [], "missing_points_vi": [],
+    "off_topic_sentences": []
+  },
+  "taskFulfilment": {"score":0-10,"evidence_en":"","feedback_en":"","feedback_vi":""},
+  "organization":   {"score":0-10,"evidence_en":"","feedback_en":"","feedback_vi":""},
+  "vocabulary":     {"score":0-10,"evidence_en":"","feedback_en":"","feedback_vi":""},
+  "grammar":        {"score":0-10,"evidence_en":"","feedback_en":"","feedback_vi":""},
+  "overall_score": 0.0,
+  "estimated_level": "B1|B2|C1",
+  "strengths_en": [], "strengths_vi": [],
+  "improvements_en": [], "improvements_vi": [],
+  "sentence_feedback": [
+    {
+      "sentence":    "<VERBATIM_SENTENCE>",
+      "is_good":     true|false,
+      "issue_type":  "grammar|vocabulary|coherence|task|none",
+      "explanation": "Why this sentence is good or weak",
+      "suggestion":  "Improved version of this sentence"
+    }
+  ],
+  "inline_sentence_improvement": [
+    {
+      "original":   "<VERBATIM>",
+      "improved":   "Improved version",
+      "reason":     "Explanation of changes"
+    }
+  ],
+  "improvement_tracking": {
+    "improved":     ["weakness from history no longer present"],
+    "not_improved": ["weakness from history still present"],
+    "new_issues":   ["new problem not in history"]
+  },
+  "corrections": [{"original":"","corrected":"","reason_en":"","reason_vi":""}],
+  "inline_highlights": [
+    {"type":"error|strength","quote":"<VERBATIM>","issue":"","issue_vi":"","fix":"","category":"grammar|vocabulary|organization|taskFulfilment"}
+  ],
+  "recommended_structures": [{"structure_name":"","example":"","why_use_it_vi":""}],
+  "rewrite_samples": [{"original":"<VERBATIM>","rewritten":"","explanation_vi":""}],
+  "roadmap": {
+    "current_level":"","target_level":"","estimated_weeks":4-8,
+    "weekly_plan":[{"week":1,"focus":"","tasks":[""],"goal":""}]
+  },
+  "guide_mode": null
+}
+
+- sentence_feedback: 
+  * Analyze only meaningful, content-bearing sentences.
+  * Skip all boilerplate (e.g., "[Your Name]", "[Your Position]", "[Company Name]", standard dates).
+  * Skip greetings/closings unless they contain mistakes.
+  * For each GOOD sentence: set is_good: true, give brief positive reinforcement.
+  * For each WEAK sentence: set is_good: false, clearly explain why and suggest a better phrasing.
+- improvement_tracking: Label issues as `improved`, `not_improved`, or `new_issues` compared to history.
+- estimated_level: 
+    * <4.0: Below B1
+    * 4.0-5.5: Bậc 3 (B1)
+    * 6.0-8.0: Bậc 4 (B2)
+    * >=8.5: Bậc 5 (C1)
+- inline_highlights: highlight at least 3 errors and at least 1 strength.
+- rewrite_samples: 2 weakest content-bearing sentences.
+- roadmap: Generate a dynamic, step-by-step 8-week plan based ONLY on this analysis.
+- Important: Maintain original meaning when improving structure. Output must be strictly JSON.
+- inline_highlights: min 3 errors + min 1 strength, quote MUST be verbatim
+- rewrite_samples: 2 weakest sentences, original MUST be verbatim
+- roadmap: max 8 weeks
+"""
+    };
 
     public async Task<Result<AiGradingOutput>> GradeAsync(
         string rubricContext, string taskType, string instruction,
         string[] keyPoints, int wordCount, string essayText,
+        string mode = "exam", UserHistory? history = null,
         CancellationToken ct = default)
     {
+        var systemPrompt = BuildSystemPrompt(mode);
+        var historyCtx   = BuildHistoryContext(history);
+        var jsonTemplate = BuildJsonTemplate(mode);
+
         var userPrompt = $@"
 === VSTEP RUBRIC ===
 {rubricContext}
@@ -32,46 +221,11 @@ Type       : {taskType}
 Instruction: {instruction}
 Key points :
 {string.Join("\n", keyPoints.Select(p => "- " + p))}
-
+{historyCtx}
 === STUDENT ESSAY ({wordCount} words) ===
 {essayText}
 
-=== REQUIRED JSON (fill all fields) ===
-{{
-  ""task_relevance"": {{
-    ""is_relevant"": bool, ""relevance_score"": 0-10,
-    ""verdict_en"": """", ""verdict_vi"": """",
-    ""missing_points_en"": [], ""missing_points_vi"": [],
-    ""off_topic_sentences"": []
-  }},
-  ""taskFulfilment"": {{""score"":0-10,""evidence_en"":"""",""feedback_en"":"""",""feedback_vi"":""""}},
-  ""organization"":   {{""score"":0-10,""evidence_en"":"""",""feedback_en"":"""",""feedback_vi"":""""}},
-  ""vocabulary"":     {{""score"":0-10,""evidence_en"":"""",""feedback_en"":"""",""feedback_vi"":""""}},
-  ""grammar"":        {{""score"":0-10,""evidence_en"":"""",""feedback_en"":"""",""feedback_vi"":""""}},
-  ""strengths_en"": [], ""strengths_vi"": [],
-  ""improvements_en"": [], ""improvements_vi"": [],
-  ""corrections"": [{{""original"":"""",""corrected"":"""",""reason_en"":"""",""reason_vi"":""""}}],
-  ""inline_highlights"": [
-    {{""type"":""error|strength"",""quote"":""<VERBATIM from essay>"",
-     ""issue"":"""",""issue_vi"":"""",""fix"":"""",""category"":""grammar|vocabulary|organization|taskFulfilment""}}
-  ],
-  ""recommended_structures"": [
-    {{""structure_name"":"""",""example"":"""",""why_use_it_vi"":""""}}
-  ],
-  ""rewrite_samples"": [
-    {{""original"":""<VERBATIM from essay>"",""rewritten"":"""",""explanation_vi"":""""}}
-  ],
-  ""roadmap"": {{
-    ""current_level"":"""",""target_level"":"""",""estimated_weeks"":4-8,
-    ""weekly_plan"":[{{""week"":1,""focus"":"""",""tasks"":[""""],""goal"":""""}}]
-  }}
-}}
-
-RULES:
-- inline_highlights: min 3 errors + min 1 strength, quote MUST be verbatim
-- rewrite_samples: 2 weakest sentences, original MUST be verbatim
-- roadmap: estimated_weeks entries, max 8, each week targets weakest criterion first
-- tasks: specific (""practice gerund after 'look forward to'""), not vague (""study grammar"")
+{jsonTemplate}
 ";
 
         try
@@ -79,7 +233,7 @@ RULES:
             // Use a dedicated timeout (3 min) — don't use the HTTP request's CT,
             // so a browser disconnect doesn't cancel an in-flight Gemini call.
             using var aiCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-            var (rawJson, modelUsed) = await _client.GenerateAsync(SYSTEM_PROMPT, userPrompt, maxTokens: 16384, ct: aiCts.Token);
+            var (rawJson, modelUsed) = await _client.GenerateAsync(systemPrompt, userPrompt, maxTokens: 16384, ct: aiCts.Token);
             var parsed = ParseAiGradingOutput(rawJson, modelUsed);
             
             if (parsed == null)
@@ -180,15 +334,40 @@ RULES:
             RewriteSamples: raw.Rewrite_Samples.Select(r =>
                 new RewriteSample(r.Original, r.Rewritten, r.Explanation_Vi)
             ).ToArray(),
-            Roadmap: new GradingRoadmap(
+            Roadmap: rd != null ? new GradingRoadmap(
                 rd.Current_Level,
                 rd.Target_Level,
                 rd.Estimated_Weeks,
                 rd.Weekly_Plan.Select(wp =>
                     new WeeklyPlanTask(wp.Week, wp.Focus, wp.Tasks, wp.Goal)
                 ).ToArray()
-            ),
-            AiModel: raw.ModelUsed
+            ) : null,
+            AiModel: raw.ModelUsed,
+
+            SentenceFeedback: raw.Sentence_Feedback?.Select(s =>
+                new Domain.ValueObjects.SentenceFeedback(
+                    s.Sentence, s.Is_Good, s.Issue_Type,
+                    s.Explanation, s.Suggestion
+                )).ToArray() ?? [],
+
+            ImprovementTracking: raw.Improvement_Tracking != null
+                ? new Domain.ValueObjects.ImprovementTracking(
+                    raw.Improvement_Tracking.Improved     ?? [],
+                    raw.Improvement_Tracking.Not_Improved ?? [],
+                    raw.Improvement_Tracking.New_Issues   ?? [])
+                : null,
+
+            GuideMode: raw.Guide_Mode != null
+                ? new Domain.ValueObjects.GuideOutput(
+                    new Domain.ValueObjects.GuideOutline(
+                        raw.Guide_Mode.Outline.Introduction ?? [],
+                        raw.Guide_Mode.Outline.Body ?? [],
+                        raw.Guide_Mode.Outline.Conclusion ?? []),
+                    new Domain.ValueObjects.GuideSentenceSuggestions(
+                        raw.Guide_Mode.Sentence_Suggestions.Introduction ?? [],
+                        raw.Guide_Mode.Sentence_Suggestions.Body ?? [],
+                        raw.Guide_Mode.Sentence_Suggestions.Conclusion ?? []))
+                : null
         );
     }
 }
@@ -241,8 +420,46 @@ internal class InternalAiOutput
     [System.Text.Json.Serialization.JsonPropertyName("roadmap")]
     public RawRoadmap? Roadmap { get; set; }
 
+    [System.Text.Json.Serialization.JsonPropertyName("sentence_feedback")]
+    public RawSentenceFeedback[]? Sentence_Feedback { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("inline_sentence_improvement")]
+    public RawRewrite[] Inline_Sentence_Improvement { get; set; } = [];
+
+    [System.Text.Json.Serialization.JsonPropertyName("improvement_tracking")]
+    public RawImprovementTracking? Improvement_Tracking { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("guide_mode")]
+    public RawGuideMode? Guide_Mode { get; set; }
+
     public string ModelUsed { get; set; } = "";
 }
+
+internal record RawSentenceFeedback(
+    string Sentence, 
+    [property: System.Text.Json.Serialization.JsonPropertyName("is_good")] bool Is_Good,
+    [property: System.Text.Json.Serialization.JsonPropertyName("issue_type")] string Issue_Type, 
+    string Explanation, string Suggestion
+);
+
+internal record RawImprovementTracking(
+    string[] Improved, 
+    [property: System.Text.Json.Serialization.JsonPropertyName("not_improved")] string[] Not_Improved, 
+    [property: System.Text.Json.Serialization.JsonPropertyName("new_issues")] string[] New_Issues
+);
+
+internal record RawGuideOutline(
+    string[] Introduction, string[] Body, string[] Conclusion
+);
+
+internal record RawGuideSentenceSuggestions(
+    string[] Introduction, string[] Body, string[] Conclusion
+);
+
+internal record RawGuideMode(
+    RawGuideOutline Outline,
+    [property: System.Text.Json.Serialization.JsonPropertyName("sentence_suggestions")] RawGuideSentenceSuggestions Sentence_Suggestions
+);
 
 internal class InternalRelevance
 {

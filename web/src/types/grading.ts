@@ -69,11 +69,29 @@ export interface GradingResult {
   sentenceAnalysis: SentenceAnalysis[];
   suggestedStructures: SuggestedStructure[];
   taskRelevance: TaskRelevanceResult;
+  // NEW:
+  id:                  string;
+  sentenceFeedback:    SentenceFeedback[];
+  improvementTracking?: ImprovementTracking;
+  guideMode?:          GuideOutput;
+  inlineSentenceImprovement?: SentenceFeedback[];
+  roadmap?: {
+    currentCefr?: string;
+    targetCefr?: string;
+    estimatedWeeks?: number;
+    weekly_plan: {
+      week: number;
+      focus: string;
+      tasks: string[];
+      goal: string;
+    }[];
+  };
+  mode:                "exam" | "practice" | "guide";
 }
 
 // ── Firestore grading_results document ──────────────────────
 export interface GradingResultDoc extends GradingResult {
-  id?: string;
+  id: string;
   userUid: string;
   promptId: string;
   essayText: string;
@@ -123,7 +141,7 @@ export const MIN_WORD_COUNT: Record<'task1' | 'task2', number> = {
   task2: 250,
 };
 
-export type AnnotationType = "grammar"|"vocab_weak"|"vocab_repeat"|"off_topic"|"strength";
+export type AnnotationType = "grammar"|"vocab_weak"|"vocab_repeat"|"off_topic"|"strength"|"sentence";
 export type AnnotationSeverity = "error"|"warning"|"info"|"good";
 
 export interface Annotation {
@@ -133,6 +151,7 @@ export interface Annotation {
   message:     string;
   suggestion:  string | null;
   severity:    AnnotationSeverity;
+  isSentence?: boolean;
 }
 
 export interface SentenceAnalysis {
@@ -143,6 +162,33 @@ export interface SentenceAnalysis {
   structureUsed:   string;
 }
 
+// NEW: Matching Backend Structures
+export interface SentenceFeedback {
+  sentence:    string;
+  isGood:      boolean;
+  issueType:   "grammar" | "vocab" | "coherence" | "task" | "none";
+  explanation: string;
+  suggestion:  string;
+}
+
+export interface ImprovementTracking {
+  improved:    string[];
+  notImproved: string[];
+  newIssues:   string[];
+}
+
+export interface GuideOutput {
+  outline: {
+    introduction: string[];
+    body:         string[];
+    conclusion:   string[];
+  };
+  sentenceSuggestions: {
+    introduction: string[];
+    body:         string[];
+    conclusion:   string[];
+  };
+}
 export interface SuggestedStructure {
   structure: string;
   example:   string;
@@ -181,3 +227,10 @@ export interface OutlineStep {
   title: string;
   hint: string;
 }
+
+export interface UserHistoryType {
+  weaknesses: string[];
+  pastScores: number[];
+  level:      string;
+}
+

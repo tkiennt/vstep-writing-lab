@@ -16,5 +16,9 @@ public class GradeEssayRequestValidator : AbstractValidator<GradeEssayRequest>
             .Must(x => x.ToLower() == "task1" || x.ToLower() == "task2")
             .WithMessage("Task type must be task1 or task2.");
         RuleFor(x => x.WordCount).GreaterThan(0).WithMessage("Word count must be greater than zero.");
+        
+        RuleFor(x => x.Mode)
+            .Must(m => m is "exam" or "practice" or "guide")
+            .WithMessage("Mode must be 'exam', 'practice', or 'guide'");
     }
 }
