@@ -53,6 +53,7 @@ public class ExamPromptDocument
             TaskType, level, Instruction, KeyPoints, 
             TopicCategory, TopicKeyword, EssayType, Difficulty);
         
+        result.Value.Id = Id;
         return result.Value;
     }
 }

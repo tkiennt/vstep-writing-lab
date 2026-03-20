@@ -55,11 +55,12 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
     };
 
     try {
-      // API call to the .NET backend API /api/v2/Grading/grade
+      // API call to the .NET backend API /api/Grading/grade
       const result = await gradeEssay(request, user.id) as any;
       
-      // Navigate to the result page, passing the grading result ID
-      router.push(`/practice/${exam.id}/result?id=${result.id || result.data?.id}`);
+      // Save full result + essayText to sessionStorage to be picked up by the result page
+      sessionStorage.setItem('lastGradingResult', JSON.stringify({ ...result, essayText }));
+      router.push(`/practice/${exam.id}/result`);
 
     } catch (err: any) {
       console.error('Grading Error:', err);

@@ -4,10 +4,20 @@ using VstepWritingLab.Domain.Entities;
 namespace VstepWritingLab.Business.DTOs;
 
 public record GradeEssayRequest(
-    string UserUid,
-    string PromptId,
-    string Content,
-    string TaskType
+    string EssayId,
+    string TaskType,
+    string Prompt,      // full exam instruction
+    string EssayText,
+    int    WordCount
+);
+
+public record GradeEssayCommand(
+    string StudentId,
+    string EssayId,
+    string TaskType,
+    string Prompt,
+    string EssayText,
+    int    WordCount
 );
 
 public record FullAnalysisResponse(

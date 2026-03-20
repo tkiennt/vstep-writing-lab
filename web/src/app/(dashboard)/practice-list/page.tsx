@@ -113,7 +113,7 @@ export default function ExamList() {
               </div>
 
               <div className="flex items-center justify-between md:justify-end md:w-56 border-t md:border-t-0 md:border-l border-gray-100 pt-6 md:pt-0 md:pl-8">
-                <Link href={`/writing-editor/${p.id}?mode=exam`} className="w-full">
+                <Link href={`/practice/${p.id}`} className="w-full">
                   <Button 
                     className="w-full bg-vstep-dark hover:bg-emerald-950 text-white rounded-2xl h-16 shadow-lg shadow-emerald-900/10 font-black text-lg flex items-center justify-center gap-3 transition-all transform active:scale-95"
                   >

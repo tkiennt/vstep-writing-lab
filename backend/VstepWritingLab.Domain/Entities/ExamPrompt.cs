@@ -4,7 +4,7 @@ namespace VstepWritingLab.Domain.Entities;
 
 public class ExamPrompt
 {
-    public string   Id            { get; private set; } = string.Empty;
+    public string   Id            { get; set; } = string.Empty;
     public string   TaskType      { get; private set; } = string.Empty; // "task1"|"task2"
     public string   CefrLevel     { get; private set; } = string.Empty; // "B1"|"B2"|"C1"
     public string   Instruction   { get; private set; } = string.Empty;

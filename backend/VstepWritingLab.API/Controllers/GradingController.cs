@@ -12,22 +12,35 @@ namespace VstepWritingLab.API.Controllers;
 public class GradingController(IGradeEssayUseCase useCase) : ControllerBase
 {
     [HttpPost("grade")]
-    public async Task<IActionResult> GradeEssay([FromBody] GradeEssayRequest request, CancellationToken ct)
+    public async Task<IActionResult> Grade(
+        [FromBody]  GradeEssayRequest  request,
+        [FromQuery] string?            studentId,
+        CancellationToken              ct)
     {
-        // Use student ID from token if not provided in request or to override it
-        var studentId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? request.UserUid;
-        
-        if (string.IsNullOrEmpty(studentId))
+        // Extract uid from Firebase Auth middleware or query param
+        var uid = studentId
+               ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+               ?? HttpContext.Items["UserId"]?.ToString()
+               ?? "";
+
+        if (string.IsNullOrEmpty(uid))
             return BadRequest(new { code = "INVALID_USER", message = "Student ID is required" });
 
-        // Update request with the authenticated user ID
-        var updatedRequest = request with { UserUid = studentId };
+        var command = new GradeEssayCommand(
+            StudentId: uid,
+            EssayId:   request.EssayId,
+            TaskType:  request.TaskType,
+            Prompt:    request.Prompt,
+            EssayText: request.EssayText,
+            WordCount: request.WordCount
+        );
 
-        var result = await useCase.ExecuteAsync(updatedRequest, ct);
-        
-        if (!result.IsSuccess) 
-            return BadRequest(new { code = "GRADING_FAILED", message = result.Error });
-            
-        return Ok(result.Value);
+        var result = await useCase.ExecuteAsync(command, ct);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : result.Error!.Contains("not found")
+                ? NotFound(new  { code = "NOT_FOUND",  message = result.Error })
+                : BadRequest(new { code = "BAD_REQUEST", message = result.Error });
     }
 }

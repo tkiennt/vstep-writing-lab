@@ -134,7 +134,7 @@ export interface GradeEssayRequest {
  * Timeout: 30 s (AI takes a while), 1 retry on 5xx/network error.
  */
 export async function gradeEssay(request: GradeEssayRequest, studentId: string): Promise<GradingResult> {
-  return fetchWithRetry<GradingResult>(`/api/v2/Grading/grade?studentId=${studentId}`, {
+  return fetchWithRetry<GradingResult>(`/api/Grading/grade?studentId=${studentId}`, {
     method: 'POST',
     body: request,
     timeoutMs: 30_000,

@@ -7,7 +7,7 @@
  * to avoid breaking existing auth / admin flows.
  */
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
+import { getAuth, Auth, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -24,6 +24,12 @@ const app: FirebaseApp =
   getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 export const auth: Auth = getAuth(app);
+
+// Prevent sticky accounts during dev by forcing session persistence
+if (typeof window !== 'undefined') {
+  setPersistence(auth, browserSessionPersistence).catch(console.error);
+}
+
 export const db: Firestore = getFirestore(app);
 
 export default app;

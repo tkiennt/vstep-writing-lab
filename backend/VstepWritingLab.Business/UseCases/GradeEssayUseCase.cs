@@ -10,7 +10,7 @@ namespace VstepWritingLab.Business.UseCases;
 
 public interface IGradeEssayUseCase
 {
-    Task<Result<FullAnalysisResponse>> ExecuteAsync(GradeEssayRequest request, CancellationToken ct = default);
+    Task<Result<FullAnalysisResponse>> ExecuteAsync(GradeEssayCommand command, CancellationToken ct = default);
 }
 
 public class GradeEssayUseCase(
@@ -21,25 +21,24 @@ public class GradeEssayUseCase(
     IProgressUseCase progressUseCase,
     ILogger<GradeEssayUseCase> logger) : IGradeEssayUseCase
 {
-    public async Task<Result<FullAnalysisResponse>> ExecuteAsync(GradeEssayRequest request, CancellationToken ct = default)
+    public async Task<Result<FullAnalysisResponse>> ExecuteAsync(GradeEssayCommand command, CancellationToken ct = default)
     {
         // 1. Load exam + rubric context in parallel
-        var examTask   = promptRepository.GetByIdAsync(request.PromptId, ct);
-        var rubricTask = rubricService.GetContextAsync(request.Content, request.TaskType, ct);
+        var examTask   = promptRepository.GetByIdAsync(command.EssayId, ct);
+        var rubricTask = rubricService.GetContextAsync(command.EssayText, command.TaskType, ct);
         
         await Task.WhenAll(examTask, rubricTask);
 
         var exam = await examTask;
         if (exam is null)
-            return Result<FullAnalysisResponse>.Fail($"Exam '{request.PromptId}' not found");
+            return Result<FullAnalysisResponse>.Fail($"Exam '{command.EssayId}' not found");
 
         var rubricContext = await rubricTask;
 
         // 2. Call AI Service (tuned model with fallback)
-        int wordCount = request.Content.Split(new[] { ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
         var aiResult = await aiService.GradeAsync(
-            rubricContext, request.TaskType, exam.Instruction,
-            exam.KeyPoints, wordCount, request.Content, ct);
+            rubricContext, command.TaskType, command.Prompt,
+            exam.KeyPoints, command.WordCount, command.EssayText, ct);
 
         if (!aiResult.IsSuccess || aiResult.Value == null) 
             return Result<FullAnalysisResponse>.Fail(aiResult.Error ?? "AI grading failed");
@@ -49,9 +48,9 @@ public class GradeEssayUseCase(
         // 3. Create Domain Entity
         var gradingResult = new GradingResult(
             Guid.NewGuid().ToString(),
-            request.UserUid,
-            request.PromptId,
-            request.TaskType,
+            command.StudentId,
+            command.EssayId,
+            command.TaskType,
             DateTime.UtcNow,
             ai.Relevance,
             ai.TaskFulfilment,
@@ -96,11 +95,11 @@ public class GradeEssayUseCase(
         // 5. Save to Firestore + update progress (fire-and-forget)
         _ = Task.Run(async () => {
             try {
-                await repository.SaveAsync(gradingResult, request.Content, wordCount);
-                await promptRepository.IncrementUsageAsync(request.PromptId);
-                await progressUseCase.UpdateAsync(request.UserUid);
+                await repository.SaveAsync(gradingResult, command.EssayText, command.WordCount);
+                await promptRepository.IncrementUsageAsync(command.EssayId);
+                await progressUseCase.UpdateAsync(command.StudentId);
             } catch (Exception ex) {
-                logger.LogError(ex, "Background save failed for User {StudentId}", request.UserUid);
+                logger.LogError(ex, "Background save failed for User {StudentId}", command.StudentId);
             }
         });
 

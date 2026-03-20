@@ -92,6 +92,7 @@ public class GeminiClient(
                 await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt + 1)), ct);
                 continue;
             }
+            Console.WriteLine($"[GEMINI ERROR] {raw}");
             throw new HttpRequestException($"Gemini {resp.StatusCode}: {raw}");
         }
         throw new InvalidOperationException("Gemini API failed after 3 attempts");
