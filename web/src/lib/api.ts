@@ -129,16 +129,56 @@ export interface GradeEssayRequest {
   wordCount: number;
 }
 
+export interface StartSessionRequest {
+  examId: string;
+  taskType: string;
+}
+
+export interface UpdateSessionRequest {
+  essayText?: string;
+  exitCount?: number;
+  status?: string;
+}
+
+export interface ExamSession {
+  id: string;
+  userId: string;
+  examId: string;
+  taskType: string;
+  startTime: string;
+  lastUpdatedAt: string;
+  essayText: string;
+  status: string;
+  exitCount: number;
+}
+
 /**
  * Submit an essay for AI grading.
  * Timeout: 30 s (AI takes a while), 1 retry on 5xx/network error.
  */
 export async function gradeEssay(request: GradeEssayRequest, studentId: string): Promise<GradingResult> {
-  return fetchWithRetry<GradingResult>(`/api/Grading/grade?studentId=${studentId}`, {
-    method: 'POST',
-    body: request,
-    timeoutMs: 30_000,
-  });
+  // AI grading takes 40-60s for a detailed response — use 120s timeout.
+  // We do NOT retry on failure here: a retry would double wait time and token cost.
+  const token = await getIdToken();
+  const controller = new AbortController();
+  const timerId = setTimeout(() => controller.abort(), 120_000);
+
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/api/Grading/grade?studentId=${studentId}`, {
+      method: 'POST',
+      headers: buildHeaders(token),
+      body: JSON.stringify(request),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timerId);
+    throw new ApiError(0, (err as Error).message ?? 'Network error');
+  } finally {
+    clearTimeout(timerId);
+  }
+
+  return parseResponse<GradingResult>(res);
 }
 
 /**
@@ -155,5 +195,27 @@ export async function getExamPrompts(params?: {
   const query = qs.toString() ? `?${qs.toString()}` : '';
   return fetchWithRetry<ExamPrompt[]>(`/api/v2/ExamPrompts${query}`, {
     timeoutMs: 3_000,
+  });
+}
+
+/**
+ * Start or resume a practice session.
+ */
+export async function startSession(request: StartSessionRequest): Promise<ExamSession> {
+  return fetchWithRetry<ExamSession>('/api/v2/Sessions/start', {
+    method: 'POST',
+    body: request,
+    timeoutMs: 5_000,
+  });
+}
+
+/**
+ * Update session (save draft, log exit).
+ */
+export async function updateSession(sessionId: string, request: UpdateSessionRequest): Promise<ExamSession> {
+  return fetchWithRetry<ExamSession>(`/api/v2/Sessions/${sessionId}/update`, {
+    method: 'PATCH',
+    body: request,
+    timeoutMs: 5_000,
   });
 }

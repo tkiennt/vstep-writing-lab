@@ -14,8 +14,11 @@ public class ExamPrompt
     public string   EssayType     { get; private set; } = string.Empty;
     public int      Difficulty    { get; private set; } // 1|2|3
     public bool     IsActive      { get; private set; }
-    public int      UsageCount    { get; private set; }
-    public DateTime CreatedAt     { get; private set; }
+    public string[] SuggestedChecklist { get; private set; } = Array.Empty<string>();
+    public string[] SuggestedPhrases   { get; private set; } = Array.Empty<string>();
+    public string[] SuggestedStructures { get; private set; } = Array.Empty<string>();
+    public int      UsageCount         { get; private set; }
+    public DateTime CreatedAt          { get; private set; }
 
     private ExamPrompt() { } // For deserialization
 
@@ -39,6 +42,9 @@ public class ExamPrompt
             Instruction = instruction, KeyPoints = keyPoints,
             TopicCategory = topicCategory, TopicKeyword = topicKeyword,
             EssayType = essayType, Difficulty = difficulty,
+            SuggestedChecklist = Array.Empty<string>(),
+            SuggestedPhrases = Array.Empty<string>(),
+            SuggestedStructures = Array.Empty<string>(),
             IsActive = true, UsageCount = 0, CreatedAt = DateTime.UtcNow
         });
     }

@@ -17,6 +17,9 @@ export interface ExamPrompt {
   isActive: boolean;
   usageCount: number;
   createdAt: Date;
+  suggestedChecklist?: string[];
+  suggestedPhrases?: string[];
+  suggestedStructures?: string[];
 }
 
 // ── Per-criterion result ────────────────────────────────────

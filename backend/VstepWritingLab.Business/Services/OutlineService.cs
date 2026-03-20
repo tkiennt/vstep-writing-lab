@@ -21,7 +21,7 @@ namespace VstepWritingLab.Business.Services
         public async Task<List<OutlineStepDto>> GenerateOutlineAsync(string instruction, string taskType)
         {
             var apiKey = _config["Gemini:ApiKey"];
-            var modelName = "gemini-2.0-flash"; // Use Flash for outline
+            var modelName = "gemini-2.5-flash"; // Use Flash for outline
             var url = $"v1beta/models/{modelName}:generateContent?key={apiKey}";
 
             var systemPrompt = $@"You are an AI assistant helping a student plan a VSTEP Writing {taskType} essay.
@@ -50,6 +50,13 @@ Respond ONLY with a JSON array of objects: [{{ ""index"": 1, ""title"": ""..."",
             var jsonResult = geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
 
             if (string.IsNullOrWhiteSpace(jsonResult)) return GetDefaultOutline(taskType);
+
+            var startIndex = jsonResult.IndexOf('[');
+            var endIndex = jsonResult.LastIndexOf(']');
+            if (startIndex >= 0 && endIndex >= startIndex)
+            {
+                jsonResult = jsonResult.Substring(startIndex, endIndex - startIndex + 1);
+            }
 
             try {
                 return JsonSerializer.Deserialize<List<OutlineStepDto>>(jsonResult, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? GetDefaultOutline(taskType);

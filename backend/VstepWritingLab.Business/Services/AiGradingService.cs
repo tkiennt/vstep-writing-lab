@@ -53,7 +53,7 @@ namespace VstepWritingLab.Business.Services
         {
             var startTime = DateTime.UtcNow;
             var apiKey = _config["Gemini:ApiKey"];
-            var modelName = _config["Gemini:Model"] ?? "gemini-2.0-flash";
+            var modelName = _config["Gemini:Model"] ?? "gemini-2.5-flash";
             var url = $"v1beta/models/{modelName}:generateContent?key={apiKey}";
 
             try
@@ -94,6 +94,13 @@ namespace VstepWritingLab.Business.Services
 
                 if (string.IsNullOrWhiteSpace(jsonResult))
                     throw new Exception("Gemini returned empty content");
+
+                var startIndex = jsonResult.IndexOf('{');
+                var endIndex = jsonResult.LastIndexOf('}');
+                if (startIndex >= 0 && endIndex >= startIndex)
+                {
+                    jsonResult = jsonResult.Substring(startIndex, endIndex - startIndex + 1);
+                }
 
                 var output = JsonSerializer.Deserialize<AiGradingOutput>(jsonResult, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (output == null) throw new Exception("Failed to deserialize AI output");

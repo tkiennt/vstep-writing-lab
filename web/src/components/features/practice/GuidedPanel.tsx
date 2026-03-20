@@ -59,8 +59,20 @@ const GUIDED_PHRASES = {
 
 export const GuidedPanel: React.FC<GuidedPanelProps> = ({ exam }) => {
   const isTask1 = exam.taskType === 'task1';
-  const checklist = isTask1 ? TASK1_CHECKLIST : TASK2_CHECKLIST;
+  
+  // Use session/prompt-specific data if available, otherwise fallback to defaults
+  const checklist = (exam.suggestedChecklist && exam.suggestedChecklist.length > 0)
+    ? exam.suggestedChecklist 
+    : (isTask1 ? TASK1_CHECKLIST : TASK2_CHECKLIST);
+    
   const staticData = isTask1 ? GUIDED_PHRASES.task1 : GUIDED_PHRASES.task2;
+  const formalPhrases = (exam.suggestedPhrases && exam.suggestedPhrases.length > 0)
+    ? exam.suggestedPhrases
+    : staticData.formalPhrases;
+    
+  const usefulStructures = (exam.suggestedStructures && exam.suggestedStructures.length > 0)
+    ? exam.suggestedStructures
+    : staticData.usefulStructures;
   
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
 
@@ -129,7 +141,7 @@ export const GuidedPanel: React.FC<GuidedPanelProps> = ({ exam }) => {
           <div>
             <h4 className="text-xs font-bold text-slate-900 mb-2">Formal Phrases:</h4>
             <ul className="space-y-2">
-              {staticData.formalPhrases.map((phrase, idx) => (
+              {formalPhrases.map((phrase, idx) => (
                 <li key={idx} className="text-sm text-slate-600 font-medium italic">"{phrase}"</li>
               ))}
             </ul>
@@ -138,7 +150,7 @@ export const GuidedPanel: React.FC<GuidedPanelProps> = ({ exam }) => {
           <div>
             <h4 className="text-xs font-bold text-slate-900 mb-2">Useful Structures:</h4>
             <ul className="space-y-2">
-              {staticData.usefulStructures.map((struct, idx) => (
+              {usefulStructures.map((struct, idx) => (
                 <li key={idx} className="text-sm text-slate-600 font-medium">{struct}</li>
               ))}
             </ul>

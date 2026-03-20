@@ -11,7 +11,7 @@ public class GeminiClient(
     ILogger<GeminiClient> _logger)
 {
     private string ApiKey     => _config["Gemini:ApiKey"]     ?? "";
-    private string BaseModel  => _config["Gemini:BaseModel"]  ?? "gemini-2.0-flash";
+    private string BaseModel  => _config["Gemini:BaseModel"]  ?? "gemini-2.5-flash";
     private string TunedModel => _config["Gemini:TunedModel"] ?? "";
     private bool   UseVertex  => _config.GetValue<bool>("VertexAI:UseVertexAI");
     private string Location   => _config["VertexAI:Location"] ?? "us-central1";
