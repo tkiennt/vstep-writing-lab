@@ -30,6 +30,12 @@ public class GradingResult
     public Correction[] Corrections   { get; private set; } = Array.Empty<Correction>();
     public string       AiModel       { get; private set; } = string.Empty;
 
+    // Analysis Details
+    public InlineHighlight[]      InlineHighlights      { get; private set; } = Array.Empty<InlineHighlight>();
+    public RecommendedStructure[] RecommendedStructures { get; private set; } = Array.Empty<RecommendedStructure>();
+    public RewriteSample[]        RewriteSamples        { get; private set; } = Array.Empty<RewriteSample>();
+    public GradingRoadmap         Roadmap               { get; private set; } = default!;
+
     // Constructor for mapping/deserialization
     public GradingResult(
         string id, string studentId, string examId, string taskType,
@@ -37,7 +43,9 @@ public class GradingResult
         CriterionScore taskFulfilment, CriterionScore organization,
         CriterionScore vocabulary, CriterionScore grammar,
         string[] strengthsVi, string[] improvementsVi,
-        Correction[] corrections, string aiModel)
+        Correction[] corrections, string aiModel,
+        InlineHighlight[] highlights, RecommendedStructure[] structures,
+        RewriteSample[] rewrites, GradingRoadmap roadmap)
     {
         Id = id;
         StudentId = studentId;
@@ -53,6 +61,11 @@ public class GradingResult
         ImprovementsVi = improvementsVi;
         Corrections = corrections;
         AiModel = aiModel;
+        
+        InlineHighlights = highlights ?? Array.Empty<InlineHighlight>();
+        RecommendedStructures = structures ?? Array.Empty<RecommendedStructure>();
+        RewriteSamples = rewrites ?? Array.Empty<RewriteSample>();
+        Roadmap = roadmap;
 
         TotalScore = ComputeTotal(
             taskFulfilment.Score, organization.Score,

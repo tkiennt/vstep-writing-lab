@@ -27,5 +27,9 @@ public record AiGradingOutput(
     string[]       StrengthsVi,
     string[]       ImprovementsVi,
     Correction[]   Corrections,
+    InlineHighlight[]      InlineHighlights,
+    RecommendedStructure[] RecommendedStructures,
+    RewriteSample[]        RewriteSamples,
+    GradingRoadmap         Roadmap,
     string         AiModel
 );

@@ -18,4 +18,10 @@
     <ProjectReference Include="..\VstepWritingLab.Shared\VstepWritingLab.Shared.csproj" />
     <ProjectReference Include="..\VstepWritingLab.Domain\VstepWritingLab.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="data\rubrics_enhanced.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

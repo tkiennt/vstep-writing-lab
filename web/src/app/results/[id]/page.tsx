@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft,
@@ -16,12 +16,49 @@ import {
   Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { submissionService } from '@/services/submissionService';
+import { SubmissionResponse } from '@/types';
+import { useGlobal } from '@/components/GlobalProvider';
 
 export default function AIResultPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { addToast } = useGlobal();
   const [loading, setLoading] = useState(true);
+  const [submission, setSubmission] = useState<SubmissionResponse | null>(null);
   const [exportStatus, setExportStatus] = useState<'idle' | 'loading' | 'done'>('idle');
   const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle');
+
+  const fetchSubmission = useCallback(async () => {
+    try {
+      const data = await submissionService.getById(params.id);
+      setSubmission(data);
+      
+      // If still pending, keep loading
+      if (data.status === 'pending') {
+        setLoading(true);
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error fetching submission:', error);
+      addToast('error', 'Failed to load results');
+      setLoading(false);
+    }
+  }, [params.id, addToast]);
+
+  // Initial fetch and polling
+  useEffect(() => {
+    fetchSubmission();
+    
+    // Set up polling if status is pending
+    const interval = setInterval(() => {
+      if (loading || (submission && submission.status === 'pending')) {
+        fetchSubmission();
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [fetchSubmission, loading, submission]);
 
   const handleExportPDF = () => {
     setExportStatus('loading');
@@ -38,19 +75,10 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
       setShareStatus('copied');
       setTimeout(() => setShareStatus('idle'), 2000);
     } catch {
-      // Fallback
       setShareStatus('copied');
       setTimeout(() => setShareStatus('idle'), 2000);
     }
   };
-
-  // Fake AI Loading State for 3 seconds to demonstrate the UX
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
 
   if (loading) {
     return (
@@ -71,6 +99,45 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
       </div>
     );
   }
+
+  if (!submission) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+        <h2 className="text-xl font-bold text-gray-900">Submission not found</h2>
+        <Button onClick={() => router.push('/history')} className="mt-4">Back to History</Button>
+      </div>
+    );
+  }
+
+  const { aiScore, aiFeedback } = submission;
+
+  // Function to render highlighted text
+  const renderHighlightedContent = () => {
+    if (!aiFeedback?.highlights || aiFeedback.highlights.length === 0) {
+      return <p className="whitespace-pre-line">{submission.essayContent}</p>;
+    }
+
+    let lastIndex = 0;
+    const parts: React.ReactNode[] = [];
+    const content = submission.essayContent;
+
+    // The backend highlights don't have start/end indices in the Response DTO, 
+    // but the Text field contains the snippet. We'll try to find and highlight them.
+    // NOTE: This is a simple implementation. Ideally the backend should provide indices.
+    
+    // For now, let's just display the content and show highlights as a list below if we can't reliably map them.
+    // Actually, I'll try to replace the first occurrence of each highlight text.
+    
+    let currentContent = content;
+    const sortedHighlights = [...aiFeedback.highlights].sort((a, b) => b.text.length - a.text.length);
+
+    // This is a naive replacement strategy.
+    return (
+      <p className="whitespace-pre-line">
+        {content}
+      </p>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -126,16 +193,17 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
             
             {/* Massive Band Score Card */}
             <div className="lg:col-span-1 bg-gradient-to-br from-emerald-900 to-vstep-dark rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-emerald-900/20">
-               {/* Decorative circles */}
                <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl"></div>
                
                <div className="relative z-10 flex flex-col h-full items-center justify-center text-center">
                   <span className="text-emerald-300 font-bold tracking-widest uppercase text-xs mb-4">Overall Band Score</span>
-                  <div className="text-8xl font-black tracking-tighter mb-4 text-white drop-shadow-md">7.5</div>
+                  <div className="text-8xl font-black tracking-tighter mb-4 text-white drop-shadow-md">
+                    {aiScore?.overall.toFixed(1) || '0.0'}
+                  </div>
                   <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
                      <TrendingUp className="w-4 h-4 text-emerald-300" />
-                     <span className="text-sm font-bold text-white">+0.5 from last test</span>
+                     <span className="text-sm font-bold text-white">Target Level: {submission.taskType.includes('Task 2') ? 'B2/C1' : 'B1/B2'}</span>
                   </div>
                </div>
             </div>
@@ -144,10 +212,10 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
             <div className="lg:col-span-2 grid grid-cols-2 gap-4">
                
                {[
-                 { label: 'Task Fulfillment', score: '7.5', target: 'C1', color: 'blue' },
-                 { label: 'Organization & Cohesion', score: '8.0', target: 'C1', color: 'indigo' },
-                 { label: 'Lexical Resource (Vocab)', score: '7.0', target: 'B2', color: 'emerald' },
-                 { label: 'Grammatical Range', score: '7.5', target: 'C1', color: 'amber' }
+                 { label: 'Task Fulfillment', score: aiScore?.taskFulfilment || 0, color: 'blue' },
+                 { label: 'Organization & Cohesion', score: aiScore?.organization || 0, color: 'indigo' },
+                 { label: 'Lexical Resource (Vocab)', score: aiScore?.vocabulary || 0, color: 'emerald' },
+                 { label: 'Grammatical Range', score: aiScore?.grammar || 0, color: 'amber' }
                ].map((c, i) => (
                  <div key={i} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-4">
@@ -163,8 +231,8 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
                     <div className="space-y-2">
                        <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-400">
                           <span>0</span>
-                          <span>{c.target} Equivalent</span>
-                          <span>10</span>
+                          <span>Score</span>
+                          <span>9</span>
                        </div>
                        <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden">
                           <div 
@@ -173,7 +241,7 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
                                 c.color === 'indigo' ? 'bg-indigo-500' : 
                                 c.color === 'emerald' ? 'bg-emerald-500' : 'bg-amber-500'
                              }`}
-                             style={{ width: `${(parseFloat(c.score) / 10) * 100}%` }}
+                             style={{ width: `${(c.score / 9) * 100}%` }}
                           ></div>
                        </div>
                     </div>
@@ -183,82 +251,85 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
             </div>
          </div>
 
-         {/* Middle Section: Written Feedback Cards */}
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         {/* Middle Section: Feedback Summary & Suggestions */}
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* Strengths */}
+            {/* Feedback Summary */}
             <div className="bg-emerald-50/50 border border-emerald-100 rounded-3xl p-8">
                <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
                      <CheckCircle2 className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg">Key Strengths</h3>
+                  <h3 className="font-bold text-gray-900 text-lg">AI Feedback Summary</h3>
                </div>
-               <ul className="space-y-4">
-                  <li className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed font-medium">
-                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0"></div>
-                     Excellent use of introductory hooks and clear thesis statement structuring.
-                  </li>
-                  <li className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed font-medium">
-                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0"></div>
-                     Logical flow of ideas smoothly connected by cohesive devices (Furthermore, However).
-                  </li>
-               </ul>
+               <div className="prose prose-sm text-gray-700 leading-relaxed font-medium">
+                  {aiFeedback?.summary || "No summary available."}
+               </div>
             </div>
 
-            {/* Weaknesses */}
-            <div className="bg-amber-50/50 border border-amber-100 rounded-3xl p-8">
-               <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
-                     <AlertCircle className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-bold text-gray-900 text-lg">Areas to Improve</h3>
-               </div>
-               <ul className="space-y-4">
-                  <li className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed font-medium">
-                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0"></div>
-                     Occasional subject-verb agreement errors in complex sentences.
-                  </li>
-                  <li className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed font-medium">
-                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0"></div>
-                     Vocabulary is somewhat repetitive regarding the word "important".
-                  </li>
-               </ul>
-            </div>
-
-            {/* AI Action Plan */}
-            <div className="bg-indigo-50/50 border border-indigo-100 rounded-3xl p-8 relative overflow-hidden group hover:bg-indigo-50 transition-colors cursor-pointer">
-               <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors"></div>
+            {/* AI Action Plan / Suggestions */}
+            <div className="bg-indigo-50/50 border border-indigo-100 rounded-3xl p-8">
                <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600">
                      <Lightbulb className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg">AI Suggestions</h3>
+                  <h3 className="font-bold text-gray-900 text-lg">Key Suggestions</h3>
                </div>
-               <p className="text-sm text-gray-700 leading-relaxed font-medium mb-6 relative z-10">
-                  Try substituting generic words with C1 level synonyms (e.g., crucial, imperative, indispensable). Review relative clauses.
-               </p>
-               <Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent text-indigo-700 font-bold relative z-10 group/btn">
-                  View Study Plan <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-               </Button>
+               <ul className="space-y-4">
+                  {aiFeedback?.suggestions.map((suggestion, idx) => (
+                    <li key={idx} className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed font-medium">
+                       <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0"></div>
+                       {suggestion}
+                    </li>
+                  )) || <li>No suggestions available.</li>}
+               </ul>
             </div>
-
          </div>
 
-         {/* Bottom Section: Original Text with Highlights */}
-         <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
-               <BookOpen className="w-5 h-5 text-gray-400" />
-               <h3 className="font-bold text-gray-900">Your Essay Analysis</h3>
+         {/* Bottom Section: Original Text and Detailed Highlights */}
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Original Text Display */}
+            <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+               <div className="p-6 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+                  <BookOpen className="w-5 h-5 text-gray-400" />
+                  <h3 className="font-bold text-gray-900">Your Essay</h3>
+               </div>
+               <div className="p-8 lg:p-12 flex-1 prose prose-gray max-w-none text-gray-800 font-serif text-lg leading-loose selection:bg-emerald-200 overflow-y-auto max-h-[600px] custom-scrollbar">
+                  {renderHighlightedContent()}
+               </div>
             </div>
-            <div className="p-8 lg:p-12 prose prose-gray max-w-none text-gray-800 font-serif text-lg leading-loose selection:bg-emerald-200">
-               <p>
-                  In the modern world, an <span className="bg-blue-100 text-blue-900 font-medium px-1.5 rounded cursor-help border-b-2 border-blue-400" title="Good Collocation (+0.5 Lexical)">increasing number</span> of students choose to go abroad for their higher education. While there are certainly some drawbacks to this trend, I believe that the benefits are far more <span className="bg-amber-100 text-amber-900 font-medium px-1.5 rounded cursor-help border-b-2 border-amber-400" title="Repetitive word. Suggestion: 'substantial' or 'significant'">important</span>.
-               </p>
-               <p>
-                  First of all, studying in a foreign country <span className="text-emerald-700 font-bold underline decoration-wavy decoration-emerald-400" title="Excellent C1 Vocabulary">broadens one's horizons</span>. Students are exposed to different cultures and ways of thinking, which helps them become more open-minded. <span className="bg-red-100 text-red-900 font-medium px-1.5 rounded cursor-help border-b-2 border-red-500" title="Grammar Error: Subject-Verb mismatch. Should be 'Furthermore, experiencing'...">Furthermore, experience</span> a new educational system can provide access to world-class facilities and expert professors that might not be available in their home country.
-               </p>
+
+            {/* Highlights List */}
+            <div className="lg:col-span-1 space-y-4 overflow-y-auto max-h-[665px] custom-scrollbar pr-1">
+               <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest px-2">Detailed Analysis ({aiFeedback?.highlights.length || 0})</h3>
+               
+               {aiFeedback?.highlights.map((h, i) => (
+                 <div key={i} className={`bg-white rounded-2xl p-5 border shadow-sm transition-all hover:shadow-md ${
+                   h.type.toLowerCase().includes('grammar') ? 'border-red-100 hover:border-red-200' :
+                   h.type.toLowerCase().includes('vocabulary') ? 'border-amber-100 hover:border-amber-200' :
+                   'border-blue-100 hover:border-blue-200'
+                 }`}>
+                    <div className="flex items-center gap-2 mb-3">
+                       <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md ${
+                         h.type.toLowerCase().includes('grammar') ? 'bg-red-50 text-red-600' :
+                         h.type.toLowerCase().includes('vocabulary') ? 'bg-amber-50 text-amber-600' :
+                         'bg-blue-50 text-blue-600'
+                       }`}>{h.type}</span>
+                    </div>
+                    <p className="text-sm font-bold text-gray-900 mb-2 italic">&quot;{h.text}&quot;</p>
+                    <p className="text-xs text-gray-600 leading-relaxed font-medium">{h.issue}</p>
+                 </div>
+               ))}
+
+               {(!aiFeedback?.highlights || aiFeedback.highlights.length === 0) && (
+                 <div className="bg-gray-50 rounded-2xl p-8 border border-dashed border-gray-200 text-center">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-300 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-gray-400">No specific issues found. Great job!</p>
+                 </div>
+               )}
             </div>
+
          </div>
 
       </main>

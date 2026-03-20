@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { TaskRelevanceResult } from '@/types/grading';

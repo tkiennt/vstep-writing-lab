@@ -25,65 +25,87 @@ export interface Essay {
   status: EssayStatus;
 }
 
-export type EssayStatus = 'draft' | 'submitted' | 'evaluated';
+export type EssayStatus = 'draft' | 'submitted' | 'evaluated' | 'pending' | 'scored' | 'failed';
 
 export type TaskType = 'opinion' | 'discussion' | 'problem-solution' | 'two-part';
 
 // Feedback Types
 export interface EssayFeedback {
-  essayId: string;
-  overallScore: number;
-  bandDescriptor: BandDescriptor;
-  breakdown: ScoreBreakdown;
-  grammarErrors: GrammarError[];
-  vocabularySuggestions: VocabularySuggestion[];
-  improvedSentences: ImprovedSentence[];
-  generalComments: string;
+  summary: string;
+  suggestions: string[];
+  highlights: Highlight[];
 }
 
-export interface ScoreBreakdown {
-  taskAchievement: number;
-  coherence: number;
+export interface Highlight {
+  text: string;
+  issue: string;
+  type: string;
+}
+
+export interface AiScore {
+  taskFulfilment: number;
+  organization: number;
   vocabulary: number;
   grammar: number;
+  overall: number;
 }
 
-export type BandDescriptor = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
-
-export interface GrammarError {
-  originalText: string;
-  errorType: string;
-  suggestion: string;
-  explanation: string;
-  position: {
-    start: number;
-    end: number;
-  };
-}
-
-export interface VocabularySuggestion {
-  originalWord: string;
-  suggestions: string[];
-  context: string;
-}
-
-export interface ImprovedSentence {
-  original: string;
-  improved: string;
-  explanation: string;
-}
+// Removed old breakdown types to avoid confusion
 
 // Topic Types
 export interface Topic {
   id: string;
   title: string;
-  taskType: TaskType;
+  taskType: string;
   prompt: string;
   instructions: string;
   wordLimit: number;
   timeLimit: number; // in minutes
-  difficulty: VSTEPLevel;
+  difficulty: string;
   category: string;
+  isActive: boolean;
+}
+
+export interface Question {
+  questionId: string;
+  taskType: string;
+  category: string;
+  title: string;
+  instructions: string;
+  requirements?: string;
+  level: string;
+  task?: TaskInfo;
+  sentenceTemplates?: SentenceTemplate[];
+}
+
+export interface TaskInfo {
+  taskId: string;
+  name: string;
+  type: string;
+  duration: number;
+  minWords: number;
+  scoreWeight: number;
+  description: string;
+}
+
+export interface SentenceTemplate {
+  part: string;
+  templates: string[];
+}
+
+// Exam Prompt Types (v2)
+export interface ExamPrompt {
+  id: string;
+  taskType: string;
+  cefrLevel: string;
+  instruction: string;
+  keyPoints: string[];
+  topicCategory: string;
+  topicKeyword: string;
+  essayType: string;
+  difficulty: number;
+  isActive: boolean;
+  usageCount: number;
 }
 
 // Progress Types
@@ -146,12 +168,39 @@ export interface RegisterRequest {
   name: string;
 }
 
-// Writing Practice Types
 export interface EssaySubmission {
-  topicId: string;
-  content: string;
+  questionId: string;
+  mode: 'practice' | 'guided' | 'exam';
+  essayContent: string;
+}
+
+export interface SubmissionResponse {
+  submissionId: string;
+  questionId: string;
+  taskType: string;
+  mode: string;
+  essayContent: string;
   wordCount: number;
-  timeSpent: number; // in seconds
+  belowMinWords: boolean;
+  status: EssayStatus;
+  aiScore?: AiScore;
+  aiFeedback?: EssayFeedback;
+  retryCount: number;
+  createdAt: string;
+  scoredAt?: string;
+}
+
+export interface SubmissionListItemResponse {
+  submissionId: string;
+  questionId: string;
+  questionTitle: string;
+  taskType: string;
+  mode: string;
+  wordCount: number;
+  belowMinWords: boolean;
+  status: EssayStatus;
+  overallScore?: number;
+  createdAt: string;
 }
 
 export interface WritingSession {

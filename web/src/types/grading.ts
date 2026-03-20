@@ -77,6 +77,10 @@ export interface GradingResultDoc extends GradingResult {
   wordCount: number;
   cefrLevel: string;
   createdAt: any;
+  gradedAt: any;
+  totalScore: number;
+  taskType: 'task1' | 'task2';
+  isRelevant: boolean;
 }
 
 // ── Progress summary (Firestore: users/{uid}/progress/summary) ──

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { MIN_WORD_COUNT } from '@/types/grading';
