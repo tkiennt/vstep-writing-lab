@@ -3,17 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ArrowLeft,
-  Share2,
-  Download,
-  Award,
-  TrendingUp,
-  AlertCircle,
-  Lightbulb,
-  CheckCircle2,
-  ChevronRight,
-  BookOpen,
-  Check
+  ArrowLeft, Share2, Download, Award, TrendingUp,
+  AlertCircle, Lightbulb, CheckCircle2, ChevronRight, BookOpen, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { submissionService } from '@/services/submissionService';
@@ -32,8 +23,6 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
     try {
       const data = await submissionService.getById(params.id);
       setSubmission(data);
-      
-      // If still pending, keep loading
       if (data.status === 'pending') {
         setLoading(true);
       } else {
@@ -46,17 +35,13 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
     }
   }, [params.id, addToast]);
 
-  // Initial fetch and polling
   useEffect(() => {
     fetchSubmission();
-    
-    // Set up polling if status is pending
     const interval = setInterval(() => {
       if (loading || (submission && submission.status === 'pending')) {
         fetchSubmission();
       }
-    }, 3000); // Poll every 3 seconds
-
+    }, 3000);
     return () => clearInterval(interval);
   }, [fetchSubmission, loading, submission]);
 
@@ -82,13 +67,13 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-50/50">
-        <div className="w-24 h-24 mb-8 bg-white rounded-full p-4 shadow-xl shadow-emerald-900/5 relative flex items-center justify-center">
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-50 dark:bg-slate-950">
+        <div className="w-24 h-24 mb-8 bg-white dark:bg-slate-800 rounded-full p-4 shadow-xl relative flex items-center justify-center">
            <div className="absolute inset-0 rounded-full border-t-4 border-emerald-500 animate-spin"></div>
-           <Award className="w-10 h-10 text-emerald-600 animate-pulse" />
+           <Award className="w-10 h-10 text-emerald-600 dark:text-emerald-400 animate-pulse" />
         </div>
-        <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-3">AI is evaluating your essay</h2>
-        <p className="text-gray-500 font-medium max-w-sm text-center">
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">AI is evaluating your essay</h2>
+        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-sm text-center">
            Analyzing lexical resources, grammatical range, coherence, and task achievement...
         </p>
         <div className="mt-8 flex gap-2">
@@ -102,8 +87,8 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
 
   if (!submission) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-        <h2 className="text-xl font-bold text-gray-900">Submission not found</h2>
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-50 dark:bg-slate-950">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Submission not found</h2>
         <Button onClick={() => router.push('/history')} className="mt-4">Back to History</Button>
       </div>
     );
@@ -111,46 +96,22 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
 
   const { aiScore, aiFeedback } = submission;
 
-  // Function to render highlighted text
   const renderHighlightedContent = () => {
-    if (!aiFeedback?.highlights || aiFeedback.highlights.length === 0) {
-      return <p className="whitespace-pre-line">{submission.essayContent}</p>;
-    }
-
-    let lastIndex = 0;
-    const parts: React.ReactNode[] = [];
-    const content = submission.essayContent;
-
-    // The backend highlights don't have start/end indices in the Response DTO, 
-    // but the Text field contains the snippet. We'll try to find and highlight them.
-    // NOTE: This is a simple implementation. Ideally the backend should provide indices.
-    
-    // For now, let's just display the content and show highlights as a list below if we can't reliably map them.
-    // Actually, I'll try to replace the first occurrence of each highlight text.
-    
-    let currentContent = content;
-    const sortedHighlights = [...aiFeedback.highlights].sort((a, b) => b.text.length - a.text.length);
-
-    // This is a naive replacement strategy.
-    return (
-      <p className="whitespace-pre-line">
-        {content}
-      </p>
-    );
+    return <p className="whitespace-pre-line">{submission.essayContent}</p>;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
       
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
          <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-4">
-               <button onClick={() => router.back()} className="p-2 -ml-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors">
+               <button onClick={() => router.back()} className="p-2 -ml-2 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
                   <ArrowLeft className="w-5 h-5" />
                </button>
                <div>
-                  <h1 className="text-sm font-bold text-gray-900 hidden sm:block">Detailed Feedback Report</h1>
+                  <h1 className="text-sm font-bold text-slate-900 dark:text-slate-100 hidden sm:block">Detailed Feedback Report</h1>
                </div>
             </div>
             <div className="flex items-center gap-3">
@@ -158,10 +119,10 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
                  variant="outline" 
                  onClick={handleExportPDF}
                  disabled={exportStatus === 'loading'}
-                 className="h-9 px-4 rounded-xl text-xs font-bold border-gray-200 text-gray-600 hidden sm:flex items-center gap-2"
+                 className="h-9 px-4 rounded-xl text-xs font-bold border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hidden sm:flex items-center gap-2"
                >
                   {exportStatus === 'loading' ? (
-                    <><div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div> Exporting...</>
+                    <><div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div> Exporting...</>
                   ) : exportStatus === 'done' ? (
                     <><Check className="w-3.5 h-3.5 text-emerald-600" /> Downloaded!</>
                   ) : (
@@ -173,7 +134,7 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
                  className={`h-9 px-4 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all ${
                    shareStatus === 'copied' 
                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                     : 'bg-vstep-dark hover:bg-emerald-900 text-white'
+                     : 'bg-emerald-600 dark:bg-vstep-dark hover:bg-emerald-700 dark:hover:bg-emerald-900 text-white'
                  }`}
                >
                   {shareStatus === 'copied' ? (
@@ -191,11 +152,10 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
          {/* Top Section: Overall Score & Criteria */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Massive Band Score Card */}
+            {/* Band Score Card — keep dark green intentionally */}
             <div className="lg:col-span-1 bg-gradient-to-br from-emerald-900 to-vstep-dark rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-emerald-900/20">
                <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl"></div>
-               
                <div className="relative z-10 flex flex-col h-full items-center justify-center text-center">
                   <span className="text-emerald-300 font-bold tracking-widest uppercase text-xs mb-4">Overall Band Score</span>
                   <div className="text-8xl font-black tracking-tighter mb-4 text-white drop-shadow-md">
@@ -210,31 +170,26 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
 
             {/* Criteria Breakdown Grid */}
             <div className="lg:col-span-2 grid grid-cols-2 gap-4">
-               
                {[
                  { label: 'Task Fulfillment', score: aiScore?.taskFulfilment || 0, color: 'blue' },
                  { label: 'Organization & Cohesion', score: aiScore?.organization || 0, color: 'indigo' },
                  { label: 'Lexical Resource (Vocab)', score: aiScore?.vocabulary || 0, color: 'emerald' },
                  { label: 'Grammatical Range', score: aiScore?.grammar || 0, color: 'amber' }
                ].map((c, i) => (
-                 <div key={i} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                 <div key={i} className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-4">
-                       <span className="text-sm font-bold text-gray-900 max-w-[120px] leading-tight mt-1">{c.label}</span>
+                       <span className="text-sm font-bold text-slate-900 dark:text-slate-100 max-w-[120px] leading-tight mt-1">{c.label}</span>
                        <span className={`text-2xl font-black ${
-                          c.color === 'blue' ? 'text-blue-600' : 
-                          c.color === 'indigo' ? 'text-indigo-600' : 
-                          c.color === 'emerald' ? 'text-emerald-600' : 'text-amber-600'
+                          c.color === 'blue' ? 'text-blue-600 dark:text-blue-400' : 
+                          c.color === 'indigo' ? 'text-indigo-600 dark:text-indigo-400' : 
+                          c.color === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
                        }`}>{c.score}</span>
                     </div>
-                    
-                    {/* Progress Bar */}
                     <div className="space-y-2">
-                       <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-400">
-                          <span>0</span>
-                          <span>Score</span>
-                          <span>9</span>
+                       <div className="flex items-center justify-between text-[10px] font-black uppercase text-slate-400 dark:text-slate-500">
+                          <span>0</span><span>Score</span><span>9</span>
                        </div>
-                       <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                       <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div 
                              className={`h-full rounded-full ${
                                 c.color === 'blue' ? 'bg-blue-500' : 
@@ -247,37 +202,33 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
                     </div>
                  </div>
                ))}
-
             </div>
          </div>
 
-         {/* Middle Section: Feedback Summary & Suggestions */}
+         {/* Middle Section */}
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Feedback Summary */}
-            <div className="bg-emerald-50/50 border border-emerald-100 rounded-3xl p-8">
+            <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-3xl p-8">
                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                      <CheckCircle2 className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg">AI Feedback Summary</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-lg">AI Feedback Summary</h3>
                </div>
-               <div className="prose prose-sm text-gray-700 leading-relaxed font-medium">
+               <div className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium text-sm">
                   {aiFeedback?.summary || "No summary available."}
                </div>
             </div>
 
-            {/* AI Action Plan / Suggestions */}
-            <div className="bg-indigo-50/50 border border-indigo-100 rounded-3xl p-8">
-               <div className="flex items-center gap-3 mb-6 relative z-10">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600">
+            <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-3xl p-8">
+               <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                      <Lightbulb className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg">Key Suggestions</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-lg">Key Suggestions</h3>
                </div>
                <ul className="space-y-4">
                   {aiFeedback?.suggestions.map((suggestion, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed font-medium">
+                    <li key={idx} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0"></div>
                        {suggestion}
                     </li>
@@ -286,52 +237,47 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
             </div>
          </div>
 
-         {/* Bottom Section: Original Text and Detailed Highlights */}
+         {/* Bottom Section */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Original Text Display */}
-            <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-               <div className="p-6 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
-                  <BookOpen className="w-5 h-5 text-gray-400" />
-                  <h3 className="font-bold text-gray-900">Your Essay</h3>
+            <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden flex flex-col">
+               <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 flex items-center gap-3 bg-slate-50 dark:bg-slate-900/50">
+                  <BookOpen className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100">Your Essay</h3>
                </div>
-               <div className="p-8 lg:p-12 flex-1 prose prose-gray max-w-none text-gray-800 font-serif text-lg leading-loose selection:bg-emerald-200 overflow-y-auto max-h-[600px] custom-scrollbar">
+               <div className="p-8 lg:p-12 flex-1 text-slate-800 dark:text-slate-200 font-serif text-lg leading-loose overflow-y-auto max-h-[600px]">
                   {renderHighlightedContent()}
                </div>
             </div>
 
-            {/* Highlights List */}
-            <div className="lg:col-span-1 space-y-4 overflow-y-auto max-h-[665px] custom-scrollbar pr-1">
-               <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest px-2">Detailed Analysis ({aiFeedback?.highlights.length || 0})</h3>
+            <div className="lg:col-span-1 space-y-4 overflow-y-auto max-h-[665px] pr-1">
+               <h3 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2">Detailed Analysis ({aiFeedback?.highlights.length || 0})</h3>
                
                {aiFeedback?.highlights.map((h, i) => (
-                 <div key={i} className={`bg-white rounded-2xl p-5 border shadow-sm transition-all hover:shadow-md ${
-                   h.type.toLowerCase().includes('grammar') ? 'border-red-100 hover:border-red-200' :
-                   h.type.toLowerCase().includes('vocabulary') ? 'border-amber-100 hover:border-amber-200' :
-                   'border-blue-100 hover:border-blue-200'
+                 <div key={i} className={`bg-white dark:bg-slate-800 rounded-2xl p-5 border shadow-sm transition-all hover:shadow-md ${
+                   h.type.toLowerCase().includes('grammar') ? 'border-red-100 dark:border-red-500/20 hover:border-red-200 dark:hover:border-red-500/30' :
+                   h.type.toLowerCase().includes('vocabulary') ? 'border-amber-100 dark:border-amber-500/20 hover:border-amber-200 dark:hover:border-amber-500/30' :
+                   'border-blue-100 dark:border-blue-500/20 hover:border-blue-200 dark:hover:border-blue-500/30'
                  }`}>
                     <div className="flex items-center gap-2 mb-3">
                        <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md ${
-                         h.type.toLowerCase().includes('grammar') ? 'bg-red-50 text-red-600' :
-                         h.type.toLowerCase().includes('vocabulary') ? 'bg-amber-50 text-amber-600' :
-                         'bg-blue-50 text-blue-600'
+                         h.type.toLowerCase().includes('grammar') ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400' :
+                         h.type.toLowerCase().includes('vocabulary') ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                         'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
                        }`}>{h.type}</span>
                     </div>
-                    <p className="text-sm font-bold text-gray-900 mb-2 italic">&quot;{h.text}&quot;</p>
-                    <p className="text-xs text-gray-600 leading-relaxed font-medium">{h.issue}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-2 italic">&quot;{h.text}&quot;</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{h.issue}</p>
                  </div>
                ))}
 
                {(!aiFeedback?.highlights || aiFeedback.highlights.length === 0) && (
-                 <div className="bg-gray-50 rounded-2xl p-8 border border-dashed border-gray-200 text-center">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-300 mx-auto mb-3" />
-                    <p className="text-sm font-bold text-gray-400">No specific issues found. Great job!</p>
+                 <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-8 border border-dashed border-slate-200 dark:border-slate-700 text-center">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No specific issues found. Great job!</p>
                  </div>
                )}
             </div>
-
          </div>
-
       </main>
     </div>
   );
