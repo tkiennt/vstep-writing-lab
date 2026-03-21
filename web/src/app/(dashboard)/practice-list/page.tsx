@@ -13,6 +13,7 @@ export default function ExamList() {
   const [prompts, setPrompts] = useState<ExamPrompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [activeLevel, setActiveLevel] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const { addToast } = useGlobal();
   const { t } = useTranslation();
@@ -31,20 +32,26 @@ export default function ExamList() {
     fetchPrompts();
   }, [addToast, t]);
 
-  const TABS = [
+  const TASK_TABS = [
     { key: 'all', label: t('practiceList.tabs.all') },
     { key: 'task1', label: t('practiceList.tabs.task1') },
     { key: 'task2', label: t('practiceList.tabs.task2') },
   ];
 
+  const LEVEL_TABS = [
+    { key: 'all', label: t('practiceList.tabs.all') },
+    { key: 'B1', label: 'B1' },
+    { key: 'B2', label: 'B2' },
+    { key: 'C1', label: 'C1' },
+  ];
+
   const filteredPrompts = prompts.filter(p => {
-    const matchesTab = activeTab === 'all' || 
-                       (activeTab === 'task1' && p.taskType.toLowerCase() === 'task1') ||
-                       (activeTab === 'task2' && p.taskType.toLowerCase() === 'task2');
+    const matchesTask = activeTab === 'all' || p.taskType.toLowerCase() === activeTab.toLowerCase();
+    const matchesLevel = activeLevel === 'all' || p.cefrLevel.toUpperCase() === activeLevel.toUpperCase();
     const matchesSearch = p.instruction.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           p.topicCategory.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           p.topicKeyword.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesTab && matchesSearch;
+    return matchesTask && matchesLevel && matchesSearch;
   });
 
   const groupedByLevel = {
@@ -78,15 +85,20 @@ export default function ExamList() {
                   <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md bg-emerald-600 text-white">
                     <Sparkles className="w-3 h-3 inline mr-1 mb-0.5" />{p.topicCategory}
                   </span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md inline-flex items-center border border-slate-200 dark:border-slate-600">
-                    <Target className="w-3.5 h-3.5 mr-1" /> {p.essayType || t('practiceList.card.standard')}
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md inline-flex items-center border border-slate-200 dark:border-slate-600 capitalize">
+                    <Target className="w-3.5 h-3.5 mr-1" /> {(p.essayType || t('practiceList.card.standard')).replace(/_/g, ' ')}
                   </span>
                 </div>
                 
-                <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-2 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-2 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors capitalize">
                   {p.topicKeyword || 'General Topic'}
                 </h3>
-                <p className="text-slate-500 dark:text-slate-400 line-clamp-2 text-sm leading-relaxed mb-4">{p.instruction}</p>
+                <p className="text-slate-500 dark:text-slate-400 line-clamp-4 text-sm leading-relaxed mb-4 whitespace-pre-line">
+                  {p.taskType.toLowerCase() === 'task1' 
+                    ? (p.instruction.split(/[.?!]/)[0] + '.')
+                    : p.instruction.replace(/([•*])/g, '\n$1').trim()
+                  }
+                </p>
                 
                 <div className="flex items-center gap-4 text-xs font-bold text-slate-400 dark:text-slate-500">
                   <div className="flex items-center gap-1.5">
@@ -141,24 +153,44 @@ export default function ExamList() {
         </div>
 
         {/* Control Panel */}
-        <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700/50 sticky top-4 z-30 shadow-sm">
-          <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl w-full sm:w-auto overflow-x-auto hide-scrollbar">
-            {TABS.map((tab) => (
-              <button 
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`px-6 py-2 text-sm font-black rounded-lg whitespace-nowrap transition-all ${
-                  activeTab === tab.key
-                    ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm' 
-                    : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+        <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700/50 sticky top-4 z-30 shadow-sm">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Task Type Filter */}
+            <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl overflow-x-auto hide-scrollbar">
+              {TASK_TABS.map((tab) => (
+                <button 
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`px-6 py-2 text-xs font-black rounded-lg whitespace-nowrap transition-all ${
+                    activeTab === tab.key
+                      ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                      : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* CEFR Level Filter */}
+            <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl overflow-x-auto hide-scrollbar">
+              {LEVEL_TABS.map((tab) => (
+                <button 
+                  key={tab.key}
+                  onClick={() => setActiveLevel(tab.key)}
+                  className={`px-6 py-2 text-xs font-black rounded-lg whitespace-nowrap transition-all ${
+                    activeLevel === tab.key
+                      ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm' 
+                      : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="relative shrink-0 flex-1 xl:max-w-md">
+          <div className="relative shrink-0 flex-1 md:max-w-xs xl:max-w-sm">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
             <input 
               type="text" 

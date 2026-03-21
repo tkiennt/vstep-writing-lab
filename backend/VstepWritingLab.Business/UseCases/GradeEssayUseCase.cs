@@ -3,6 +3,7 @@ using VstepWritingLab.Domain.Entities;
 using VstepWritingLab.Domain.Interfaces;
 using VstepWritingLab.Domain.ValueObjects;
 using VstepWritingLab.Business.DTOs;
+using VstepWritingLab.Business.Helpers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,7 +48,7 @@ public class GradeEssayUseCase(
             command.Mode, domainHistory, ct);
 
         if (!aiResult.IsSuccess || aiResult.Value == null) 
-            return Result<FullAnalysisResponse>.Fail(aiResult.Error ?? "AI grading failed");
+            return Result<FullAnalysisResponse>.Fail(FriendlyErrorMapper.MapAiError(aiResult.Error ?? "AI grading failed"));
         
         var ai = aiResult.Value;
 

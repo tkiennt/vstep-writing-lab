@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -18,6 +19,11 @@ export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
   const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const MENU_ITEMS = [
     // User routes
@@ -56,8 +62,8 @@ export function Sidebar({ role }: SidebarProps) {
 
       {/* Menu */}
       <div className="flex-1 overflow-y-auto py-5 px-3 space-y-0.5">
-        <div className="mb-3 px-3 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
-          {t('nav.mainMenu')}
+        <div className="mb-3 px-3 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest min-h-[1rem]">
+          {mounted ? t('nav.mainMenu') : ''}
         </div>
         {filteredMenuItems.map((item) => {
           const isActive = pathname.startsWith(item.path);
@@ -72,7 +78,7 @@ export function Sidebar({ role }: SidebarProps) {
               }`}
             >
               <item.icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
-              <span className="text-sm">{t(item.titleKey)}</span>
+              <span className="text-sm">{mounted ? t(item.titleKey) : ''}</span>
               {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />}
             </Link>
           );
@@ -86,7 +92,7 @@ export function Sidebar({ role }: SidebarProps) {
           className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-slate-500 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 transition-all duration-150"
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          <span className="text-sm font-medium">{t('nav.logOut')}</span>
+          <span className="text-sm font-medium">{mounted ? t('nav.logOut') : ''}</span>
         </button>
       </div>
     </aside>
