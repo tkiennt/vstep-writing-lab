@@ -1,0 +1,175 @@
+{
+  "nav": {
+    "search": "Tìm kiếm...",
+    "dashboard": "Bảng điều khiển",
+    "examSystem": "Hệ thống thi",
+    "myResults": "Kết quả của tôi",
+    "resources": "Tài nguyên",
+    "topicsManagement": "Quản lý chủ đề",
+    "systemPrompts": "System Prompts",
+    "userManagement": "Quản lý người dùng",
+    "aiImportEngine": "AI Import Engine",
+    "mainMenu": "Menu chính",
+    "logOut": "Đăng xuất",
+    "signOut": "Đăng xuất",
+    "myProfile": "Hồ sơ của tôi",
+    "accountSettings": "Cài đặt tài khoản",
+    "language": "Ngôn ngữ"
+  },
+  "dashboard": {
+    "header": {
+      "badge": "Phân tích chính xác",
+      "title": "Hệ thống thi viết VSTEP",
+      "subtitle": "Trải nghiệm hệ thống luyện thi thông minh với AI · Phản hồi tức thì · Lộ trình cải thiện tối ưu"
+    },
+    "welcome": "Chào mừng trở lại, {{name}}!",
+    "overview": "Đây là tổng quan học tập của bạn.",
+    "stats": {
+      "totalEssays": "Tổng bài đã nộp",
+      "avgBand": "Điểm trung bình",
+      "streak": "Chuỗi ngày học",
+      "days": "Ngày"
+    },
+    "chart": {
+      "title": "Xu hướng tiến bộ",
+      "last30": "30 NGÀY GẦN ĐÂY",
+      "allTime": "TẤT CẢ"
+    },
+    "cta": {
+      "title": "Sẵn sàng cho thử thách tiếp theo?",
+      "subtitle": "Duy trì chuỗi 5 ngày của bạn. Chúng tôi gợi ý luyện Task 1 hôm nay.",
+      "button": "Bắt đầu luyện thi"
+    },
+    "history": {
+      "title": "Lịch sử luyện tập gần đây",
+      "viewAll": "Xem tất cả",
+      "topic": "Chủ đề / Đề bài",
+      "date": "Ngày",
+      "score": "Điểm",
+      "details": "Chi tiết",
+      "task": "Task",
+      "coherence": "Mạch lạc",
+      "lexical": "Từ vựng",
+      "grammar": "Ngữ pháp",
+      "fullReport": "Báo cáo đầy đủ"
+    }
+  },
+  "practiceList": {
+    "hero": {
+      "badge": "Cổng thi chính thức",
+      "title": "VSTEP Writing",
+      "titleHighlight": "Hệ thống thi",
+      "subtitle": "Bài thi viết chuẩn tương đương IELTS cho các cấp B1, B2 và C1. Đề thật, áp lực thật, phản hồi thật."
+    },
+    "tabs": {
+      "all": "Tất cả",
+      "task1": "Task 1",
+      "task2": "Task 2"
+    },
+    "search": "Tìm theo chủ đề, từ khóa hoặc đề bài...",
+    "loading": "Đang tải dữ liệu đề thi...",
+    "empty": {
+      "title": "Không tìm thấy đề thi",
+      "subtitle": "Không có đề thi nào phù hợp với tìm kiếm hoặc bộ lọc của bạn.",
+      "reset": "XÓA BỘ LỌC"
+    },
+    "card": {
+      "minutes20": "20 phút",
+      "minutes40": "40 phút",
+      "difficulty": "Độ khó",
+      "startExam": "BẮT ĐẦU THI",
+      "vstepTask1": "VSTEP Task 1",
+      "vstepTask2": "VSTEP Task 2",
+      "standard": "Tiêu chuẩn"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Đăng nhập",
+      "subtitle": "Chào mừng trở lại — hãy tiếp tục hành trình học tập.",
+      "googleBtn": "Đăng nhập bằng Google",
+      "orEmail": "hoặc đăng nhập bằng email",
+      "emailLabel": "Địa chỉ Email",
+      "emailPlaceholder": "ban@truong.edu.vn",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Quên mật khẩu?",
+      "loginAs": "Đăng nhập với vai trò (Demo)",
+      "student": "Học sinh",
+      "teacher": "Giáo viên",
+      "admin": "Quản trị",
+      "submitBtn": "Đăng nhập bằng Email",
+      "submitting": "Đang đăng nhập...",
+      "noAccount": "Chưa có tài khoản?",
+      "register": "Đăng ký",
+      "backHome": "Về trang chủ"
+    },
+    "register": {
+      "title": "Tạo tài khoản",
+      "subtitle": "Bắt đầu hành trình chinh phục VSTEP hôm nay.",
+      "fullName": "Họ và tên",
+      "fullNamePlaceholder": "Nguyễn Văn A",
+      "email": "Địa chỉ Email",
+      "emailPlaceholder": "ban@truong.edu.vn",
+      "password": "Mật khẩu",
+      "passwordPlaceholder": "Tạo mật khẩu mạnh",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
+      "submitBtn": "Bắt đầu ngay",
+      "submitting": "Đang tạo tài khoản...",
+      "hasAccount": "Đã có tài khoản?",
+      "signIn": "Đăng nhập"
+    },
+    "errors": {
+      "invalidEmail": "Vui lòng sử dụng email hợp lệ",
+      "fullNameRequired": "Vui lòng nhập họ và tên",
+      "emailRequired": "Vui lòng nhập email",
+      "passwordRequired": "Vui lòng nhập mật khẩu",
+      "passwordTooShort": "Mật khẩu phải có ít nhất 8 ký tự",
+      "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
+      "passwordMismatch": "Mật khẩu không khớp"
+    }
+  },
+  "profile": {
+    "title": "Hồ sơ & Cài đặt",
+    "subtitle": "Quản lý thông tin và tùy chọn tài khoản của bạn.",
+    "nav": {
+      "personalInfo": "Thông tin cá nhân",
+      "learningGoals": "Mục tiêu học tập",
+      "security": "Bảo mật",
+      "notifications": "Thông báo"
+    },
+    "personal": {
+      "title": "Thông tin cá nhân",
+      "changeAvatar": "Đổi ảnh đại diện",
+      "remove": "Xóa",
+      "firstName": "Tên",
+      "lastName": "Họ",
+      "emailAddress": "Địa chỉ Email",
+      "emailNote": "Liên hệ hỗ trợ để thay đổi địa chỉ email.",
+      "saveChanges": "Lưu thay đổi"
+    },
+    "goals": {
+      "title": "Mục tiêu điểm số",
+      "question": "Bạn muốn đạt cấp độ VSTEP nào?",
+      "intermediate": "Trung cấp",
+      "upperInter": "Cao trung cấp",
+      "advanced": "Nâng cao",
+      "saveGoals": "Lưu mục tiêu"
+    },
+    "danger": {
+      "title": "Vùng nguy hiểm",
+      "subtitle": "Sau khi xóa tài khoản, bạn không thể khôi phục lại. Hãy chắc chắn trước khi thực hiện.",
+      "deleteBtn": "Xóa tài khoản"
+    }
+  },
+  "common": {
+    "band": "Band",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "save": "Lưu",
+    "loading": "Đang tải...",
+    "error": "Đã có lỗi xảy ra",
+    "success": "Thành công"
+  }
+}

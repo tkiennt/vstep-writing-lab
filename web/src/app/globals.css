@@ -1,64 +1,77 @@
 @import "tailwindcss";
 
-/* Define theme using Tailwind's @theme directive for v4 */
+/* ============================================================
+   VSTEP Writing Lab — Dark Mode Design System (Tailwind v4)
+   ============================================================ */
 @theme {
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222.2 84% 4.9%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(222.2 84% 4.9%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(222.2 84% 4.9%);
-  --color-primary: hsl(217 91% 60%);
-  --color-primary-foreground: hsl(210 40% 98%);
-  --color-secondary: hsl(142 71% 45%);
-  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --color-muted: hsl(210 40% 96.1%);
-  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
-  --color-accent: hsl(45 93% 47%);
-  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
-  --color-destructive: hsl(0 84.2% 60.2%);
+  /* ── Surfaces ── */
+  --color-background:  #0f172a;
+  --color-sidebar:     #020617;
+  --color-card:        #1e293b;
+
+  /* ── Foreground ── */
+  --color-foreground:         #f1f5f9;
+  --color-muted-foreground:   #94a3b8;
+
+  /* ── Borders ── */
+  --color-border: rgba(255,255,255,0.06);
+  --color-input:  rgba(255,255,255,0.08);
+  --color-ring:   hsl(142 71% 45%);
+
+  /* ── Semantic ── */
+  --color-primary:             hsl(142 71% 45%);
+  --color-primary-foreground:  hsl(222.2 47.4% 11.2%);
+  --color-secondary:           #1e293b;
+  --color-secondary-foreground:#cbd5e1;
+  --color-muted:               #1e293b;
+  --color-accent:              #1e293b;
+  --color-accent-foreground:   #f1f5f9;
+  --color-popover:             #1e293b;
+  --color-popover-foreground:  #f1f5f9;
+  --color-card:                #1e293b;
+  --color-card-foreground:     #f1f5f9;
+  --color-destructive:         hsl(0 62.8% 50%);
   --color-destructive-foreground: hsl(210 40% 98%);
-  --color-border: hsl(214.3 31.8% 91.4%);
-  --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(217 91% 60%);
+
   --radius: 0.5rem;
-  
-  --color-vstep-dark: #123524;
-  --color-vstep-badge: #E8F3EE;
-  --color-vstep-link: #4A5D54;
+
+  /* ── Brand ── */
+  --color-vstep-dark:  #123524;
+  --color-vstep-badge: #1a3d2e;
+  --color-vstep-link:  #4ade80;
 }
 
 @layer base {
   * {
     @apply border-border;
+    transition-property: background-color, border-color, color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
   }
   body {
     @apply bg-background text-foreground;
   }
 }
 
-/* Custom scrollbar */
+/* ── Dark Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #0f172a;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
+  background: #334155;
+  border-radius: 99px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #475569;
 }
 
-/* Hide scrollbar utility */
+/* ── Hide scrollbar utility ── */
 .hide-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;

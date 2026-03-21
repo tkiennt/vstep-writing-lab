@@ -1,0 +1,175 @@
+{
+  "nav": {
+    "search": "Search...",
+    "dashboard": "Dashboard",
+    "examSystem": "Exam System",
+    "myResults": "My Results",
+    "resources": "Resources",
+    "topicsManagement": "Topics Management",
+    "systemPrompts": "System Prompts",
+    "userManagement": "User Management",
+    "aiImportEngine": "AI Import Engine",
+    "mainMenu": "Main Menu",
+    "logOut": "Log out",
+    "signOut": "Sign Out",
+    "myProfile": "My Profile",
+    "accountSettings": "Account Settings",
+    "language": "Language"
+  },
+  "dashboard": {
+    "header": {
+      "badge": "Precision Analysis",
+      "title": "VSTEP Writing Exam System",
+      "subtitle": "Experience AI-powered VSTEP Writing test system · Instant feedback · Optimal improvement path"
+    },
+    "welcome": "Welcome back, {{name}}!",
+    "overview": "Here's your learning overview.",
+    "stats": {
+      "totalEssays": "Total Essays Submitted",
+      "avgBand": "Average Band Score",
+      "streak": "Current Streak",
+      "days": "Days"
+    },
+    "chart": {
+      "title": "Progress Trend",
+      "last30": "LAST 30 DAYS",
+      "allTime": "ALL TIME"
+    },
+    "cta": {
+      "title": "Ready for the next challenge?",
+      "subtitle": "Keep your 5-day streak alive. We recommend a Task 1 Letter today.",
+      "button": "Start Practice"
+    },
+    "history": {
+      "title": "Recent Practice History",
+      "viewAll": "View All",
+      "topic": "Topic / Prompt",
+      "date": "Date",
+      "score": "Score",
+      "details": "Details",
+      "task": "Task",
+      "coherence": "Coherence",
+      "lexical": "Lexical",
+      "grammar": "Grammar",
+      "fullReport": "Full Report"
+    }
+  },
+  "practiceList": {
+    "hero": {
+      "badge": "Official Exam Portals",
+      "title": "VSTEP Writing",
+      "titleHighlight": "Exam System",
+      "subtitle": "Standardized IELTS-equivalent writing tests for B1, B2, and C1 levels. Real instructions, real pressure, real feedback."
+    },
+    "tabs": {
+      "all": "All",
+      "task1": "Task 1",
+      "task2": "Task 2"
+    },
+    "search": "Search by topic, keyword or instruction...",
+    "loading": "Initializing Exam Data...",
+    "empty": {
+      "title": "No Exams Found",
+      "subtitle": "We couldn't find any exam prompts matching your search or filters.",
+      "reset": "RESET ALL FILTERS"
+    },
+    "card": {
+      "minutes20": "20 Minutes",
+      "minutes40": "40 Minutes",
+      "difficulty": "Difficulty",
+      "startExam": "START EXAM",
+      "vstepTask1": "VSTEP Task 1",
+      "vstepTask2": "VSTEP Task 2",
+      "standard": "Standard"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Welcome back — let's continue your progress.",
+      "googleBtn": "Sign in with Google",
+      "orEmail": "or login with email",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "you@university.edu.vn",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Forgot password?",
+      "loginAs": "Login as (Demo)",
+      "student": "Student",
+      "teacher": "Teacher",
+      "admin": "Admin",
+      "submitBtn": "Sign In with Email",
+      "submitting": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "register": "Register",
+      "backHome": "Back to Home"
+    },
+    "register": {
+      "title": "Create an account",
+      "subtitle": "Start your journey to VSTEP mastery today.",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Nguyen Van A",
+      "email": "Email Address",
+      "emailPlaceholder": "you@university.edu.vn",
+      "password": "Password",
+      "passwordPlaceholder": "Create a strong password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "submitBtn": "Get Started",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "errors": {
+      "invalidEmail": "Vui lòng sử dụng email hợp lệ",
+      "fullNameRequired": "Full name is required",
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "profile": {
+    "title": "Profile & Settings",
+    "subtitle": "Manage your account details and preferences.",
+    "nav": {
+      "personalInfo": "Personal Info",
+      "learningGoals": "Learning Goals",
+      "security": "Security",
+      "notifications": "Notifications"
+    },
+    "personal": {
+      "title": "Personal Information",
+      "changeAvatar": "Change Avatar",
+      "remove": "Remove",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "emailAddress": "Email Address",
+      "emailNote": "Contact support to change your email address.",
+      "saveChanges": "Save Changes"
+    },
+    "goals": {
+      "title": "Target Band Score",
+      "question": "What is your target VSTEP level?",
+      "intermediate": "Intermediate",
+      "upperInter": "Upper Inter",
+      "advanced": "Advanced",
+      "saveGoals": "Save Goals"
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "subtitle": "Once you delete your account, there is no going back. Please be certain.",
+      "deleteBtn": "Delete Account"
+    }
+  },
+  "common": {
+    "band": "Band",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success"
+  }
+}

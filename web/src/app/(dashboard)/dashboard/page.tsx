@@ -2,261 +2,228 @@
 
 import React, { useState } from 'react';
 import { 
-  FileEdit, 
-  TrendingUp, 
-  Flame, 
-  ChevronDown, 
-  ChevronUp,
-  LineChart as LineChartIcon,
-  Award,
-  MoreVertical,
-  ArrowRight,
-  FileText
+  FileEdit, TrendingUp, Flame, ChevronDown, ChevronUp,
+  LineChart as LineChartIcon, Award, ArrowRight, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { DashboardHeader } from '@/components/DashboardHeader';
+import { useTranslation } from 'react-i18next';
 
-// Simple mockup of a Line Chart since we don't have Recharts installed to keep it fast
+/* ── Mock Line Chart ── */
 const MockLineChart = () => (
   <div className="relative h-64 w-full flex items-end justify-between px-4 pb-8 pt-4">
-     {/* Grid lines */}
-     <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pt-4 opacity-10">
-        <div className="w-full h-px bg-gray-900"></div>
-        <div className="w-full h-px bg-gray-900"></div>
-        <div className="w-full h-px bg-gray-900"></div>
-        <div className="w-full h-px bg-gray-900"></div>
-     </div>
-     
-     {/* Y-axis labels */}
-     <div className="absolute left-0 inset-y-0 flex flex-col justify-between text-[10px] font-bold text-gray-400 pb-8 pt-4 w-6">
-        <span>8.0</span>
-        <span>7.0</span>
-        <span>6.0</span>
-        <span>5.0</span>
-     </div>
-
-     {/* Data Points / Line Mock */}
-     <svg className="absolute inset-0 h-full w-full pointer-events-none" preserveAspectRatio="none">
-        <path d="M 40 180 Q 200 160 350 120 T 600 80 T 900 60" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" />
-     </svg>
-
-     {/* X-axis labels & Points */}
-     {[
-       { date: 'Oct 01', score: 5.5, top: '180px' },
-       { date: 'Oct 05', score: 6.0, top: '150px' },
-       { date: 'Oct 12', score: 6.5, top: '120px' },
-       { date: 'Oct 18', score: 6.5, top: '110px' },
-       { date: 'Oct 25', score: 7.0, top: '80px' },
-     ].map((point, i) => (
-       <div key={i} className="relative z-10 flex flex-col items-center group h-full justify-end">
-          <div className="w-0.5 h-full bg-emerald-100 opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-8"></div>
-          <div className="w-4 h-4 bg-white border-4 border-emerald-500 rounded-full shadow-md z-10 absolute hover:scale-125 transition-transform cursor-pointer" style={{ top: point.top }}>
-             {/* Tooltip */}
-             <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                {point.score} Band
-             </div>
+    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pt-4">
+      <div className="w-full h-px bg-slate-700/50" /><div className="w-full h-px bg-slate-700/50" />
+      <div className="w-full h-px bg-slate-700/50" /><div className="w-full h-px bg-slate-700/50" />
+    </div>
+    <div className="absolute left-0 inset-y-0 flex flex-col justify-between text-[10px] font-bold text-slate-500 pb-8 pt-4 w-6">
+      <span>8.0</span><span>7.0</span><span>6.0</span><span>5.0</span>
+    </div>
+    <svg className="absolute inset-0 h-full w-full pointer-events-none" preserveAspectRatio="none">
+      <path d="M 40 180 Q 200 160 350 120 T 600 80 T 900 60" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
+      <path d="M 40 180 Q 200 160 350 120 T 600 80 T 900 60" fill="url(#chartGrad)" strokeWidth="0" opacity="0.12"/>
+      <defs>
+        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+    </svg>
+    {[
+      { date: 'Oct 01', top: '180px' },{ date: 'Oct 05', top: '150px' },
+      { date: 'Oct 12', top: '120px' },{ date: 'Oct 18', top: '110px' },
+      { date: 'Oct 25', top: '80px' },
+    ].map((point, i) => (
+      <div key={i} className="relative z-10 flex flex-col items-center group h-full justify-end">
+        <div className="w-3 h-3 bg-slate-900 border-2 border-emerald-500 rounded-full z-10 absolute hover:scale-125 transition-transform cursor-pointer" style={{ top: point.top }}>
+          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap border border-slate-600">
+            Band {(5.5 + i * 0.5).toFixed(1)}
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mt-2">{point.date}</span>
-       </div>
-     ))}
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-2">{point.date}</span>
+      </div>
+    ))}
   </div>
 );
 
 const MOCK_HISTORY = [
-  { id: '1', title: 'Advantages of Studying Abroad', type: 'Task 2', score: 6.5, date: 'Oct 25, 2026', timeSpent: '38m',
-    details: { taskFulfilment: 7.0, coherence: 6.5, lexical: 6.0, grammar: 5.5, words: 285 }
-  },
-  { id: '2', title: 'Email to Hotel Manager', type: 'Task 1', score: 6.5, date: 'Oct 18, 2026', timeSpent: '18m',
-    details: { taskFulfilment: 7.0, coherence: 7.0, lexical: 6.0, grammar: 6.0, words: 160 }
-  },
-  { id: '3', title: 'Impact of AI on Education', type: 'Task 2', score: 6.0, date: 'Oct 12, 2026', timeSpent: '42m',
-    details: { taskFulfilment: 6.0, coherence: 6.5, lexical: 6.0, grammar: 5.0, words: 255 }
-  },
+  { id: '1', title: 'Advantages of Studying Abroad', type: 'Task 2', score: 6.5, date: 'Oct 25, 2026',
+    details: { taskFulfilment: 7.0, coherence: 6.5, lexical: 6.0, grammar: 5.5 }},
+  { id: '2', title: 'Email to Hotel Manager', type: 'Task 1', score: 6.5, date: 'Oct 18, 2026',
+    details: { taskFulfilment: 7.0, coherence: 7.0, lexical: 6.0, grammar: 6.0 }},
+  { id: '3', title: 'Impact of AI on Education', type: 'Task 2', score: 6.0, date: 'Oct 12, 2026',
+    details: { taskFulfilment: 6.0, coherence: 6.5, lexical: 6.0, grammar: 5.0 }},
 ];
 
 export default function StudentDashboard() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const { user } = useAuth();
-  
+  const { t } = useTranslation();
   const firstName = user?.name ? user.name.split(' ')[0] : 'User';
-
-  const toggleRow = (id: string) => {
-    if (expandedRow === id) setExpandedRow(null);
-    else setExpandedRow(id);
-  };
+  const toggleRow = (id: string) => setExpandedRow(expandedRow === id ? null : id);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+    <div className="min-h-full bg-slate-950">
+      <DashboardHeader />
       
-      {/* Welcome Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome back, {firstName}</h1>
-        <p className="text-gray-500 mt-1">Here is a summary of your writing practice progress.</p>
-      </div>
+      <div className="space-y-5 max-w-7xl mx-auto px-6 sm:px-8 pb-12 pt-5">
 
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-colors">
+        {/* Welcome */}
+        <div>
+          <h2 className="text-base font-bold text-slate-100">{t('dashboard.welcome', { name: firstName })}</h2>
+          <p className="text-slate-400 text-sm mt-0.5">{t('dashboard.overview')}</p>
+        </div>
+
+        {/* Stat Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700/50 flex items-center justify-between group hover:border-emerald-500/30 transition-all duration-200">
             <div>
-               <p className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-1">Total Essays Submitted</p>
-               <span className="text-4xl font-black text-gray-900">24</span>
+              <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">{t('dashboard.stats.totalEssays')}</p>
+              <span className="text-4xl font-black text-white">24</span>
             </div>
-            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-               <FileText className="w-6 h-6 text-emerald-600" />
+            <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <FileText className="w-5 h-5 text-emerald-400" />
             </div>
-         </div>
-         
-         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-colors">
+          </div>
+          
+          <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700/50 flex items-center justify-between group hover:border-blue-500/30 transition-all duration-200">
             <div>
-               <p className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-1">Average Band Score</p>
-               <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-gray-900">6.2</span>
-                  <span className="text-sm font-bold text-emerald-500 flex items-center"><TrendingUp className="w-3 h-3 mr-0.5"/> +0.5</span>
-               </div>
+              <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">{t('dashboard.stats.avgBand')}</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-black text-white">6.2</span>
+                <span className="text-sm font-bold text-emerald-400 flex items-center"><TrendingUp className="w-3 h-3 mr-0.5"/>+0.5</span>
+              </div>
             </div>
-            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-               <Award className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Award className="w-5 h-5 text-blue-400" />
             </div>
-         </div>
+          </div>
 
-         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group hover:border-orange-200 transition-colors">
+          <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700/50 flex items-center justify-between group hover:border-orange-500/30 transition-all duration-200">
             <div>
-               <p className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-1">Current Streak</p>
-               <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-gray-900">5</span>
-                  <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Days</span>
-               </div>
+              <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">{t('dashboard.stats.streak')}</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-black text-white">5</span>
+                <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">{t('dashboard.stats.days')}</span>
+              </div>
             </div>
-            <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-               <Flame className="w-6 h-6 text-orange-500 shrink-0" />
+            <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Flame className="w-5 h-5 text-orange-400" />
             </div>
-         </div>
-      </div>
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-         {/* Line Chart */}
-         <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <LineChartIcon className="w-5 h-5 text-gray-400" /> Progress Trend
-               </h2>
-               <select className="text-xs font-bold uppercase tracking-wider text-gray-500 bg-gray-50 border-none rounded-lg py-2 px-3 outline-none cursor-pointer">
-                  <option>LAST 30 DAYS</option>
-                  <option>ALL TIME</option>
-               </select>
+        {/* Chart + CTA */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 bg-slate-800 rounded-2xl border border-slate-700/50 p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <LineChartIcon className="w-4 h-4 text-slate-500" /> {t('dashboard.chart.title')}
+              </h2>
+              <select className="text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-700 border border-slate-600 rounded-lg py-1.5 px-3 outline-none cursor-pointer">
+                <option>{t('dashboard.chart.last30')}</option>
+                <option>{t('dashboard.chart.allTime')}</option>
+              </select>
             </div>
-            <div className="flex-1 bg-gray-50/50 rounded-2xl border border-gray-100/50 flex items-end">
-               <MockLineChart />
+            <div className="flex-1 bg-slate-900 rounded-xl border border-slate-700/30">
+              <MockLineChart />
             </div>
-         </div>
+          </div>
 
-         {/* CTA / Quick Acccess */}
-         <div className="bg-vstep-dark rounded-3xl shadow-xl p-8 text-white relative flex flex-col justify-between overflow-hidden">
-            <div className="relative z-10 space-y-4">
-               <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
-                  <FileEdit className="w-6 h-6 text-emerald-300" />
-               </div>
-               <div>
-                  <h3 className="text-xl font-bold mb-2">Ready for the next challenge?</h3>
-                  <p className="text-emerald-100/80 text-sm leading-relaxed">It's time to keep your 5-day streak alive. We recommend tackling a Task 1 Letter today.</p>
-               </div>
+          <div className="bg-vstep-dark rounded-2xl shadow-xl p-5 text-white relative flex flex-col justify-between overflow-hidden">
+            <div className="relative z-10 space-y-3">
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
+                <FileEdit className="w-5 h-5 text-emerald-300" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold mb-1.5">{t('dashboard.cta.title')}</h3>
+                <p className="text-emerald-100/70 text-sm leading-relaxed">{t('dashboard.cta.subtitle')}</p>
+              </div>
             </div>
-            <Link href="/practice-list" className="relative z-10 w-full mt-8">
-               <Button className="w-full bg-white text-vstep-dark hover:bg-gray-100 font-bold rounded-xl h-12 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-                  Start Practice
-               </Button>
+            <Link href="/practice-list" className="relative z-10 w-full mt-5">
+              <Button className="w-full bg-white text-vstep-dark hover:bg-slate-100 font-bold rounded-xl h-11">
+                {t('dashboard.cta.button')}
+              </Button>
             </Link>
-            
-            {/* Background design */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500 rounded-full blur-[80px] opacity-30 -translate-y-1/2 translate-x-1/2"></div>
-         </div>
-      </div>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500 rounded-full blur-[80px] opacity-20 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+          </div>
+        </div>
 
-      {/* Expandable History Table */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-            <h2 className="text-lg font-bold text-gray-900">Recent Practice History</h2>
-            <Link href="/practice-list" className="text-emerald-600 text-sm font-semibold hover:text-emerald-700 flex items-center gap-1">
-               View All <ArrowRight className="w-4 h-4" />
+        {/* History Table */}
+        <div className="bg-slate-800 rounded-2xl border border-slate-700/50 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-700/50 flex items-center justify-between bg-slate-900">
+            <h2 className="text-sm font-bold text-slate-100">{t('dashboard.history.title')}</h2>
+            <Link href="/practice-list" className="text-emerald-400 text-sm font-semibold hover:text-emerald-300 flex items-center gap-1 transition-colors">
+              {t('dashboard.history.viewAll')} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-         </div>
+          </div>
 
-         <div className="w-full overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-600">
-               <thead className="bg-white text-gray-400 font-black text-[10px] uppercase tracking-widest border-b border-gray-100">
-                  <tr>
-                     <th className="px-6 py-4">Topic / Prompt</th>
-                     <th className="px-6 py-4">Date</th>
-                     <th className="px-6 py-4 text-center">Score</th>
-                     <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-gray-100">
-                  {MOCK_HISTORY.map((item) => (
-                     <React.Fragment key={item.id}>
-                        {/* Main Row */}
-                        <tr 
-                          onClick={() => toggleRow(item.id)}
-                          className={`cursor-pointer transition-colors group ${expandedRow === item.id ? 'bg-emerald-50/30' : 'hover:bg-gray-50'}`}
-                        >
-                           <td className="px-6 py-4">
-                              <p className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors mb-1">{item.title}</p>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
-                                 ${item.type === 'Task 1' ? 'bg-indigo-50 text-indigo-700' : 'bg-fuchsia-50 text-fuchsia-700'}`}>
-                                 {item.type}
-                              </span>
-                           </td>
-                           <td className="px-6 py-4 font-medium text-gray-500">{item.date}</td>
-                           <td className="px-6 py-4 text-center">
-                              <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-vstep-dark text-white font-black shadow-sm">
-                                 {item.score.toFixed(1)}
-                              </span>
-                           </td>
-                           <td className="px-6 py-4 text-right">
-                              <button className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center gap-2">
-                                 {expandedRow === item.id ? <ChevronUp className="w-4 h-4"/> : <ChevronDown className="w-4 h-4"/>}
-                              </button>
-                           </td>
-                        </tr>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-400">
+              <thead className="bg-slate-900 text-slate-500 font-black text-[10px] uppercase tracking-widest border-b border-slate-700/50">
+                <tr>
+                  <th className="px-6 py-3">{t('dashboard.history.topic')}</th>
+                  <th className="px-6 py-3">{t('dashboard.history.date')}</th>
+                  <th className="px-6 py-3 text-center">{t('dashboard.history.score')}</th>
+                  <th className="px-6 py-3 text-right">{t('dashboard.history.details')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/40">
+                {MOCK_HISTORY.map((item) => (
+                  <React.Fragment key={item.id}>
+                    <tr onClick={() => toggleRow(item.id)} className={`cursor-pointer transition-colors group ${expandedRow === item.id ? 'bg-slate-700/30' : 'hover:bg-slate-700/20'}`}>
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors mb-1">{item.title}</p>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
+                          ${item.type === 'Task 1' ? 'bg-indigo-500/15 text-indigo-400' : 'bg-fuchsia-500/15 text-fuchsia-400'}`}>
+                          {item.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-400 font-medium">{item.date}</td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-vstep-dark text-white font-black text-sm">
+                          {item.score.toFixed(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button className="p-1.5 text-slate-500 hover:text-slate-200 hover:bg-slate-700 rounded-lg transition-colors inline-flex items-center">
+                          {expandedRow === item.id ? <ChevronUp className="w-4 h-4"/> : <ChevronDown className="w-4 h-4"/>}
+                        </button>
+                      </td>
+                    </tr>
 
-                        {/* Expanded Details Row */}
-                        {expandedRow === item.id && (
-                           <tr className="bg-emerald-50/30 border-t-0">
-                              <td colSpan={4} className="px-6 py-6 border-b border-gray-100">
-                                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                                    <div className="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center text-center">
-                                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">Task</span>
-                                       <span className="font-bold text-gray-900">{item.details.taskFulfilment.toFixed(1)}</span>
-                                    </div>
-                                    <div className="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center text-center">
-                                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">Coherence</span>
-                                       <span className="font-bold text-gray-900">{item.details.coherence.toFixed(1)}</span>
-                                    </div>
-                                    <div className="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center text-center">
-                                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">Lexical</span>
-                                       <span className="font-bold text-gray-900">{item.details.lexical.toFixed(1)}</span>
-                                    </div>
-                                    <div className="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center text-center">
-                                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">Grammar</span>
-                                       <span className="font-bold text-gray-900">{item.details.grammar.toFixed(1)}</span>
-                                    </div>
-                                    <div className="bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex flex-col items-center justify-center col-span-2 lg:col-span-1 border-dashed">
-                                       <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-semibold h-9 rounded-lg text-xs" onClick={() => window.location.href=`/results/${item.id}`}>
-                                          Full Report
-                                       </Button>
-                                    </div>
-                                 </div>
-                              </td>
-                           </tr>
-                        )}
-                     </React.Fragment>
-                  ))}
-               </tbody>
+                    {expandedRow === item.id && (
+                      <tr className="bg-slate-900/60">
+                        <td colSpan={4} className="px-6 py-5 border-b border-slate-700/50">
+                          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                            {[
+                              [t('dashboard.history.task'), item.details.taskFulfilment],
+                              [t('dashboard.history.coherence'), item.details.coherence],
+                              [t('dashboard.history.lexical'), item.details.lexical],
+                              [t('dashboard.history.grammar'), item.details.grammar],
+                            ].map(([label, val]) => (
+                              <div key={label as string} className="bg-slate-800 p-3 rounded-xl border border-slate-700/50 flex flex-col items-center text-center">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">{label as string}</span>
+                                <span className="font-bold text-slate-100">{(val as number).toFixed(1)}</span>
+                              </div>
+                            ))}
+                            <div className="bg-slate-800 p-3 rounded-xl border border-slate-700/50 flex items-center justify-center col-span-2 lg:col-span-1">
+                              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-9 rounded-lg text-xs" onClick={() => window.location.href=`/results/${item.id}`}>
+                                {t('dashboard.history.fullReport')}
+                              </Button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
             </table>
-         </div>
+          </div>
+        </div>
       </div>
-      
     </div>
   );
 }

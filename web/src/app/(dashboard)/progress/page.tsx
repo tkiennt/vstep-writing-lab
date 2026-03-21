@@ -2,11 +2,6 @@
 
 /**
  * app/(dashboard)/progress/page.tsx
- * Progress dashboard — 4 stacked sections:
- *  1. Overview cards
- *  2. Criteria radar chart (recharts)
- *  3. Score history line chart (recharts)
- *  4. History table (real-time Firestore)
  */
 
 import { useEffect, useState } from 'react';
@@ -39,15 +34,15 @@ function formatDate(d: Date): string {
 }
 
 function relevanceColor(rate: number): string {
-  if (rate >= 80) return 'text-emerald-600';
-  if (rate >= 60) return 'text-amber-500';
-  return 'text-red-500';
+  if (rate >= 80) return 'text-emerald-400';
+  if (rate >= 60) return 'text-amber-400';
+  return 'text-red-400';
 }
 
 // ── Skeleton ─────────────────────────────────────────────────
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-xl bg-gray-100 ${className ?? ''}`} />;
+  return <div className={`animate-pulse rounded-xl bg-muted ${className ?? ''}`} />;
 }
 
 function LoadingSkeleton() {
@@ -72,13 +67,13 @@ function LoadingSkeleton() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="rounded-full bg-indigo-50 p-6 mb-4">
+      <div className="rounded-full bg-indigo-500/10 p-6 mb-4 border border-indigo-500/20">
         <PenLine className="h-10 w-10 text-indigo-400" />
       </div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-2">
+      <h2 className="text-xl font-semibold text-foreground mb-2">
         Chưa có bài nào
       </h2>
-      <p className="text-gray-500 mb-6 max-w-xs">
+      <p className="text-muted-foreground mb-6 max-w-xs">
         Bắt đầu luyện tập ngay để theo dõi tiến độ của bạn!
       </p>
       <Link
@@ -96,11 +91,11 @@ function EmptyState() {
 function OverviewCards({ summary }: { summary: ProgressSummary }) {
   const trendIcon =
     summary.trend === 'Improving' ? (
-      <TrendingUp className="h-4 w-4 text-emerald-500" />
+      <TrendingUp className="h-4 w-4 text-emerald-400" />
     ) : summary.trend === 'Declining' ? (
-      <TrendingDown className="h-4 w-4 text-red-500" />
+      <TrendingDown className="h-4 w-4 text-red-400" />
     ) : (
-      <Minus className="h-4 w-4 text-gray-400" />
+      <Minus className="h-4 w-4 text-muted-foreground" />
     );
 
   const trendLabel =
@@ -115,10 +110,10 @@ function OverviewCards({ summary }: { summary: ProgressSummary }) {
       label: 'Điểm TB hiện tại',
       value: (
         <div className="flex items-center gap-2">
-          <span className="text-3xl font-bold text-indigo-600">
+          <span className="text-3xl font-bold text-indigo-400">
             {summary.avgScore.toFixed(1)}
           </span>
-          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-700">
+          <span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-xs font-bold text-indigo-400 border border-indigo-500/20">
             {summary.currentCefr}
           </span>
         </div>
@@ -128,7 +123,7 @@ function OverviewCards({ summary }: { summary: ProgressSummary }) {
     {
       label: 'Tổng bài đã nộp',
       value: (
-        <span className="text-3xl font-bold text-gray-800">
+        <span className="text-3xl font-bold text-foreground">
           {summary.totalSubmissions}
         </span>
       ),
@@ -142,10 +137,10 @@ function OverviewCards({ summary }: { summary: ProgressSummary }) {
           <span
             className={`text-2xl font-bold ${
               summary.trend === 'Improving'
-                ? 'text-emerald-600'
+                ? 'text-emerald-400'
                 : summary.trend === 'Declining'
-                ? 'text-red-500'
-                : 'text-gray-500'
+                ? 'text-red-400'
+                : 'text-muted-foreground'
             }`}
           >
             {trendLabel}
@@ -177,13 +172,13 @@ function OverviewCards({ summary }: { summary: ProgressSummary }) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5"
+          className="rounded-2xl border border-border bg-card shadow-sm p-5"
         >
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             {card.label}
           </p>
           <div className="mb-1">{card.value}</div>
-          <p className="text-xs text-gray-500">{card.sub}</p>
+          <p className="text-xs text-muted-foreground">{card.sub}</p>
         </div>
       ))}
     </div>
@@ -201,14 +196,14 @@ function CriteriaRadar({ summary }: { summary: ProgressSummary }) {
   ];
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-      <h3 className="text-base font-semibold text-gray-800 mb-1">Năng lực 4 tiêu chí</h3>
+    <div className="rounded-2xl border border-border bg-card shadow-sm p-5">
+      <h3 className="text-base font-semibold text-foreground mb-1">Năng lực 4 tiêu chí</h3>
       <ResponsiveContainer width="100%" height={220}>
         <RadarChart data={data} cx="50%" cy="50%" outerRadius={80}>
-          <PolarGrid />
+          <PolarGrid stroke="rgba(255,255,255,0.1)" />
           <PolarAngleAxis
             dataKey="criterion"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fill: '#94a3b8' }}
           />
           <Radar
             name="Điểm TB"
@@ -219,7 +214,7 @@ function CriteriaRadar({ summary }: { summary: ProgressSummary }) {
           />
         </RadarChart>
       </ResponsiveContainer>
-      <p className="text-xs text-red-500 text-center mt-1">
+      <p className="text-xs text-red-400 text-center mt-1">
         Tiêu chí yếu nhất:{' '}
         <span className="font-semibold">{summary.weakestCriterion}</span>
       </p>
@@ -237,7 +232,7 @@ interface HistoryChartProps {
 function ColoredDot(props: any) {
   const { cx, cy, payload } = props;
   const color = payload?.isRelevant ? '#22c55e' : '#ef4444';
-  return <circle cx={cx} cy={cy} r={5} fill={color} stroke="#fff" strokeWidth={2} />;
+  return <circle cx={cx} cy={cy} r={5} fill={color} stroke="#1e293b" strokeWidth={2} />;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -245,16 +240,16 @@ function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload as GradingResultDoc;
   return (
-    <div className="rounded-xl bg-white border border-gray-100 shadow-lg px-3 py-2 text-xs space-y-0.5">
-      <p className="font-semibold text-gray-800">{formatDate(d.gradedAt)}</p>
+    <div className="rounded-xl bg-card border border-border shadow-lg px-3 py-2 text-xs space-y-0.5">
+      <p className="font-semibold text-foreground">{formatDate(d.gradedAt)}</p>
       <p>
         Điểm:{' '}
-        <span className="font-bold text-indigo-600">{d.totalScore.toFixed(1)}</span>
+        <span className="font-bold text-indigo-400">{d.totalScore.toFixed(1)}</span>
       </p>
-      <p>CEFR: {d.cefrLevel}</p>
+      <p className="text-muted-foreground">CEFR: {d.cefrLevel}</p>
       <p>
         {d.taskType === 'task1' ? 'Task 1' : 'Task 2'} —{' '}
-        <span className={d.isRelevant ? 'text-emerald-600' : 'text-red-500'}>
+        <span className={d.isRelevant ? 'text-emerald-400' : 'text-red-400'}>
           {d.isRelevant ? 'Bám đề' : 'Lạc đề'}
         </span>
       </p>
@@ -273,15 +268,15 @@ function ScoreHistoryChart({ history }: HistoryChartProps) {
     }));
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-      <h3 className="text-base font-semibold text-gray-800 mb-4">
+    <div className="rounded-2xl border border-border bg-card shadow-sm p-5">
+      <h3 className="text-base font-semibold text-foreground mb-4">
         Lịch sử điểm (10 bài gần nhất)
       </h3>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data} margin={{ top: 4, right: 8, bottom: 4, left: -20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-          <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9ca3af' }} />
-          <YAxis domain={[0, 10]} tick={{ fontSize: 11, fill: '#9ca3af' }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+          <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+          <YAxis domain={[0, 10]} tick={{ fontSize: 11, fill: '#94a3b8' }} />
           <Tooltip content={<CustomTooltip />} />
           <Line
             type="monotone"
@@ -300,16 +295,16 @@ function ScoreHistoryChart({ history }: HistoryChartProps) {
 
 function HistoryTable({ history }: { history: GradingResultDoc[] }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100">
-        <h3 className="text-base font-semibold text-gray-800">
+    <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-border">
+        <h3 className="text-base font-semibold text-foreground">
           10 bài gần nhất
         </h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-50 text-xs text-gray-400 uppercase tracking-wider">
+            <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
               <th className="text-left px-5 py-3">Ngày</th>
               <th className="text-left px-5 py-3">Task</th>
               <th className="text-left px-5 py-3">Điểm</th>
@@ -322,37 +317,37 @@ function HistoryTable({ history }: { history: GradingResultDoc[] }) {
             {history.map((row) => (
               <tr
                 key={row.id}
-                className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                className="border-b border-border hover:bg-muted/30 transition-colors"
               >
-                <td className="px-5 py-3 tabular-nums text-gray-600">
+                <td className="px-5 py-3 tabular-nums text-muted-foreground">
                   {formatDate(row.gradedAt)}
                 </td>
                 <td className="px-5 py-3">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       row.taskType === 'task1'
-                        ? 'bg-sky-100 text-sky-700'
-                        : 'bg-orange-100 text-orange-700'
+                        ? 'bg-sky-500/15 text-sky-400'
+                        : 'bg-orange-500/15 text-orange-400'
                     }`}
                   >
                     {row.taskType === 'task1' ? 'Task 1' : 'Task 2'}
                   </span>
                 </td>
-                <td className="px-5 py-3 font-bold tabular-nums text-indigo-600">
+                <td className="px-5 py-3 font-bold tabular-nums text-indigo-400">
                   {row.totalScore.toFixed(1)}
                 </td>
-                <td className="px-5 py-3 text-gray-600">{row.cefrLevel}</td>
+                <td className="px-5 py-3 text-muted-foreground">{row.cefrLevel}</td>
                 <td className="px-5 py-3">
                   {row.isRelevant ? (
-                    <span className="text-emerald-600 font-bold">✓</span>
+                    <span className="text-emerald-400 font-bold">✓</span>
                   ) : (
-                    <span className="text-red-500 font-bold">✗</span>
+                    <span className="text-red-400 font-bold">✗</span>
                   )}
                 </td>
                 <td className="px-5 py-3">
                   <Link
                     href={`/practice/${row.promptId}/result?id=${row.id}`}
-                    className="text-indigo-500 hover:text-indigo-700 underline text-xs"
+                    className="text-indigo-400 hover:text-indigo-300 underline text-xs"
                   >
                     Xem chi tiết
                   </Link>
@@ -389,7 +384,6 @@ export default function ProgressPage() {
         setDataLoading(false);
       }
 
-      // Real-time history listener
       unsubscribe = subscribeToHistory(user.uid, (results) => {
         setHistory(results);
       });
@@ -406,8 +400,8 @@ export default function ProgressPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Tiến độ của bạn</h1>
-        <p className="text-gray-500 mt-1 text-sm">
+        <h1 className="text-3xl font-bold text-foreground">Tiến độ của bạn</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
           Theo dõi điểm số và tiến bộ theo thời gian.
         </p>
       </div>
@@ -415,17 +409,15 @@ export default function ProgressPage() {
       {isLoading ? (
         <LoadingSkeleton />
       ) : !user ? (
-        <div className="text-center py-10 text-gray-400">
+        <div className="text-center py-10 text-muted-foreground">
           Vui lòng đăng nhập để xem tiến độ.
         </div>
       ) : history.length === 0 && !summary ? (
         <EmptyState />
       ) : (
         <div className="space-y-6">
-          {/* Section 1 — Overview cards */}
           {summary && <OverviewCards summary={summary} />}
 
-          {/* Section 2 + 3 — Charts side by side on lg */}
           {summary && history.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CriteriaRadar summary={summary} />
@@ -433,7 +425,6 @@ export default function ProgressPage() {
             </div>
           )}
 
-          {/* Section 4 — History table */}
           {history.length > 0 ? (
             <HistoryTable history={history} />
           ) : (
@@ -444,4 +435,3 @@ export default function ProgressPage() {
     </div>
   );
 }
-
