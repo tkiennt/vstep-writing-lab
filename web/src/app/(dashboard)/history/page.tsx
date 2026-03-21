@@ -31,8 +31,8 @@ export default function HistoryPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 className="h-12 w-12 text-emerald-600 animate-spin mb-4" />
-        <p className="text-gray-500 font-medium">Loading your history...</p>
+        <Loader2 className="h-12 w-12 text-emerald-500 animate-spin mb-4" />
+        <p className="text-muted-foreground font-medium">Loading your history...</p>
       </div>
     );
   }
@@ -40,17 +40,17 @@ export default function HistoryPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       <div>
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Practice History</h1>
-        <p className="text-gray-500 mt-2">View all your past essays and feedback reports</p>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Practice History</h1>
+        <p className="text-muted-foreground mt-2">View all your past essays and feedback reports</p>
       </div>
 
       {submissions.length === 0 ? (
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-16 text-center">
-          <History className="h-16 w-16 text-gray-200 mx-auto mb-6" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">No essays yet</h2>
-          <p className="text-gray-500 mb-8 max-w-xs mx-auto">Start practicing to see your diagnostic reports and improvements here.</p>
+        <div className="bg-card rounded-3xl shadow-sm border border-border p-16 text-center">
+          <History className="h-16 w-16 text-muted-foreground/30 mx-auto mb-6" />
+          <h2 className="text-xl font-bold text-foreground mb-2">No essays yet</h2>
+          <p className="text-muted-foreground mb-8 max-w-xs mx-auto">Start practicing to see your diagnostic reports and improvements here.</p>
           <Link href="/practice-list">
-            <Button className="bg-vstep-dark hover:bg-emerald-900 text-white px-8 h-12 rounded-xl font-bold shadow-lg shadow-emerald-900/10">
+            <Button className="bg-vstep-dark hover:bg-emerald-900 text-white px-8 h-12 rounded-xl font-bold shadow-lg shadow-emerald-900/20">
               <FileText className="mr-2 h-4 w-4" />
               Start Writing Now
             </Button>
@@ -60,10 +60,10 @@ export default function HistoryPage() {
         <div className="grid gap-4">
           {submissions.map((s) => (
             <Link key={s.submissionId} href={`/results/${s.submissionId}`}>
-              <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-100 transition-all flex items-center justify-between group">
+              <div className="bg-card p-6 rounded-3xl border border-border shadow-sm hover:shadow-md hover:border-emerald-500/30 transition-all flex items-center justify-between group">
                 <div className="flex items-center gap-6">
                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
-                    s.status === 'scored' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                    s.status === 'scored' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'
                   }`}>
                     {s.status === 'scored' ? (
                       <span className="text-xl font-black">{s.overallScore?.toFixed(1) || '0.0'}</span>
@@ -75,27 +75,27 @@ export default function HistoryPage() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${
-                        s.taskType.toLowerCase().includes('task 1') ? 'bg-indigo-50 text-indigo-700' : 'bg-fuchsia-50 text-fuchsia-700'
+                        s.taskType.toLowerCase().includes('task 1') ? 'bg-indigo-500/15 text-indigo-400' : 'bg-fuchsia-500/15 text-fuchsia-400'
                       }`}>
                         {s.taskType}
                       </span>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1">
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {new Date(s.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <h3 className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">
+                    <h3 className="font-bold text-foreground group-hover:text-emerald-400 transition-colors">
                       {s.questionTitle || 'Writing Submission'}
                     </h3>
-                    <p className="text-xs text-gray-500 font-medium">{s.wordCount} words • {s.mode} mode</p>
+                    <p className="text-xs text-muted-foreground font-medium">{s.wordCount} words • {s.mode} mode</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   {s.status === 'pending' && (
-                    <span className="text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full">Evaluating...</span>
+                    <span className="text-xs font-bold text-amber-400 bg-amber-500/15 px-3 py-1 rounded-full">Evaluating...</span>
                   )}
-                  <div className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-300 group-hover:text-emerald-500 group-hover:border-emerald-100 transition-all">
+                  <div className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground group-hover:text-emerald-400 group-hover:border-emerald-500/30 transition-all">
                     <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
