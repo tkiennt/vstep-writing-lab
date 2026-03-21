@@ -19,14 +19,14 @@ export function LanguageSwitcher() {
   return (
     <button
       onClick={toggle}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-700 border border-slate-600 hover:bg-slate-600 hover:border-slate-500 transition-all text-xs font-bold text-slate-300 hover:text-slate-100 select-none"
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted border border-border hover:bg-accent hover:border-foreground/10 transition-all text-xs font-bold text-muted-foreground hover:text-foreground select-none"
       title="Switch language"
       aria-label="Toggle language"
     >
       <Globe className="w-3.5 h-3.5 shrink-0" />
       <span className="tracking-wider uppercase">{currentLang === 'vi' ? 'VI' : 'EN'}</span>
-      <span className="text-slate-500 hidden sm:inline">|</span>
-      <span className="text-slate-500 hidden sm:inline">{currentLang === 'vi' ? 'EN' : 'VI'}</span>
+      <span className="text-muted-foreground/50 hidden sm:inline">|</span>
+      <span className="text-muted-foreground/50 hidden sm:inline">{currentLang === 'vi' ? 'EN' : 'VI'}</span>
     </button>
   );
 }
