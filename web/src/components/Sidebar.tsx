@@ -42,21 +42,21 @@ export function Sidebar({ role }: SidebarProps) {
   const filteredMenuItems = MENU_ITEMS.filter(item => item.roles.includes(role));
 
   return (
-    <aside className="w-64 bg-[#020617] border-r border-slate-700/40 flex flex-col h-screen sticky top-0 shrink-0">
+    <aside className="w-64 bg-white dark:bg-[#020617] border-r border-slate-200 dark:border-slate-700/40 flex flex-col h-screen sticky top-0 shrink-0">
       {/* Logo */}
-      <div className="p-6 border-b border-slate-700/40">
+      <div className="p-6 border-b border-slate-200 dark:border-slate-700/40">
         <Link href="/" className="flex items-center mb-2">
           <img src="/logo.png" alt="VSTEP Writing Logo" className="h-10 w-auto" />
         </Link>
         <div className="mt-2 flex items-center gap-2">
           <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]"></span>
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{role}</span>
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{role}</span>
         </div>
       </div>
 
       {/* Menu */}
       <div className="flex-1 overflow-y-auto py-5 px-3 space-y-0.5">
-        <div className="mb-3 px-3 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+        <div className="mb-3 px-3 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
           {t('nav.mainMenu')}
         </div>
         {filteredMenuItems.map((item) => {
@@ -67,23 +67,23 @@ export function Sidebar({ role }: SidebarProps) {
               href={item.path}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 ${
                 isActive 
-                  ? 'bg-emerald-500/10 text-emerald-400 font-semibold' 
-                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                  ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold' 
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <item.icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-emerald-400' : 'text-slate-500'}`} />
+              <item.icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
               <span className="text-sm">{t(item.titleKey)}</span>
-              {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+              {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />}
             </Link>
           );
         })}
       </div>
 
       {/* Logout */}
-      <div className="p-3 border-t border-slate-700/40">
+      <div className="p-3 border-t border-slate-200 dark:border-slate-700/40">
         <button 
           onClick={() => logout()}
-          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-slate-500 hover:bg-red-950/50 hover:text-red-400 transition-all duration-150"
+          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-slate-500 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 transition-all duration-150"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           <span className="text-sm font-medium">{t('nav.logOut')}</span>

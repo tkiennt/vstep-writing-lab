@@ -13,7 +13,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     'user';
 
   return (
-    <div className="flex h-screen bg-slate-950 w-full overflow-hidden">
+    <div className="flex h-screen bg-background w-full overflow-hidden">
       <Sidebar role={role} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <Header role={role} />

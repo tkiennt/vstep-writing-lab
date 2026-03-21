@@ -1,26 +1,28 @@
 @import "tailwindcss";
 
+/* Tell Tailwind v4 to generate dark: prefix variants using .dark class on <html> */
+@variant dark (&:is(.dark *));
+
 /* ============================================================
    VSTEP Writing Lab — Design System (Tailwind v4)
-   Light mode = default, Dark mode via .dark class on <html>
+   Light mode = default in @theme, Dark = .dark class override
    ============================================================ */
 @theme {
   --radius: 0.5rem;
 
-  /* ── Brand (always the same) ── */
+  /* ── Brand (always fixed) ── */
   --color-vstep-dark:  #123524;
   --color-vstep-badge: #1a3d2e;
   --color-vstep-link:  #16a34a;
 
-  --color-ring:    hsl(142 71% 45%);
-  --color-primary: hsl(142 71% 45%);
-  --color-primary-foreground: hsl(222.2 47.4% 11.2%);
-  --color-destructive: hsl(0 62.8% 50%);
-  --color-destructive-foreground: hsl(210 40% 98%);
-}
+  /* ── Semantic ── */
+  --color-ring:                    hsl(142 71% 45%);
+  --color-primary:                 hsl(142 71% 45%);
+  --color-primary-foreground:      hsl(222.2 47.4% 11.2%);
+  --color-destructive:             hsl(0 62.8% 50%);
+  --color-destructive-foreground:  hsl(210 40% 98%);
 
-/* ── Light Mode (default) ── */
-:root {
+  /* ── Light Mode defaults (Tailwind generates utility classes from these) ── */
   --color-background:         #f8fafc;
   --color-sidebar:            #f1f5f9;
   --color-card:               #ffffff;
@@ -38,7 +40,7 @@
   --color-card-foreground:    #0f172a;
 }
 
-/* ── Dark Mode ── */
+/* ── Dark Mode override (toggles via .dark class on <html>) ── */
 .dark {
   --color-background:         #0f172a;
   --color-sidebar:            #020617;
@@ -70,19 +72,19 @@
   }
 }
 
-/* ── Dark Scrollbar ── */
+/* ── Scrollbar (adapts to dark/light) ── */
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: var(--color-background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--color-border);
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--color-muted-foreground);
 }
 
 /* ── Hide scrollbar utility ── */

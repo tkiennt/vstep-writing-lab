@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'dark' | 'light';
-
 const STORAGE_KEY = 'vstep-theme';
 
 interface ThemeContextValue {
@@ -16,25 +15,24 @@ const ThemeContext = createContext<ThemeContextValue>({
   toggleTheme: () => {},
 });
 
+function applyTheme(t: Theme) {
+  if (t === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
 
-  // On mount: read from localStorage
+  // On mount: read from localStorage, default to dark
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
     const initial: Theme = stored === 'light' ? 'light' : 'dark';
     setTheme(initial);
     applyTheme(initial);
   }, []);
-
-  const applyTheme = (t: Theme) => {
-    const root = document.documentElement;
-    if (t === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  };
 
   const toggleTheme = () => {
     setTheme((prev) => {
