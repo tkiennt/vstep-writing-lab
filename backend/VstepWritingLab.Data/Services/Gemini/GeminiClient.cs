@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace VstepWritingLab.Data.Services.Gemini;
 
+/// <param name="ModelUsed">e.g. tuned, base-fallback</param>
+public sealed record GeminiGenerateResult(string Text, string ModelUsed, string? FinishReason);
+
 public class GeminiClient(
     HttpClient _http,
     IConfiguration _config,
@@ -16,7 +19,7 @@ public class GeminiClient(
     private bool   UseVertex  => _config.GetValue<bool>("VertexAI:UseVertexAI");
     private string Location   => _config["VertexAI:Location"] ?? "us-central1";
 
-    public async Task<(string Text, string ModelUsed)> GenerateAsync(
+    public async Task<GeminiGenerateResult> GenerateAsync(
         string systemPrompt,
         string userPrompt,
         int    maxTokens   = 4096,
@@ -27,9 +30,8 @@ public class GeminiClient(
         {
             try
             {
-                var text = await CallVertexAsync(
+                return await CallVertexAsync(
                     systemPrompt, userPrompt, maxTokens, temperature, ct);
-                return (text, "tuned");
             }
             catch (Exception ex)
             {
@@ -38,14 +40,13 @@ public class GeminiClient(
             }
         }
 
-        var fallback = await CallGeminiApiAsync(
+        return await CallGeminiApiAsync(
             systemPrompt, userPrompt, maxTokens, temperature, ct);
-        return (fallback, "base-fallback");
     }
 
     // ── Vertex AI ────────────────────────────────────────────────────
 
-    private async Task<string> CallVertexAsync(
+    private async Task<GeminiGenerateResult> CallVertexAsync(
         string sys, string user, int maxTokens, float temp, CancellationToken ct)
     {
         var token = await GetADCTokenAsync(ct);
@@ -66,13 +67,18 @@ public class GeminiClient(
         if (!resp.IsSuccessStatusCode)
             throw new HttpRequestException($"Vertex {resp.StatusCode}: {raw[..Math.Min(300,raw.Length)]}");
 
+        var parsed = ParseGenerateResponse(raw);
+        LogFinishReason(parsed.FinishReason, parsed.Text.Length, "vertex-tuned");
+        if (!string.IsNullOrEmpty(parsed.BlockReason))
+            throw new InvalidOperationException($"Gemini blocked content: {parsed.BlockReason}");
+
         _logger.LogInformation("Tuned model grading completed");
-        return ExtractText(raw);
+        return new GeminiGenerateResult(parsed.Text, "tuned", parsed.FinishReason);
     }
 
     // ── Gemini API (fallback) ─────────────────────────────────────────
 
-    private async Task<string> CallGeminiApiAsync(
+    private async Task<GeminiGenerateResult> CallGeminiApiAsync(
         string sys, string user, int maxTokens, float temp, CancellationToken ct)
     {
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{BaseModel}:generateContent?key={ApiKey}";
@@ -85,9 +91,17 @@ public class GeminiClient(
                     Encoding.UTF8, "application/json"), ct);
             var raw  = await resp.Content.ReadAsStringAsync(ct);
 
-            if (resp.IsSuccessStatusCode) return ExtractText(raw);
+            if (resp.IsSuccessStatusCode)
+            {
+                var parsed = ParseGenerateResponse(raw);
+                LogFinishReason(parsed.FinishReason, parsed.Text.Length, BaseModel);
+                if (!string.IsNullOrEmpty(parsed.BlockReason))
+                    throw new InvalidOperationException($"Gemini blocked content: {parsed.BlockReason}");
+                return new GeminiGenerateResult(parsed.Text, "base-fallback", parsed.FinishReason);
+            }
 
-            if ((int)resp.StatusCode is 429 or >= 500 && attempt < 2)
+            var code = (int)resp.StatusCode;
+            if ((code == 429 || code >= 500) && attempt < 2)
             {
                 await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt + 1)), ct);
                 continue;
@@ -111,18 +125,49 @@ public class GeminiClient(
         }
     };
 
-    private static string ExtractText(string json)
+    private static (string Text, string? FinishReason, string? BlockReason) ParseGenerateResponse(string raw)
     {
-        using var doc = JsonDocument.Parse(json);
-        var sb        = new StringBuilder();
-        foreach (var part in doc.RootElement
-            .GetProperty("candidates")[0]
-            .GetProperty("content")
-            .GetProperty("parts")
-            .EnumerateArray())
-            if (part.TryGetProperty("text", out var t))
-                sb.Append(t.GetString());
-        return sb.ToString().Trim();
+        try
+        {
+            using var doc = JsonDocument.Parse(raw);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("promptFeedback", out var pf) &&
+                pf.TryGetProperty("blockReason", out var br))
+                return ("", null, br.GetString());
+
+            if (!root.TryGetProperty("candidates", out var candArr) || candArr.GetArrayLength() == 0)
+                return ("", null, null);
+
+            var c0 = candArr[0];
+            var finish = c0.TryGetProperty("finishReason", out var fr) ? fr.GetString() : null;
+
+            if (!c0.TryGetProperty("content", out var content))
+                return ("", finish, null);
+
+            var sb = new StringBuilder();
+            if (content.TryGetProperty("parts", out var parts))
+            {
+                foreach (var part in parts.EnumerateArray())
+                    if (part.TryGetProperty("text", out var t))
+                        sb.Append(t.GetString());
+            }
+
+            return (sb.ToString().Trim(), finish, null);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Could not parse Gemini generateContent response JSON.", ex);
+        }
+    }
+
+    private void LogFinishReason(string? finishReason, int textLen, string modelLabel)
+    {
+        if (string.IsNullOrEmpty(finishReason) || finishReason == "STOP")
+            return;
+        _logger.LogWarning(
+            "Gemini finishReason={FinishReason} model={Model} textLen={Len}",
+            finishReason, modelLabel, textLen);
     }
 
     // ADC token — cached 55min, fetched via gcloud CLI

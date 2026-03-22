@@ -40,6 +40,23 @@
       "fields": [
         { "fieldPath": "CreatedAt", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "grading_results",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "StudentId", "order": "ASCENDING" },
+        { "fieldPath": "GradedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "grading_results",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "StudentId", "order": "ASCENDING" },
+        { "fieldPath": "TaskType", "order": "ASCENDING" },
+        { "fieldPath": "GradedAt", "order": "DESCENDING" }
+      ]
     }
   ]
 }

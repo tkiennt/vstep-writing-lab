@@ -50,9 +50,15 @@ public class ExamPromptDocument
         }
 
         var result = ExamPrompt.Create(
-            TaskType, level, Instruction, KeyPoints, 
-            TopicCategory, TopicKeyword, EssayType, Difficulty);
-        
-        return result.Value;
+            TaskType, level, Instruction, KeyPoints,
+            TopicCategory, TopicKeyword, EssayType, Difficulty,
+            documentId: Id,
+            isActive: IsActive,
+            usageCount: UsageCount,
+            createdAt: CreatedAt.ToDateTime());
+
+        return result.IsSuccess
+            ? result.Value
+            : throw new InvalidOperationException(result.Error ?? "Invalid exam prompt data");
     }
 }

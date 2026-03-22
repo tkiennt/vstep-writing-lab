@@ -25,7 +25,7 @@ vstep-writing-lab/
 │   ├── src/
 │   ├── package.json
 │   └── ...
-└── mobile/          # React Native App
+└── mobile-app/      # React Native Expo App
 ```
 
 ---

@@ -19,10 +19,17 @@ public class ExamPrompt
 
     private ExamPrompt() { } // For deserialization
 
+    /// <param name="documentId">
+    /// Khi load từ Firestore phải truyền ID document; nếu null (tạo mới) sẽ dùng Guid.
+    /// </param>
     public static Result<ExamPrompt> Create(
         string taskType, string cefrLevel, string instruction,
         string[] keyPoints, string topicCategory, string topicKeyword,
-        string essayType, int difficulty)
+        string essayType, int difficulty,
+        string? documentId = null,
+        bool? isActive = null,
+        int? usageCount = null,
+        DateTime? createdAt = null)
     {
         if (taskType is not ("task1" or "task2"))
             return Result<ExamPrompt>.Fail("TaskType must be 'task1' or 'task2'");
@@ -33,13 +40,19 @@ public class ExamPrompt
         if (difficulty is < 1 or > 3)
             return Result<ExamPrompt>.Fail("Difficulty must be 1, 2, or 3");
 
+        var id = string.IsNullOrWhiteSpace(documentId)
+            ? Guid.NewGuid().ToString()
+            : documentId.Trim();
+
         return Result<ExamPrompt>.Ok(new ExamPrompt {
-            Id = Guid.NewGuid().ToString(), // Placeholder, will be set by Firestore if needed
+            Id = id,
             TaskType = taskType, CefrLevel = cefrLevel,
             Instruction = instruction, KeyPoints = keyPoints,
             TopicCategory = topicCategory, TopicKeyword = topicKeyword,
             EssayType = essayType, Difficulty = difficulty,
-            IsActive = true, UsageCount = 0, CreatedAt = DateTime.UtcNow
+            IsActive = isActive ?? true,
+            UsageCount = usageCount ?? 0,
+            CreatedAt = createdAt ?? DateTime.UtcNow
         });
     }
 }

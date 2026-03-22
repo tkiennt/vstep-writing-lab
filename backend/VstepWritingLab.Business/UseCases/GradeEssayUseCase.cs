@@ -3,6 +3,7 @@ using VstepWritingLab.Domain.Entities;
 using VstepWritingLab.Domain.Interfaces;
 using VstepWritingLab.Domain.ValueObjects;
 using VstepWritingLab.Business.DTOs;
+using VstepWritingLab.Business.Mapping;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -69,29 +70,7 @@ public class GradeEssayUseCase(
         );
 
         // 4. Map to Response DTO
-        var response = new FullAnalysisResponse(
-            gradingResult.Id,
-            gradingResult.StudentId,
-            gradingResult.ExamId,
-            gradingResult.TaskType,
-            gradingResult.GradedAt,
-            gradingResult.TotalScore,
-            gradingResult.CefrLevel,
-            gradingResult.VstepComparison,
-            gradingResult.Relevance,
-            gradingResult.TaskFulfilment,
-            gradingResult.Organization,
-            gradingResult.Vocabulary,
-            gradingResult.Grammar,
-            gradingResult.StrengthsVi,
-            gradingResult.ImprovementsVi,
-            gradingResult.Corrections,
-            gradingResult.InlineHighlights,
-            gradingResult.RecommendedStructures,
-            gradingResult.RewriteSamples,
-            gradingResult.Roadmap,
-            gradingResult.AiModel
-        );
+        var response = GradingMapper.ToFullAnalysisResponse(gradingResult);
 
         // 5. Save to Firestore + update progress (fire-and-forget)
         _ = Task.Run(async () => {

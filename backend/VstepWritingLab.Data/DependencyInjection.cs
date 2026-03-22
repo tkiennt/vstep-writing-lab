@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using System;
 using VstepWritingLab.Domain.Interfaces;
 using VstepWritingLab.Data.Firebase;
 using VstepWritingLab.Data.Repositories;
@@ -29,10 +30,17 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, FirestoreUserRepository>();
         services.AddScoped<IProgressRepository, FirestoreProgressRepository>();
 
-        // Gemini Services
+        // Gemini Services — typed client (grading pipeline)
         services.AddHttpClient<GeminiClient>();
         services.AddSingleton<GeminiClient>();
         services.AddSingleton<IGradingAiService, GeminiGradingService>();
+
+        // Named client for OutlineService / legacy AiGradingService (relative v1beta/... URLs)
+        services.AddHttpClient("GeminiClient", client =>
+        {
+            client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+            client.Timeout = TimeSpan.FromSeconds(120);
+        });
 
 
         // Qdrant + RAG

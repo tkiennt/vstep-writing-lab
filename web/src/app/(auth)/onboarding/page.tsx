@@ -62,7 +62,7 @@ export default function OnboardingPage() {
       const firebaseUser = (await import('@/lib/firebase')).auth.currentUser;
       const idToken = await firebaseUser?.getIdToken();
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5260'}/api/auth/onboarding`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5288'}/api/auth/onboarding`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

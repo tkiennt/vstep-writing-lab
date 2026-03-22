@@ -69,11 +69,14 @@ builder.Services.AddCors(options =>
     {
         policy.SetIsOriginAllowed(origin =>
             {
-                if (string.IsNullOrEmpty(origin)) return false;
+                if (string.IsNullOrEmpty(origin)) return true; // Mobile apps may send null
                 try
                 {
                     var uri = new Uri(origin);
-                    return uri.Host == "localhost" || uri.Host == "127.0.0.1";
+                    if (uri.Host == "localhost" || uri.Host == "127.0.0.1") return true;
+                    // Allow local network for Expo/device dev (e.g. 192.168.x.x, 10.0.2.2)
+                    if (uri.Host.StartsWith("192.168.") || uri.Host.StartsWith("10.")) return true;
+                    return false;
                 }
                 catch { return false; }
             })
@@ -131,7 +134,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Không redirect HTTP→HTTPS trong Development: app mobile gọi http://10.0.2.2:5288 (Android emulator).
+// Nếu bật UseHttpsRedirection khi có HTTPS (profile "https"), request HTTP bị 307 sang https://localhost:7133
+// → emulator không kết nối được localhost của máy host → Axios ERR_NETWORK.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors("AllowFrontend");
 
 // Global exception handler
@@ -141,6 +151,10 @@ app.UseMiddleware<GlobalExceptionHandler>();
 app.UseAuthentication();
 app.UseMiddleware<FirebaseAuthMiddleware>();
 app.UseAuthorization();
+
+// Health (không auth) — kiểm tra từ điện thoại: http://<IP_PC>:5288/api/health
+app.MapGet("/api/health", () => Results.Ok(new { status = "ok", time = DateTime.UtcNow }))
+    .WithTags("Health");
 
 app.MapControllers();
 app.Run();

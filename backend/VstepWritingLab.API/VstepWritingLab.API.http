@@ -3,7 +3,7 @@
 # Tip: Use "REST Client" extension in VS Code or Visual Studio's built-in HTTP client.
 # =========================================================================
 
-@Host = http://localhost:5260
+@Host = http://localhost:5288
 @AuthService = {{Host}}/api/auth
 @ExamV2 = {{Host}}/api/v2/ExamPrompts
 @GradingV2 = {{Host}}/api/v2/Grading

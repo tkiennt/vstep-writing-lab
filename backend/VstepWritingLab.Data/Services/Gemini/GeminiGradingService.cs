@@ -62,7 +62,7 @@ Key points :
     {{""original"":""<VERBATIM from essay>"",""rewritten"":"""",""explanation_vi"":""""}}
   ],
   ""roadmap"": {{
-    ""current_level"":"""",""target_level"":"""",""estimated_weeks"":4-8,
+    ""current_level"":"""",""target_level"":"""",""estimated_weeks"": 6,
     ""weekly_plan"":[{{""week"":1,""focus"":"""",""tasks"":[""""],""goal"":""""}}]
   }}
 }}
@@ -70,23 +70,54 @@ Key points :
 RULES:
 - inline_highlights: min 3 errors + min 1 strength, quote MUST be verbatim
 - rewrite_samples: 2 weakest sentences, original MUST be verbatim
-- roadmap: estimated_weeks entries, max 8, each week targets weakest criterion first
+- roadmap: estimated_weeks must be a single integer from 4 to 8 (weeks), not a range string
 - tasks: specific (""practice gerund after 'look forward to'""), not vague (""study grammar"")
+";
+
+        const string compactRetryHint = @"
+
+=== RETRY (shorter JSON — use if output was truncated) ===
+Return the SAME schema. Keep feedback strings brief (under ~120 chars where possible).
+inline_highlights: exactly 3 errors + 1 strength. improvements_* max 3 items each.
+corrections max 4. recommended_structures max 2. rewrite_samples exactly 2.
+roadmap.weekly_plan: at most 4 weeks; each tasks array max 2 strings.
 ";
 
         try
         {
-            var (rawJson, modelUsed) = await _client.GenerateAsync(SYSTEM_PROMPT, userPrompt, ct: ct);
-            var parsed = ParseAiGradingOutput(rawJson, modelUsed);
-            
+            // Large JSON; models often cap output (~8k tokens) → truncation → invalid JSON. Retry with compact instructions.
+            const int maxAttempts = 3;
+            InternalAiOutput? parsed = null;
+
+            for (var attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                var prompt = attempt == 0 ? userPrompt : userPrompt + compactRetryHint;
+                var maxTok = attempt == 0 ? 16384 : 8192;
+
+                var gen = await _client.GenerateAsync(
+                    SYSTEM_PROMPT, prompt, maxTokens: maxTok, temperature: 0.1f, ct: ct);
+
+                if (gen.FinishReason is "MAX_TOKENS" or "OTHER")
+                    _logger.LogWarning(
+                        "Grading attempt {Attempt}/{Max}: finishReason={Reason}, textLen={Len}",
+                        attempt + 1, maxAttempts, gen.FinishReason, gen.Text?.Length ?? 0);
+
+                parsed = ParseAiGradingOutput(gen.Text ?? "", gen.ModelUsed);
+                if (parsed != null)
+                    break;
+
+                _logger.LogWarning("Grading JSON parse failed attempt {Attempt}/{Max}", attempt + 1, maxAttempts);
+                if (attempt + 1 < maxAttempts)
+                    await Task.Delay(TimeSpan.FromMilliseconds(350 * (attempt + 1)), ct);
+            }
+
             if (parsed == null)
             {
-                return Result<AiGradingOutput>.Fail("Failed to parse AI response into valid JSON");
+                return Result<AiGradingOutput>.Fail(
+                    "Failed to parse AI response into valid JSON. Check API logs for the raw response; " +
+                    "often caused by truncated output (retry) or Gemini key/quota.");
             }
-            
-            // Map to Domain AiGradingOutput
-            // Note: Since Domain definition is simpler, we might need to broaden it later,
-            // but for now we follow the user's internal DTO request.
+
             return Result<AiGradingOutput>.Ok(MapToDomainOutput(parsed));
         }
         catch (Exception ex)
@@ -100,40 +131,37 @@ RULES:
     {
         try
         {
-            // Strip markdown fences
-            if (json.Contains("```json"))
-            {
-                json = json.Split("```json")[1].Split("```")[0];
-            }
-            else if (json.Contains("```"))
-            {
-                json = json.Split("```")[1].Split("```")[0];
-            }
-            
-            json = json.Trim();
-            
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var extracted = GeminiJsonParsing.ExtractJsonObject(json);
+            json = (extracted ?? json).Trim();
+            if (string.IsNullOrEmpty(json))
+                return null;
+
+            var options = GeminiJsonParsing.CreateDeserializeOptions();
             var output = JsonSerializer.Deserialize<InternalAiOutput>(json, options);
-            
-            if (output != null) return output with { ModelUsed = modelUsed };
+
+            if (output != null)
+                return output with { ModelUsed = modelUsed };
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to parse AI JSON response: {Json}", json);
+            var snippet = json.Length > 2000 ? json[..2000] + "…" : json;
+            _logger.LogWarning(ex, "Failed to parse AI JSON response (len={Len}): {Snippet}", json?.Length ?? 0, snippet);
             return null;
         }
     }
 
     private AiGradingOutput MapToDomainOutput(InternalAiOutput raw)
     {
+        var missEn = raw.Task_Relevance.Missing_Points_En ?? [];
+        var missVi = raw.Task_Relevance.Missing_Points_Vi ?? [];
         return new AiGradingOutput(
             Relevance: new TaskRelevance(
                 raw.Task_Relevance.Is_Relevant,
                 raw.Task_Relevance.Relevance_Score,
                 new[] { raw.Task_Relevance.Verdict_En, raw.Task_Relevance.Verdict_Vi },
-                raw.Task_Relevance.Missing_Points_En.Concat(raw.Task_Relevance.Missing_Points_Vi).ToArray(),
-                raw.Task_Relevance.Off_Topic_Sentences
+                missEn.Concat(missVi).ToArray(),
+                raw.Task_Relevance.Off_Topic_Sentences ?? []
             ),
             TaskFulfilment: new CriterionScore(
                 raw.TaskFulfilment.Score,
@@ -163,28 +191,30 @@ RULES:
                 raw.Grammar.Feedback_Vi,
                 raw.Grammar.Evidence_En
             ),
-            StrengthsVi: raw.Strengths_Vi,
-            ImprovementsVi: raw.Improvements_Vi,
-            Corrections: raw.Corrections.Select(c => new Correction(
+            StrengthsVi: raw.Strengths_Vi ?? [],
+            ImprovementsVi: raw.Improvements_Vi ?? [],
+            Corrections: (raw.Corrections ?? []).Select(c => new Correction(
                 c.Original, c.Corrected, c.Reason_En, c.Reason_Vi
             )).ToArray(),
-            InlineHighlights: raw.Inline_Highlights.Select(h => new InlineHighlight(
+            InlineHighlights: (raw.Inline_Highlights ?? []).Select(h => new InlineHighlight(
                 h.Type, h.Quote, h.Issue, h.Issue_Vi, h.Fix, h.Category
             )).ToArray(),
-            RecommendedStructures: raw.Recommended_Structures.Select(s => new RecommendedStructure(
+            RecommendedStructures: (raw.Recommended_Structures ?? []).Select(s => new RecommendedStructure(
                 s.Structure_Name, s.Example, s.Why_Use_It_Vi
             )).ToArray(),
-            RewriteSamples: raw.Rewrite_Samples.Select(r => new RewriteSample(
+            RewriteSamples: (raw.Rewrite_Samples ?? []).Select(r => new RewriteSample(
                 r.Original, r.Rewritten, r.Explanation_Vi
             )).ToArray(),
-            Roadmap: new GradingRoadmap(
-                raw.Roadmap.Current_Level,
-                raw.Roadmap.Target_Level,
-                raw.Roadmap.Estimated_Weeks,
-                raw.Roadmap.Weekly_Plan.Select(wp => new WeeklyPlanTask(
-                    wp.Week, wp.Focus, wp.Tasks, wp.Goal
-                )).ToArray()
-            ),
+            Roadmap: raw.Roadmap is null
+                ? new GradingRoadmap("", "", 0, [])
+                : new GradingRoadmap(
+                    raw.Roadmap.Current_Level,
+                    raw.Roadmap.Target_Level,
+                    raw.Roadmap.Estimated_Weeks,
+                    (raw.Roadmap.Weekly_Plan ?? []).Select(wp => new WeeklyPlanTask(
+                        wp.Week, wp.Focus, wp.Tasks ?? [], wp.Goal
+                    )).ToArray()
+                ),
             AiModel: raw.ModelUsed
         );
     }
@@ -198,15 +228,15 @@ internal record InternalAiOutput(
     RawCriterion Organization,
     RawCriterion Vocabulary,
     RawCriterion Grammar,
-    string[] Strengths_En,
-    string[] Strengths_Vi,
-    string[] Improvements_En,
-    string[] Improvements_Vi,
-    RawCorrection[] Corrections,
-    RawHighlight[] Inline_Highlights,
-    RawStructure[] Recommended_Structures,
-    RawRewrite[] Rewrite_Samples,
-    RawRoadmap Roadmap,
+    string[]? Strengths_En,
+    string[]? Strengths_Vi,
+    string[]? Improvements_En,
+    string[]? Improvements_Vi,
+    RawCorrection[]? Corrections,
+    RawHighlight[]? Inline_Highlights,
+    RawStructure[]? Recommended_Structures,
+    RawRewrite[]? Rewrite_Samples,
+    RawRoadmap? Roadmap,
     string ModelUsed = ""
 );
 
@@ -215,9 +245,9 @@ internal record InternalRelevance(
     int Relevance_Score,
     string Verdict_En,
     string Verdict_Vi,
-    string[] Missing_Points_En,
-    string[] Missing_Points_Vi,
-    string[] Off_Topic_Sentences
+    string[]? Missing_Points_En,
+    string[]? Missing_Points_Vi,
+    string[]? Off_Topic_Sentences
 );
 
 internal record RawCriterion(
@@ -259,12 +289,12 @@ internal record RawRoadmap(
     string Current_Level,
     string Target_Level,
     int Estimated_Weeks,
-    RawWeeklyPlan[] Weekly_Plan
+    RawWeeklyPlan[]? Weekly_Plan
 );
 
 internal record RawWeeklyPlan(
     int Week,
     string Focus,
-    string[] Tasks,
+    string[]? Tasks,
     string Goal
 );

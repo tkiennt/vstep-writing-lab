@@ -22,7 +22,16 @@ public interface IGradingResultRepository
         string studentId, string? taskType = null,
         int limit = 20, CancellationToken ct = default);
     Task<GradingResult?> GetByIdAsync(string id, CancellationToken ct = default);
+
+    /// <summary>Ordered by GradedAt descending. Used for account history API.</summary>
+    Task<IReadOnlyList<GradingHistorySummary>> GetHistorySummariesAsync(
+        string studentId, int limit = 30, CancellationToken ct = default);
+
+    /// <summary>Returns graded result + essay text if the document exists and belongs to the student.</summary>
+    Task<(GradingResult Result, string EssayText)?> GetWithEssayForStudentAsync(
+        string studentId, string resultId, CancellationToken ct = default);
 }
+
 
 public interface IProgressRepository
 {

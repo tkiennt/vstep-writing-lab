@@ -12,7 +12,7 @@ import { auth } from '@/lib/firebase';
 import type { GradingResult, ExamPrompt } from '@/types/grading';
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5260';
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5288';
 
 // ── Error class ──────────────────────────────────────────────
 export class ApiError extends Error {

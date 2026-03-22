@@ -10,6 +10,11 @@ public record GradeEssayRequest(
     string TaskType
 );
 
+/// <summary>API: GET /api/grading/history/{id} — full analysis plus stored essay text.</summary>
+public record GradingHistoryDetailResponse(
+    FullAnalysisResponse Analysis,
+    string EssayText);
+
 public record FullAnalysisResponse(
     string Id,
     string StudentId,
