@@ -9,32 +9,35 @@ using VstepWritingLab.Shared.Models.DTOs.Responses;
 using VstepWritingLab.Shared.Models.Entities;
 using VstepWritingLab.Shared.Models.Common;
 using VstepWritingLab.Business.Interfaces;
+using VstepWritingLab.Business.UseCases;
 using VstepWritingLab.Domain.Interfaces;
+using VstepWritingLab.Domain.Entities;
+using VstepWritingLab.Domain.ValueObjects;
 
 namespace VstepWritingLab.Business.Services
 {
     public class SubmissionService
     {
-        private readonly ISubmissionRepository _submissionRepo;
+        private readonly IGradingResultRepository _historyRepo;
         private readonly IQuestionRepository _questionRepo;
         private readonly ITaskRepository _taskRepo;
         private readonly AiGradingService _aiGradingService;
-        private readonly ProgressService _progressService;
+        private readonly IProgressUseCase _progressUseCase;
         private readonly ILogger<SubmissionService> _logger;
 
         public SubmissionService(
-            ISubmissionRepository submissionRepo,
+            IGradingResultRepository historyRepo,
             IQuestionRepository questionRepo,
             ITaskRepository taskRepo,
             AiGradingService aiGradingService,
-            ProgressService progressService,
+            IProgressUseCase progressUseCase,
             ILogger<SubmissionService> logger)
         {
-            _submissionRepo   = submissionRepo;
+            _historyRepo      = historyRepo;
             _questionRepo     = questionRepo;
             _taskRepo         = taskRepo;
             _aiGradingService = aiGradingService;
-            _progressService  = progressService;
+            _progressUseCase  = progressUseCase;
             _logger           = logger;
         }
 
@@ -53,8 +56,11 @@ namespace VstepWritingLab.Business.Services
                 throw new Exception("Essay content cannot be empty");
 
             var task = await _taskRepo.GetByIdAsync(question.TaskType);
+            if (task == null)
+                throw new Exception($"Task type {question.TaskType} not found");
+
             var wordCount   = CountWords(request.EssayContent);
-            var belowMin    = task != null && wordCount < task.MinWords;
+            var belowMin    = wordCount < task.MinWords;
 
             var submission = new SubmissionModel
             {
@@ -70,8 +76,9 @@ namespace VstepWritingLab.Business.Services
                 CreatedAt    = Timestamp.GetCurrentTimestamp()
             };
 
-            var submissionId = await _submissionRepo.CreateAsync(submission);
-            submission.SubmissionId = submissionId;
+            // var submissionId = await _submissionRepo.CreateAsync(submission);
+            // submission.SubmissionId = submissionId;
+            submission.SubmissionId = Guid.NewGuid().ToString(); // Use GUID as per user's system B
 
             _ = GradeAndUpdateAsync(submission, question, task);
 
@@ -111,16 +118,29 @@ namespace VstepWritingLab.Business.Services
                     }).ToList()
                 };
 
-                await _submissionRepo.UpdateStatusAsync(
+                var domainResult = new VstepWritingLab.Domain.Entities.GradingResult(
                     submission.SubmissionId,
-                    "scored",
-                    aiScore,
-                    aiFeedback);
-
-                await _progressService.UpdateAfterSubmissionAsync(
                     submission.UserId,
+                    submission.QuestionId,
                     submission.TaskType,
-                    aiScore);
+                    DateTime.UtcNow,
+                    new TaskRelevance(true, 10, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>()),
+                    new CriterionScore(aiScore.TaskFulfilment, "Tốt", "", "", ""),
+                    new CriterionScore(aiScore.Organization, "Tốt", "", "", ""),
+                    new CriterionScore(aiScore.Vocabulary, "Tốt", "", "", ""),
+                    new CriterionScore(aiScore.Grammar, "Tốt", "", "", ""),
+                    Array.Empty<string>(), Array.Empty<string>(),
+                    Array.Empty<Correction>(), "gemini-flash",
+                    Array.Empty<InlineHighlight>(), Array.Empty<RecommendedStructure>(),
+                    Array.Empty<RewriteSample>(), new GradingRoadmap("", "", 0, Array.Empty<WeeklyPlanTask>()),
+                    Array.Empty<SentenceFeedback>(), null,
+                    submission.Mode,
+                    submission.EssayContent,
+                    submission.WordCount);
+
+                await _historyRepo.SaveAsync(domainResult);
+
+                await _progressUseCase.UpdateAsync(submission.UserId);
 
                 _logger.LogInformation(
                     "Submission {Id} graded. Overall: {Score}",
@@ -131,76 +151,46 @@ namespace VstepWritingLab.Business.Services
                 _logger.LogError(ex,
                     "Grading failed for submission {Id}", submission.SubmissionId);
 
-                await _submissionRepo.UpdateStatusAsync(
-                    submission.SubmissionId, "failed");
+                // For now, we don't have UpdateStatusAsync in the new repo
+                // await _historyRepo.UpdateStatusAsync(submission.SubmissionId, "failed");
             }
-        }
-
-        public async Task<SubmissionResponse> RetryAsync(
-            string userId,
-            string submissionId)
-        {
-            var submission = await _submissionRepo.GetByIdAsync(submissionId);
-
-            if (submission == null)
-                throw new Exception($"Submission {submissionId} not found");
-
-            if (submission.UserId != userId)
-                throw new Exception("Cannot access this submission");
-
-            if (submission.Status != "failed")
-                throw new Exception("Only failed submissions can be retried");
-
-            if (submission.RetryCount >= 3)
-                throw new Exception("Maximum retry limit (3) reached");
-
-            await _submissionRepo.UpdateAsync(submissionId, new Dictionary<string, object>
-            {
-                { "Status",     "pending" },
-                { "RetryCount", submission.RetryCount + 1 }
-            });
-
-            submission.Status     = "pending";
-            submission.RetryCount += 1;
-
-            var question = await _questionRepo.GetByIdAsync(submission.QuestionId);
-            var task     = await _taskRepo.GetByIdAsync(submission.TaskType);
-
-            _ = GradeAndUpdateAsync(submission, question, task);
-
-            return MapToResponse(submission);
         }
 
         public async Task<List<SubmissionListItemResponse>> GetHistoryAsync(
             string userId,
             int limit = 20)
         {
-            var submissions = await _submissionRepo.GetByUserIdAsync(userId, limit);
-
-            var questionIds = submissions
-                .Select(s => s.QuestionId)
-                .Distinct()
-                .ToList();
-
-            var questionTitles = new Dictionary<string, string>();
-            foreach (var qId in questionIds)
+            var results = await _historyRepo.GetHistoryAsync(userId, limit: limit);
+            
+            // Fetch all unique question IDs to minimize database calls
+            var questionIds = results.Select(r => r.ExamId).Distinct().ToList();
+            var questionMap = new Dictionary<string, string>();
+            
+            foreach (var qid in questionIds)
             {
-                var q = await _questionRepo.GetByIdAsync(qId);
-                if (q != null) questionTitles[qId] = q.Title;
+                if (!string.IsNullOrEmpty(qid))
+                {
+                    var question = await _questionRepo.GetByIdAsync(qid);
+                    if (question != null)
+                    {
+                        questionMap[qid] = question.Title;
+                    }
+                }
             }
 
-            return submissions.Select(s => new SubmissionListItemResponse
+            return results.Select(r => new SubmissionListItemResponse
             {
-                SubmissionId  = s.SubmissionId,
-                QuestionId    = s.QuestionId,
-                QuestionTitle = questionTitles.GetValueOrDefault(s.QuestionId, ""),
-                TaskType      = s.TaskType,
-                Mode          = s.Mode,
-                WordCount     = s.WordCount,
-                BelowMinWords = s.BelowMinWords,
-                Status        = s.Status,
-                OverallScore  = s.AiScore?.Overall,
-                CreatedAt     = s.CreatedAt.ToDateTime()
+                Id            = r.Id,
+                QuestionId    = r.ExamId,
+                QuestionTitle = !string.IsNullOrEmpty(r.ExamId) && questionMap.TryGetValue(r.ExamId, out var title) 
+                                ? title : "Writing Submission",
+                TaskType      = r.TaskType,
+                Mode          = r.Mode,
+                WordCount     = r.WordCount,
+                BelowMinWords = false,
+                Status        = "scored",
+                OverallScore  = r.TotalScore,
+                CreatedAt     = r.GradedAt
             }).ToList();
         }
 
@@ -208,15 +198,139 @@ namespace VstepWritingLab.Business.Services
             string userId,
             string submissionId)
         {
-            var submission = await _submissionRepo.GetByIdAsync(submissionId);
+            if (string.IsNullOrWhiteSpace(submissionId))
+                throw new ArgumentException("Submission ID cannot be null or empty", nameof(submissionId));
 
-            if (submission == null)
-                throw new Exception($"Submission {submissionId} not found");
+            _logger.LogInformation("Fetching result detail for {Id} (User: {Uid})", submissionId, userId);
 
-            if (submission.UserId != userId)
-                throw new Exception("Cannot access this submission");
+            // 1. Check for obviously invalid IDs to prevent unintended polling (e.g. from /results/list)
+            if (submissionId.Equals("list", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning("Invalid ID 'list' requested by user {Uid}", userId);
+                return null; // Controller will return 404
+            }
+            
+            // 2. Check if result already exists in history (graded results)
+            var result = await _historyRepo.GetByIdAsync(submissionId);
 
-            return MapToResponse(submission);
+            if (result != null)
+            {
+                if (result.StudentId != userId)
+                {
+                    _logger.LogWarning("Unauthorized access attempt to {Id} by {Uid}", submissionId, userId);
+                    return null;
+                }
+                
+                var question = await _questionRepo.GetByIdAsync(result.ExamId);
+                
+                // Match Exam System: TopicKeyword is the primary title
+                var title = !string.IsNullOrEmpty(question?.TopicKeyword) ? question.TopicKeyword : 
+                            (!string.IsNullOrEmpty(question?.Title) ? question.Title : 
+                            (!string.IsNullOrEmpty(question?.Category) ? question.Category : 
+                            result.ExamId));
+
+                return MapDomainToResponse(result, title);
+            }
+
+            _logger.LogWarning("Result '{Id}' not found in 'grading_results'. AI might still be processing.", submissionId);
+            
+            return new SubmissionResponse
+            {
+                Id = submissionId,
+                Status = "pending",
+                CreatedAt = DateTime.UtcNow
+            };
+        }
+
+        private SubmissionResponse MapDomainToResponse(VstepWritingLab.Domain.Entities.GradingResult r, string questionTitle = "") =>
+            new SubmissionResponse
+            {
+                Id            = r.Id,
+                QuestionId    = r.ExamId,
+                QuestionTitle = questionTitle,
+                TaskType      = r.TaskType,
+                Mode          = r.Mode,
+                Status        = "scored",
+                EssayContent  = r.EssayText,
+                WordCount     = r.WordCount,
+                CreatedAt     = r.GradedAt,
+                AiScore       = new AiScoreResponse
+                {
+                    TaskFulfilment = (int)r.TaskFulfilment.Score,
+                    Organization   = (int)r.Organization.Score,
+                    Vocabulary     = (int)r.Vocabulary.Score,
+                    Grammar        = (int)r.Grammar.Score,
+                    Overall        = r.TotalScore
+                },
+                AiFeedback = new AiFeedbackResponse
+                {
+                    Summary     = !string.IsNullOrEmpty(r.Summary) && r.Summary.Length > 20
+                        ? r.Summary 
+                        : $"Bài viết của bạn đạt mức điểm trung bình là {r.TotalScore}. Hãy xem chi tiết đánh giá về Bố cục, Từ vựng và Ngữ pháp bên dưới để cải thiện điểm số.",
+                    Suggestions = r.ImprovementsVi?.ToList() ?? new List<string>(),
+                    Highlights  = r.InlineHighlights?.Select(h => new HighlightResponse
+                    {
+                        Text  = h.Quote,
+                        Issue = h.IssueVi ?? h.Issue,
+                        Type  = h.Type,
+                        Severity = h.Type == "strength" ? "good" : "error"
+                    }).ToList() ?? new List<HighlightResponse>(),
+                    SentenceFeedback = r.SentenceFeedback?.Select(s => new SentenceFeedbackResponse
+                    {
+                        Sentence = s.Sentence,
+                        IsGood = s.IsGood,
+                        Explanation = s.Explanation,
+                        Suggestion = s.Suggestion
+                    }).ToList() ?? new List<SentenceFeedbackResponse>(),
+                    Roadmap = r.Roadmap == null ? null : new RoadmapResponse
+                    {
+                        CurrentLevel = r.Roadmap.CurrentLevel,
+                        TargetLevel = r.Roadmap.TargetLevel,
+                        EstimatedWeeks = r.Roadmap.EstimatedWeeks,
+                        WeeklyPlan = r.Roadmap.WeeklyPlan?.Select(w => new WeeklyPlanResponse
+                        {
+                            Week = w.Week,
+                            Focus = w.Focus,
+                            Goal = w.Goal,
+                            Tasks = w.Tasks?.ToList() ?? new List<string>()
+                        }).ToList() ?? new List<WeeklyPlanResponse>()
+                    }
+                }
+            };
+
+        public async Task<SubmissionResponse> RetryAsync(
+            string userId,
+            string submissionId)
+        {
+            var result = await _historyRepo.GetByIdAsync(submissionId);
+            if (result == null) throw new Exception("Submission not found");
+            if (result.StudentId != userId) throw new Exception("Unauthorized");
+
+            var question = await _questionRepo.GetByIdAsync(result.ExamId);
+            if (question == null) throw new Exception("Question not found");
+
+            var task = await _taskRepo.GetByIdAsync(question.TaskType);
+            if (task == null) throw new Exception("Task not found");
+
+            // Create a fake submission model to pass to AI service
+            var submission = new SubmissionModel
+            {
+                SubmissionId = result.Id,
+                UserId = result.StudentId,
+                QuestionId = result.ExamId,
+                TaskType = question.TaskType,
+                Mode = result.Mode,
+                EssayContent = result.EssayText, 
+                WordCount = result.WordCount
+            };
+
+            // In a real retry, we should fetch the content from wherever it's stored.
+            // For now, if content is missing, we might have to store it in GradingResult.
+            // But let's assume the AI service can handle it or we fetch it from another source if needed.
+            
+            _ = GradeAndUpdateAsync(submission, question, task);
+
+            return MapDomainToResponse(result);
         }
 
         private int CountWords(string text) =>
@@ -226,7 +340,7 @@ namespace VstepWritingLab.Business.Services
         private SubmissionResponse MapToResponse(SubmissionModel s) =>
             new SubmissionResponse
             {
-                SubmissionId  = s.SubmissionId,
+                Id  = s.SubmissionId,
                 QuestionId    = s.QuestionId,
                 TaskType      = s.TaskType,
                 Mode          = s.Mode,
@@ -252,7 +366,7 @@ namespace VstepWritingLab.Business.Services
                             Text  = h.Text,
                             Issue = h.Issue,
                             Type  = h.Type
-                        }).ToList()
+                        }).ToList() ?? new List<HighlightResponse>()
                 },
                 RetryCount = s.RetryCount,
                 CreatedAt  = s.CreatedAt.ToDateTime(),

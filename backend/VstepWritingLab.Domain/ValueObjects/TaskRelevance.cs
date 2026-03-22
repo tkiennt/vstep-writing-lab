@@ -9,4 +9,7 @@ public record TaskRelevance(
     [property: FirestoreProperty("verdicts")]   string[] Verdicts,
     [property: FirestoreProperty("missingPoints")] string[] MissingPoints,
     [property: FirestoreProperty("offTopicSentences")] string[] OffTopicSentences
-);
+)
+{
+    public TaskRelevance() : this(true, 0, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>()) { }
+}

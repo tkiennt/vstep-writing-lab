@@ -38,6 +38,39 @@ export interface CriterionResult {
   evidenceEn: string;
 }
 
+// ── API Responses ───────────────────────────────────────────
+export interface ProgressResponse {
+  totalEssays:          number;
+  task1Count:           number;
+  task2Count:           number;
+  averageScoreTask1:    number;
+  averageScoreTask2:    number;
+  weightedOverallScore: number;
+  streak:               number;
+  scoreHistory: {
+    id: string;
+    score:        number;
+    taskType:     string;
+    date:         string;
+  }[];
+  averageBySkill: Record<string, number>;
+  weakSkills:     string[];
+  lastUpdatedAt:  string;
+}
+
+export interface SubmissionListItemResponse {
+  id:   string;
+  questionId:     string;
+  questionTitle:  string;
+  taskType:       string;
+  mode:           string;
+  wordCount:      number;
+  belowMinWords:  boolean;
+  status:         string;
+  overallScore?:  number;
+  createdAt:      string;
+}
+
 // ── Task relevance check ────────────────────────────────────
 export interface TaskRelevanceResult {
   isRelevant: boolean;
@@ -87,13 +120,16 @@ export interface GradingResult {
     }[];
   };
   mode:                "exam" | "practice" | "guide";
+  status?:              string;
 }
 
 // ── Firestore grading_results document ──────────────────────
 export interface GradingResultDoc extends GradingResult {
   id: string;
+  submissionId: string;
   userUid: string;
   promptId: string;
+  questionTitle: string;
   essayText: string;
   wordCount: number;
   cefrLevel: string;

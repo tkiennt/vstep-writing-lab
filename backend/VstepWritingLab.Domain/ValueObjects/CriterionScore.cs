@@ -11,6 +11,8 @@ public record CriterionScore(
     [property: FirestoreProperty("evidenceEn")] string EvidenceEn
 )
 {
+    public CriterionScore() : this(0, "Yếu", "", "", "") { }
+
     public static string GetBandLabel(int score) => score switch {
         >= 9 => "Xuất sắc",
         >= 7 => "Tốt",

@@ -16,8 +16,7 @@ public interface IExamPromptRepository
 
 public interface IGradingResultRepository
 {
-    Task<string> SaveAsync(GradingResult result, string essayText, int wordCount,
-                           CancellationToken ct = default);
+    Task<string> SaveAsync(GradingResult result, CancellationToken ct = default);
     Task<IReadOnlyList<GradingResult>> GetHistoryAsync(
         string studentId, string? taskType = null,
         int limit = 20, CancellationToken ct = default);

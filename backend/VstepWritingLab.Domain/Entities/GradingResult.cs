@@ -41,6 +41,10 @@ public class GradingResult
     public ImprovementTracking?  ImprovementTracking   { get; private set; }
     public string                Mode                   { get; private set; } = "exam";
 
+    public string EssayText { get; private set; } = string.Empty;
+    public int    WordCount { get; private set; }
+    public string Summary   { get; private set; } = string.Empty;
+
     // Constructor for mapping/deserialization
     public GradingResult(
         string id, string studentId, string examId, string taskType,
@@ -52,31 +56,37 @@ public class GradingResult
         InlineHighlight[] highlights, RecommendedStructure[] structures,
         RewriteSample[] rewrites, GradingRoadmap roadmap,
         SentenceFeedback[] sentenceFeedback, ImprovementTracking? improvementTracking,
-        string mode = "exam")
+        string mode = "exam",
+        string essayText = "",
+        int wordCount = 0,
+        string summary = "")
     {
-        Id = id;
-        StudentId = studentId;
-        ExamId = examId;
-        TaskType = taskType;
-        GradedAt = gradedAt;
-        Relevance = relevance;
-        TaskFulfilment = taskFulfilment;
-        Organization = organization;
-        Vocabulary = vocabulary;
-        Grammar = grammar;
-        StrengthsVi = strengthsVi;
-        ImprovementsVi = improvementsVi;
-        Corrections = corrections;
-        AiModel = aiModel;
+        this.Id = id;
+        this.StudentId = studentId;
+        this.ExamId = examId;
+        this.TaskType = taskType;
+        this.GradedAt = gradedAt;
+        this.Relevance = relevance;
+        this.TaskFulfilment = taskFulfilment;
+        this.Organization = organization;
+        this.Vocabulary = vocabulary;
+        this.Grammar = grammar;
+        this.StrengthsVi = strengthsVi;
+        this.ImprovementsVi = improvementsVi;
+        this.Corrections = corrections;
+        this.AiModel = aiModel;
         
-        InlineHighlights = highlights ?? Array.Empty<InlineHighlight>();
-        RecommendedStructures = structures ?? Array.Empty<RecommendedStructure>();
-        RewriteSamples = rewrites ?? Array.Empty<RewriteSample>();
-        Roadmap = roadmap;
+        this.InlineHighlights = highlights ?? Array.Empty<InlineHighlight>();
+        this.RecommendedStructures = structures ?? Array.Empty<RecommendedStructure>();
+        this.RewriteSamples = rewrites ?? Array.Empty<RewriteSample>();
+        this.Roadmap = roadmap;
 
-        SentenceFeedback = sentenceFeedback ?? Array.Empty<SentenceFeedback>();
-        ImprovementTracking = improvementTracking;
-        Mode = mode;
+        this.SentenceFeedback = sentenceFeedback ?? Array.Empty<SentenceFeedback>();
+        this.ImprovementTracking = improvementTracking;
+        this.Mode = mode;
+        this.EssayText = essayText;
+        this.WordCount = wordCount;
+        this.Summary = summary;
 
         TotalScore = ComputeTotal(
             taskFulfilment.Score, organization.Score,

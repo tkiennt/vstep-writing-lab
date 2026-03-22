@@ -1,76 +1,129 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileEdit, TrendingUp, Flame, ChevronDown, ChevronUp,
-  LineChart as LineChartIcon, Award, ArrowRight, FileText
+  LineChart as LineChartIcon, Award, ArrowRight, FileText,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { useTranslation } from 'react-i18next';
+import { getProgress, getSubmissionHistory } from '@/lib/api';
+import { ProgressResponse, SubmissionListItemResponse } from '@/types/grading';
 
-/* ── Mock Line Chart ── */
-const MockLineChart = () => (
-  <div className="relative h-64 w-full flex items-end justify-between px-4 pb-8 pt-4">
-    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pt-4">
-      <div className="w-full h-px bg-slate-200 dark:bg-slate-700/50" />
-      <div className="w-full h-px bg-slate-200 dark:bg-slate-700/50" />
-      <div className="w-full h-px bg-slate-200 dark:bg-slate-700/50" />
-      <div className="w-full h-px bg-slate-200 dark:bg-slate-700/50" />
-    </div>
-    <div className="absolute left-0 inset-y-0 flex flex-col justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 pb-8 pt-4 w-6">
-      <span>8.0</span><span>7.0</span><span>6.0</span><span>5.0</span>
-    </div>
-    <svg className="absolute inset-0 h-full w-full pointer-events-none" preserveAspectRatio="none">
-      <path d="M 40 180 Q 200 160 350 120 T 600 80 T 900 60" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
-      <path d="M 40 180 Q 200 160 350 120 T 600 80 T 900 60" fill="url(#chartGrad)" strokeWidth="0" opacity="0.12"/>
-      <defs>
-        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-    </svg>
-    {[
-      { date: 'Oct 01', top: '180px' },{ date: 'Oct 05', top: '150px' },
-      { date: 'Oct 12', top: '120px' },{ date: 'Oct 18', top: '110px' },
-      { date: 'Oct 25', top: '80px' },
-    ].map((point, i) => (
-      <div key={i} className="relative z-10 flex flex-col items-center group h-full justify-end">
-        <div className="w-3 h-3 bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-full z-10 absolute hover:scale-125 transition-transform cursor-pointer" style={{ top: point.top }}>
-          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap border border-slate-600">
-            Band {(5.5 + i * 0.5).toFixed(1)}
-          </div>
-        </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-2">{point.date}</span>
-      </div>
-    ))}
-  </div>
-);
+// Native formatter for Vietnamese locale
+const formatDate = (dateStr: string) => {
+  try {
+    return new Intl.DateTimeFormat('vi-VN', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    }).format(new Date(dateStr));
+  } catch {
+    return dateStr;
+  }
+};
 
-const MOCK_HISTORY = [
-  { id: '1', title: 'Advantages of Studying Abroad', type: 'Task 2', score: 6.5, date: 'Oct 25, 2026',
-    details: { taskFulfilment: 7.0, coherence: 6.5, lexical: 6.0, grammar: 5.5 }},
-  { id: '2', title: 'Email to Hotel Manager', type: 'Task 1', score: 6.5, date: 'Oct 18, 2026',
-    details: { taskFulfilment: 7.0, coherence: 7.0, lexical: 6.0, grammar: 6.0 }},
-  { id: '3', title: 'Impact of AI on Education', type: 'Task 2', score: 6.0, date: 'Oct 12, 2026',
-    details: { taskFulfilment: 6.0, coherence: 6.5, lexical: 6.0, grammar: 5.0 }},
-];
+// Simple mockup of a Line Chart since we don't have Recharts installed to keep it fast
+const MockLineChart = ({ history }: { history: ProgressResponse['scoreHistory'] }) => {
+  // Take last 7 points or pad if empty
+  const points = history.length > 0 
+    ? [...history].reverse().slice(-7) 
+    : [
+        { date: 'N/A', score: 0, submissionId: '', taskType: '' },
+        { date: 'N/A', score: 0, submissionId: '', taskType: '' },
+        { date: 'N/A', score: 0, submissionId: '', taskType: '' }
+      ];
+
+  const maxScore = Math.max(...points.map(p => p.score), 10);
+  
+  return (
+    <div className="relative h-64 w-full flex items-end justify-between px-4 pb-8 pt-4">
+       {/* Grid lines */}
+       <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pt-4 opacity-10">
+          {[0, 1, 2, 3, 4].map(i => <div key={i} className="w-full h-px bg-gray-900"></div>)}
+       </div>
+       
+       {/* Y-axis labels */}
+       <div className="absolute left-0 inset-y-0 flex flex-col justify-between text-[10px] font-bold text-gray-400 pb-8 pt-4 w-6">
+          <span>9.0</span>
+          <span>7.0</span>
+          <span>5.0</span>
+          <span>3.0</span>
+          <span>1.0</span>
+       </div>
+
+       {/* Data Points */}
+       {points.map((point, i) => {
+         const heightPercent = (point.score / 10) * 100;
+         return (
+           <div key={i} className="relative z-10 flex flex-col items-center group h-full justify-end flex-1">
+              <div className="w-0.5 h-full bg-emerald-100 opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-8"></div>
+              <div 
+                className="w-4 h-4 bg-white border-4 border-emerald-500 rounded-full shadow-md z-10 absolute hover:scale-125 transition-transform cursor-pointer" 
+                style={{ bottom: `${heightPercent}%`, marginBottom: '24px' }}
+              >
+                 <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap">
+                    {point.score.toFixed(1)} Band
+                 </div>
+              </div>
+              <span className="text-[8px] font-bold uppercase tracking-wider text-gray-400 mt-2 truncate w-full text-center">
+                {point.date.split('-').slice(1).join('/')}
+              </span>
+           </div>
+         );
+       })}
+    </div>
+  );
+};
 
 export default function StudentDashboard() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [progress, setProgress] = useState<ProgressResponse | null>(null);
+  const [history, setHistory] = useState<SubmissionListItemResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { t } = useTranslation();
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [progData, histData] = await Promise.all([
+          getProgress(),
+          getSubmissionHistory(5)
+        ]);
+        setProgress(progData);
+        setHistory(histData);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const firstName = user?.name ? user.name.split(' ')[0] : 'User';
   const toggleRow = (id: string) => setExpandedRow(expandedRow === id ? null : id);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
+        <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Loading your progress...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full bg-slate-50 dark:bg-slate-950">
       <DashboardHeader />
       
       <div className="space-y-5 max-w-7xl mx-auto px-6 sm:px-8 pb-12 pt-5">
-
+        
         {/* Welcome */}
         <div>
           <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{t('dashboard.welcome', { name: firstName })}</h2>
@@ -82,7 +135,7 @@ export default function StudentDashboard() {
           <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/50 flex items-center justify-between group hover:border-emerald-500/30 transition-all duration-200 shadow-sm">
             <div>
               <p className="text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">{t('dashboard.stats.totalEssays')}</p>
-              <span className="text-4xl font-black text-slate-900 dark:text-white">24</span>
+              <span className="text-4xl font-black text-slate-900 dark:text-white">{progress?.totalEssays ?? 0}</span>
             </div>
             <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
               <FileText className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
@@ -93,8 +146,14 @@ export default function StudentDashboard() {
             <div>
               <p className="text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">{t('dashboard.stats.avgBand')}</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-slate-900 dark:text-white">6.2</span>
-                <span className="text-sm font-bold text-emerald-500 dark:text-emerald-400 flex items-center"><TrendingUp className="w-3 h-3 mr-0.5"/>+0.5</span>
+                <span className="text-4xl font-black text-slate-900 dark:text-white">{progress?.weightedOverallScore?.toFixed(1) ?? '0.0'}</span>
+                {progress && progress.scoreHistory.length > 1 && (
+                  <span className="text-sm font-bold text-emerald-500 dark:text-emerald-400 flex items-center">
+                    <TrendingUp className="w-3 h-3 mr-0.5"/> 
+                    {progress.scoreHistory[0].score >= progress.scoreHistory[1].score ? '+' : ''}
+                    {(progress.scoreHistory[0].score - progress.scoreHistory[1].score).toFixed(1)}
+                  </span>
+                )}
               </div>
             </div>
             <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -106,7 +165,7 @@ export default function StudentDashboard() {
             <div>
               <p className="text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">{t('dashboard.stats.streak')}</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-slate-900 dark:text-white">5</span>
+                <span className="text-4xl font-black text-slate-900 dark:text-white">{progress?.streak ?? 0}</span>
                 <span className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('dashboard.stats.days')}</span>
               </div>
             </div>
@@ -123,17 +182,16 @@ export default function StudentDashboard() {
               <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <LineChartIcon className="w-4 h-4 text-slate-400 dark:text-slate-500" /> {t('dashboard.chart.title')}
               </h2>
-              <select className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg py-1.5 px-3 outline-none cursor-pointer">
-                <option>{t('dashboard.chart.last30')}</option>
-                <option>{t('dashboard.chart.allTime')}</option>
-              </select>
+              <div className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-500/20">
+                7 bài gần nhất
+              </div>
             </div>
-            <div className="flex-1 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700/30">
-              <MockLineChart />
+            <div className="flex-1 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700/30 flex items-end">
+              <MockLineChart history={progress?.scoreHistory ?? []} />
             </div>
           </div>
 
-          {/* CTA Banner — keep dark green style but add light variant */}
+          {/* CTA Banner */}
           <div className="bg-emerald-50 dark:bg-vstep-dark rounded-2xl shadow-sm dark:shadow-xl p-5 text-slate-900 dark:text-white relative flex flex-col justify-between overflow-hidden border border-emerald-200 dark:border-transparent">
             <div className="relative z-10 space-y-3">
               <div className="w-10 h-10 bg-emerald-100 dark:bg-white/10 rounded-xl flex items-center justify-center border border-emerald-200 dark:border-white/20">
@@ -153,11 +211,11 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        {/* History Table */}
+        {/* Expandable History Table */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-sm">
           <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-900">
             <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">{t('dashboard.history.title')}</h2>
-            <Link href="/practice-list" className="text-emerald-600 dark:text-emerald-400 text-sm font-semibold hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1 transition-colors">
+            <Link href="/history" className="text-emerald-600 dark:text-emerald-400 text-sm font-semibold hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1 transition-colors">
               {t('dashboard.history.viewAll')} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -173,21 +231,33 @@ export default function StudentDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700/40">
-                {MOCK_HISTORY.map((item) => (
+                {history.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500 font-medium italic">
+                      Bạn chưa có bài viết nào. Hãy bắt đầu luyện tập ngay nhé!
+                    </td>
+                  </tr>
+                ) : history.map((item) => (
                   <React.Fragment key={item.id}>
                     <tr onClick={() => toggleRow(item.id)} className={`cursor-pointer transition-colors group ${expandedRow === item.id ? 'bg-slate-100 dark:bg-slate-700/30' : 'hover:bg-slate-50 dark:hover:bg-slate-700/20'}`}>
                       <td className="px-6 py-4">
-                        <p className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-1">{item.title}</p>
+                        <p className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-1">{item.questionTitle || "Đề bài tự do"}</p>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
-                          ${item.type === 'Task 1' ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' : 'bg-fuchsia-100 dark:bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400'}`}>
-                          {item.type}
+                          ${item.taskType === 'task1' ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' : 'bg-fuchsia-100 dark:bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400'}`}>
+                          {item.taskType === 'task1' ? 'Task 1: Letter' : 'Task 2: Essay'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400 font-medium">{item.date}</td>
+                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400 font-medium">
+                        {formatDate(item.createdAt)}
+                      </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-600 dark:bg-vstep-dark text-white font-black text-sm">
-                          {item.score.toFixed(1)}
-                        </span>
+                        {item.status === 'scored' ? (
+                          <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-600 dark:bg-vstep-dark text-white font-black text-sm">
+                            {item.overallScore?.toFixed(1) ?? 'N/A'}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500">{item.status}</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors inline-flex items-center">
@@ -198,25 +268,18 @@ export default function StudentDashboard() {
 
                     {expandedRow === item.id && (
                       <tr className="bg-slate-50 dark:bg-slate-900/60">
-                        <td colSpan={4} className="px-6 py-5 border-b border-slate-200 dark:border-slate-700/50">
-                          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-                            {[
-                              [t('dashboard.history.task'), item.details.taskFulfilment],
-                              [t('dashboard.history.coherence'), item.details.coherence],
-                              [t('dashboard.history.lexical'), item.details.lexical],
-                              [t('dashboard.history.grammar'), item.details.grammar],
-                            ].map(([label, val]) => (
-                              <div key={label as string} className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700/50 flex flex-col items-center text-center">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">{label as string}</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{(val as number).toFixed(1)}</span>
-                              </div>
-                            ))}
-                            <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700/50 flex items-center justify-center col-span-2 lg:col-span-1">
-                              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-9 rounded-lg text-xs" onClick={() => window.location.href=`/results/${item.id}`}>
-                                {t('dashboard.history.fullReport')}
+                        <td colSpan={4} className="px-6 py-6 border-b border-slate-200 dark:border-slate-700/50">
+                           <div className="flex items-center justify-center">
+                              <Button 
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-bold uppercase tracking-widest text-[10px] px-8 h-10 rounded-xl"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.location.href=`/practice/${item.questionId}/result?id=${item.id}`;
+                                }}
+                              >
+                                {t('dashboard.history.fullReport')} <ArrowRight className="w-4 h-4 ml-2" />
                               </Button>
-                            </div>
-                          </div>
+                           </div>
                         </td>
                       </tr>
                     )}

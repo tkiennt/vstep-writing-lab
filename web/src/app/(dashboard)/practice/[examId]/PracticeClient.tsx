@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ExamPrompt } from '@/types/grading';
 import { useAuth } from '@/hooks/useAuth';
 import { gradeEssay, GradeEssayRequest, startSession, updateSession, ExamSession } from '@/lib/api';
-import { Save, Loader2, BookOpen, Layers, CheckCircle2, ChevronUp, ChevronDown, X, AlertTriangle, LogOut, Sparkles, ArrowRight, Clock, Target } from 'lucide-react';
+import { Save, Loader2, BookOpen, Layers, CheckCircle2, ChevronUp, ChevronDown, X, AlertTriangle, AlertCircle, LogOut, Sparkles, ArrowRight, Clock, Target } from 'lucide-react';
 
 import { ModeSelector } from '@/components/features/practice/ModeSelector';
 import { GuidedPanel } from '@/components/features/practice/GuidedPanel';
@@ -273,18 +273,19 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
 
       {/* ── Overlay Modal while submitting ── */}
       {isSubmitting && (
-        <div className="absolute inset-0 z-50 bg-white/70 backdrop-blur-md flex items-center justify-center rounded-3xl animate-in fade-in">
-          <div className="bg-white p-10 rounded-3xl shadow-2xl flex flex-col items-center max-w-md text-center border border-emerald-100">
-            <div className="w-20 h-20 bg-emerald-50 rounded-full flex flex-col items-center justify-center mb-6 relative">
-              <Loader2 className="w-10 h-10 text-emerald-600 animate-spin absolute" />
+        <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-md flex items-center justify-center rounded-[2.5rem] animate-in fade-in duration-500">
+          <div className="flex flex-col items-center text-center">
+            <div className="relative mb-8">
+              <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center animate-pulse" />
+              <Loader2 className="w-10 h-10 text-emerald-600 animate-spin absolute inset-0 m-auto" />
             </div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">AI đang chấm bài...</h2>
-            <p className="text-slate-500 font-medium mt-3 mb-8">Xin đợi trong giây lát, kết quả phân tích chi tiết sẽ có sau 30-60 giây nữa. Vui lòng không rời khỏi trang.</p>
-
-            {/* Fake progress bar animation */}
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full w-full animate-[progress_60s_ease-out_forwards]" />
-            </div>
+            
+            <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-2">
+              AI đang chấm bài...
+            </h2>
+            <p className="text-emerald-600/60 font-black text-[10px] uppercase tracking-[0.3em]">
+              Đang phân tích kết quả
+            </p>
           </div>
         </div>
       )}
@@ -313,13 +314,6 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
               className="text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-slate-700 flex items-center gap-1"
             >
               {isPromptExpanded ? <><ChevronUp className="w-4 h-4" /> Thu gọn</> : <><ChevronDown className="w-4 h-4" /> Mở rộng</>}
-            </button>
-            <div className="w-px h-4 bg-slate-200 mx-2" />
-            <button
-              onClick={handleExitPractice}
-              className="text-rose-400 font-bold text-xs uppercase tracking-widest hover:text-rose-600 flex items-center gap-1 transition-colors"
-            >
-              <LogOut className="w-4 h-4" /> Thoát
             </button>
           </div>
         </div>
@@ -354,7 +348,17 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
               )}
             </div>
 
-            <CountdownTimer initialSeconds={initialSeconds} />
+            <div className="flex items-center gap-6">
+              <CountdownTimer initialSeconds={initialSeconds} />
+              <div className="w-px h-6 bg-slate-200" />
+              <button
+                onClick={handleExitPractice}
+                className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 border border-rose-100/50 shadow-sm whitespace-nowrap"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Thoát bài làm
+              </button>
+            </div>
           </div>
 
           <textarea
@@ -437,28 +441,39 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
 
       {/* ── Exit Confirmation Modal ── */}
       {showExitConfirm && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-sm w-full p-8 border border-slate-100 animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-6">
-              <AlertTriangle className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-2">Xác nhận thoát?</h3>
-            <p className="text-slate-500 font-medium leading-relaxed mb-8">
-              Mọi thay đổi chưa lưu có thể bị mất. Bạn có chắc chắn muốn rời khỏi bài làm không?
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() => setShowExitConfirm(false)}
-                className="px-6 py-4 rounded-2xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-all"
-              >
-                Tiếp tục viết
-              </button>
-              <button
-                onClick={confirmExit}
-                className="px-6 py-4 rounded-2xl bg-rose-600 text-white font-black text-sm hover:bg-rose-700 shadow-lg shadow-rose-900/20 transition-all"
-              >
-                Thoát ra
-              </button>
+        <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in duration-500">
+          <div className="bg-white rounded-[3.5rem] shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] max-w-md w-full overflow-hidden border border-white/20 animate-in zoom-in-95 duration-500 relative">
+            
+            {/* Background Decorative Gradient */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl -mr-24 -mt-24 pointer-events-none" />
+            
+            <div className="p-12 text-center relative z-10">
+              <div className="w-24 h-24 bg-rose-50 text-rose-600 rounded-[2.5rem] flex items-center justify-center mb-8 mx-auto rotate-6 shadow-xl shadow-rose-900/5 border border-rose-100/50">
+                <AlertCircle className="w-12 h-12" />
+              </div>
+
+              <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter">Bạn chắc chứ?</h3>
+              <p className="text-slate-500 font-bold leading-relaxed mb-10 px-4">
+                Dữ liệu chưa lưu có thể bị mất vĩnh viễn.<br/>
+                <span className="text-rose-500/60 font-black uppercase tracking-[0.2em] text-[10px] mt-4 block">Hãy cẩn thận!</span>
+              </p>
+
+              <div className="flex flex-col gap-4">
+                <button
+                  onClick={confirmExit}
+                  className="w-full group py-5 rounded-[2rem] bg-rose-600 text-white font-black text-lg hover:bg-rose-700 shadow-xl shadow-rose-900/20 active:scale-95 transition-all flex items-center justify-center gap-3"
+                >
+                  <LogOut className="w-6 h-6 group-hover:-translate-x-1 transition-transform" /> 
+                  Xác nhận thoát
+                </button>
+
+                <button
+                  onClick={() => setShowExitConfirm(false)}
+                  className="w-full py-4 rounded-2xl text-slate-400 font-black text-sm hover:text-slate-700 hover:bg-slate-50 transition-all uppercase tracking-widest"
+                >
+                  Quay lại làm bài
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -8,10 +8,11 @@ namespace VstepWritingLab.Data.PersistenceModels;
 public class GradingResultDocument
 {
     [FirestoreDocumentId] public string Id { get; set; } = string.Empty;
-    [FirestoreProperty] public string StudentId { get; set; } = string.Empty;
-    [FirestoreProperty] public string ExamId { get; set; } = string.Empty;
+    [FirestoreProperty("SubmissionId")] public string SubmissionId { get; set; } = string.Empty;
+    [FirestoreProperty("UserId")] public string StudentId { get; set; } = string.Empty;
+    [FirestoreProperty("QuestionId")] public string ExamId { get; set; } = string.Empty;
     [FirestoreProperty] public string TaskType { get; set; } = string.Empty;
-    [FirestoreProperty] public DateTime GradedAt { get; set; }
+    [FirestoreProperty("CreatedAt")] public DateTime GradedAt { get; set; }
     [FirestoreProperty] public double TotalScore { get; set; }
     [FirestoreProperty] public string CefrLevel { get; set; } = string.Empty;
     [FirestoreProperty] public string VstepComparison { get; set; } = string.Empty;
@@ -40,10 +41,12 @@ public class GradingResultDocument
 
     [FirestoreProperty] public string EssayText { get; set; } = string.Empty;
     [FirestoreProperty] public int    WordCount { get; set; }
+    [FirestoreProperty] public string Summary   { get; set; } = string.Empty;
 
-    public static GradingResultDocument FromDomain(GradingResult domain, string essayText, int wordCount) => new()
+    public static GradingResultDocument FromDomain(GradingResult domain) => new()
     {
         Id = domain.Id,
+        SubmissionId = domain.Id,
         StudentId = domain.StudentId,
         ExamId = domain.ExamId,
         TaskType = domain.TaskType,
@@ -67,19 +70,38 @@ public class GradingResultDocument
         SentenceFeedback = domain.SentenceFeedback,
         ImprovementTracking = domain.ImprovementTracking,
         Mode = domain.Mode,
-        EssayText = essayText,
-        WordCount = wordCount
+        EssayText = domain.EssayText,
+        WordCount = domain.WordCount,
+        Summary = domain.Summary
     };
 
     public GradingResult ToDomain()
     {
+        // Provide fallbacks for null objects (e.g. legacy data) to avoid NullReferenceException in domain constructor
+        var relevance = Relevance ?? new TaskRelevance(true, 10, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>());
+        var tf = TaskFulfilment ?? new CriterionScore(0, "N/A", "", "", "");
+        var org = Organization ?? new CriterionScore(0, "N/A", "", "", "");
+        var voc = Vocabulary ?? new CriterionScore(0, "N/A", "", "", "");
+        var gra = Grammar ?? new CriterionScore(0, "N/A", "", "", "");
+        var roadmap = Roadmap ?? new GradingRoadmap("", "", 0, Array.Empty<WeeklyPlanTask>());
+
         return new GradingResult(
             Id, StudentId, ExamId, TaskType, GradedAt,
-            Relevance, TaskFulfilment, Organization,
-            Vocabulary, Grammar, StrengthsVi, ImprovementsVi,
-            Corrections, AiModel, InlineHighlights,
-            RecommendedStructures, RewriteSamples, Roadmap!,
-            SentenceFeedback, ImprovementTracking, Mode
+            relevance, tf, org, voc, gra, 
+            StrengthsVi ?? Array.Empty<string>(), 
+            ImprovementsVi ?? Array.Empty<string>(),
+            Corrections ?? Array.Empty<Correction>(), 
+            AiModel ?? "", 
+            InlineHighlights ?? Array.Empty<InlineHighlight>(),
+            RecommendedStructures ?? Array.Empty<RecommendedStructure>(), 
+            RewriteSamples ?? Array.Empty<RewriteSample>(), 
+            roadmap,
+            SentenceFeedback ?? Array.Empty<SentenceFeedback>(), 
+            ImprovementTracking, 
+            Mode ?? "exam",
+            EssayText ?? "", 
+            WordCount,
+            Summary ?? "Xem chi tiết đánh giá từng tiêu chí bên dưới."
         );
     }
 }

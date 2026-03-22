@@ -2,13 +2,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
+using VstepWritingLab.Business.Interfaces;
 
 namespace VstepWritingLab.Data.Services.Gemini;
 
 public class GeminiClient(
     HttpClient _http,
     IConfiguration _config,
-    ILogger<GeminiClient> _logger)
+    ILogger<GeminiClient> _logger) : IAiClient
 {
     private string ApiKey     => _config["Gemini:ApiKey"]     ?? "";
     private string BaseModel  => _config["Gemini:BaseModel"]  ?? "gemini-2.5-flash";

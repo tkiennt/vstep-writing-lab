@@ -17,6 +17,31 @@ namespace VstepWritingLab.Shared.Models.DTOs.Responses
         public string Text { get; set; }
         public string Issue { get; set; }
         public string Type { get; set; }
+        public string Severity { get; set; } // "error" | "warning" | "good"
+    }
+
+    public class SentenceFeedbackResponse
+    {
+        public string Sentence { get; set; }
+        public bool IsGood { get; set; }
+        public string Explanation { get; set; }
+        public string Suggestion { get; set; }
+    }
+
+    public class RoadmapResponse
+    {
+        public string CurrentLevel { get; set; }
+        public string TargetLevel { get; set; }
+        public int EstimatedWeeks { get; set; }
+        public List<WeeklyPlanResponse> WeeklyPlan { get; set; }
+    }
+
+    public class WeeklyPlanResponse
+    {
+        public int Week { get; set; }
+        public string Focus { get; set; }
+        public string Goal { get; set; }
+        public List<string> Tasks { get; set; }
     }
 
     public class AiFeedbackResponse
@@ -24,12 +49,15 @@ namespace VstepWritingLab.Shared.Models.DTOs.Responses
         public string Summary { get; set; }
         public List<string> Suggestions { get; set; }
         public List<HighlightResponse> Highlights { get; set; }
+        public List<SentenceFeedbackResponse> SentenceFeedback { get; set; }
+        public RoadmapResponse? Roadmap { get; set; }
     }
 
     public class SubmissionResponse
     {
-        public string SubmissionId { get; set; }
+        public string Id { get; set; }
         public string QuestionId { get; set; }
+        public string QuestionTitle { get; set; }
         public string TaskType { get; set; }
         public string Mode { get; set; }
         public string EssayContent { get; set; }

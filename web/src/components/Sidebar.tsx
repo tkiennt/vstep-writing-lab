@@ -29,7 +29,7 @@ export function Sidebar({ role }: SidebarProps) {
     // User routes
     { titleKey: 'nav.dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['user'] },
     { titleKey: 'nav.examSystem', path: '/practice-list', icon: PenTool, roles: ['guest', 'user'] },
-    { titleKey: 'nav.myResults', path: '/results/list', icon: FileText, roles: ['user'] },
+    { titleKey: 'nav.myResults', path: '/history', icon: FileText, roles: ['user'] },
     { titleKey: 'nav.resources', path: '/resources', icon: Database, roles: ['user'] },
     
     // Teacher routes
