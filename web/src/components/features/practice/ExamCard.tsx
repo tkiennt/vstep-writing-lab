@@ -51,7 +51,7 @@ export const ExamCard: React.FC<ExamCardProps> = ({ exam, onSelect }) => {
       </div>
 
       {/* Title / Keyword */}
-      <h3 className="text-lg font-black text-slate-900 tracking-tight mb-3 line-clamp-1 group-hover:text-emerald-700 transition-colors">
+      <h3 className="text-lg font-black text-slate-900 tracking-tight mb-3 line-clamp-1 group-hover:text-emerald-700 transition-colors capitalize">
         {exam.topicKeyword}
       </h3>
 
@@ -68,8 +68,11 @@ export const ExamCard: React.FC<ExamCardProps> = ({ exam, onSelect }) => {
       </div>
 
       {/* Preview Instruction */}
-      <p className="text-slate-500 text-xs leading-relaxed line-clamp-3 italic mb-8 grow">
-        "{exam.instruction.slice(0, 150)}..."
+      <p className="text-slate-500 text-[11px] leading-relaxed line-clamp-5 italic mb-8 grow whitespace-pre-line">
+        "{exam.taskType.toLowerCase() === 'task1' 
+          ? (exam.instruction.split(/[.?!]/)[0] + '.')
+          : (exam.instruction.replace(/([•*])/g, '\n$1').trim().slice(0, 200) + (exam.instruction.length > 200 ? '...' : ''))
+        }"
       </p>
 
       {/* Footer / CTA */}

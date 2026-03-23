@@ -25,10 +25,10 @@ namespace VstepWritingLab.API.Controllers
             var uid    = this.GetUserId();
             var result = await _submissionService.SubmitEssayAsync(uid, request);
             return CreatedAtAction(nameof(GetById),
-                new { id = result.SubmissionId }, result);
+                new { id = result.Id }, result);
         }
 
-        [HttpGet]
+        [HttpGet("submission-history")]
         public async Task<IActionResult> GetHistory([FromQuery] int limit = 20)
         {
             var uid     = this.GetUserId();

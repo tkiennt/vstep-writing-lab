@@ -3,8 +3,10 @@ using VstepWritingLab.Domain.Entities;
 using VstepWritingLab.Domain.Interfaces;
 using VstepWritingLab.Domain.ValueObjects;
 using VstepWritingLab.Business.DTOs;
+using VstepWritingLab.Business.Helpers;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace VstepWritingLab.Business.UseCases;
 
@@ -14,16 +16,24 @@ public interface IGradeEssayUseCase
 }
 
 public class GradeEssayUseCase(
-    IGradingResultRepository repository,
     IGradingAiService aiService,
+    IGradingResultRepository repository,
     IExamPromptRepository promptRepository,
+    IExamSessionRepository sessionRepository,
     IRubricContextService rubricService,
-    IProgressUseCase progressUseCase,
+    IServiceScopeFactory scopeFactory,
     ILogger<GradeEssayUseCase> logger) : IGradeEssayUseCase
 {
     public async Task<Result<FullAnalysisResponse>> ExecuteAsync(GradeEssayCommand command, CancellationToken ct = default)
     {
-        // 1. Load exam + rubric context in parallel
+        // 1. Fetch active session first to determine identity
+        var activeSession = await sessionRepository.GetActiveSessionAsync(command.StudentId, command.EssayId, ct);
+        var resultId = activeSession?.Id ?? Guid.NewGuid().ToString();
+
+        logger.LogInformation("Processing grade for User: {StudentId}, Exam: {EssayId}, Session: {SessionId}", 
+            command.StudentId, command.EssayId, resultId);
+
+        // 2. Load exam + rubric context in parallel
         var examTask   = promptRepository.GetByIdAsync(command.EssayId, ct);
         var rubricTask = rubricService.GetContextAsync(command.EssayText, command.TaskType, ct);
         
@@ -35,7 +45,7 @@ public class GradeEssayUseCase(
 
         var rubricContext = await rubricTask;
 
-        // 2. Call AI Service (tuned model with fallback)
+        // 3. Call AI Service (tuned model with fallback)
         var domainHistory = command.UserHistory == null ? null : new Domain.ValueObjects.UserHistory(
             command.UserHistory.Weaknesses,
             command.UserHistory.PastScores,
@@ -44,16 +54,16 @@ public class GradeEssayUseCase(
         var aiResult = await aiService.GradeAsync(
             rubricContext, command.TaskType, command.Prompt,
             exam.KeyPoints, command.WordCount, command.EssayText,
-            command.Mode, domainHistory, ct);
+            command.Mode, domainHistory, command.Language ?? "vi", ct);
 
         if (!aiResult.IsSuccess || aiResult.Value == null) 
-            return Result<FullAnalysisResponse>.Fail(aiResult.Error ?? "AI grading failed");
+            return Result<FullAnalysisResponse>.Fail(FriendlyErrorMapper.MapAiError(aiResult.Error ?? "AI grading failed"));
         
         var ai = aiResult.Value;
 
-        // 3. Create Domain Entity
+        // 4. Create Domain Entity using existing session ID
         var gradingResult = new GradingResult(
-            Guid.NewGuid().ToString(),
+            resultId,
             command.StudentId,
             command.EssayId,
             command.TaskType,
@@ -73,10 +83,12 @@ public class GradeEssayUseCase(
             ai.Roadmap,
             ai.SentenceFeedback,
             ai.ImprovementTracking,
-            command.Mode
+            command.Mode,
+            command.EssayText,
+            command.WordCount
         );
 
-        // 4. Map to Response DTO
+        // 5. Map to Response DTO
         var response = new FullAnalysisResponse(
             gradingResult.Id,
             gradingResult.StudentId,
@@ -105,16 +117,32 @@ public class GradeEssayUseCase(
             gradingResult.Mode
         );
 
-        // 5. Save to Firestore + update progress (fire-and-forget)
-        if (command.Mode != "guide")
+        // 6. Persistence (Always save history)
+        logger.LogInformation("Saving grading result {ResultId} for user {StudentId} (Mode: {Mode})", 
+            gradingResult.Id, command.StudentId, command.Mode);
+            
+        await repository.SaveAsync(gradingResult, ct);
+        await promptRepository.IncrementUsageAsync(command.EssayId, ct);
+
+        // Update session status to Completed
+        if (activeSession != null)
         {
+            activeSession.Status = ExamSessionStatus.Completed;
+            activeSession.LastUpdatedAt = DateTime.UtcNow;
+            await sessionRepository.UpdateAsync(activeSession, ct);
+        }
+
+        // 7. Progress update (ONLY for exam mode)
+        if (command.Mode == "exam")
+        {
+            logger.LogInformation("Updating progress for user {StudentId} after Exam submission", command.StudentId);
             _ = Task.Run(async () => {
                 try {
-                    await repository.SaveAsync(gradingResult, command.EssayText, command.WordCount);
-                    await promptRepository.IncrementUsageAsync(command.EssayId);
-                    await progressUseCase.UpdateAsync(command.StudentId);
+                    using var scope = scopeFactory.CreateScope();
+                    var scopedProgress = scope.ServiceProvider.GetRequiredService<IProgressUseCase>();
+                    await scopedProgress.UpdateAsync(command.StudentId);
                 } catch (Exception ex) {
-                    logger.LogError(ex, "Background save failed for User {StudentId}", command.StudentId);
+                    logger.LogError(ex, "Background progress update failed for User {StudentId}", command.StudentId);
                 }
             });
         }

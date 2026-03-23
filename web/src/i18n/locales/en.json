@@ -10,7 +10,7 @@
     "userManagement": "User Management",
     "aiImportEngine": "AI Import Engine",
     "mainMenu": "Main Menu",
-    "logOut": "Log out",
+    "logOut": "Log Out",
     "signOut": "Sign Out",
     "myProfile": "My Profile",
     "accountSettings": "Account Settings",
@@ -20,24 +20,26 @@
     "header": {
       "badge": "Precision Analysis",
       "title": "VSTEP Writing Exam System",
-      "subtitle": "Experience AI-powered VSTEP Writing test system · Instant feedback · Optimal improvement path"
+      "subtitle": "Experience smart exam prep with AI · Instant feedback · Optimal improvement path"
     },
     "welcome": "Welcome back, {{name}}!",
     "overview": "Here's your learning overview.",
     "stats": {
       "totalEssays": "Total Essays Submitted",
       "avgBand": "Average Band Score",
-      "streak": "Current Streak",
+      "streak": "Learning Streak",
       "days": "Days"
     },
     "chart": {
       "title": "Progress Trend",
       "last30": "LAST 30 DAYS",
+      "last7": "LAST 7 ESSAYS",
       "allTime": "ALL TIME"
     },
+    "loading": "Loading your progress...",
     "cta": {
       "title": "Ready for the next challenge?",
-      "subtitle": "Keep your 5-day streak alive. We recommend a Task 1 Letter today.",
+      "subtitle": "Maintain your 5-day streak. We recommend practicing Task 1 today.",
       "button": "Start Practice"
     },
     "history": {
@@ -49,33 +51,34 @@
       "details": "Details",
       "task": "Task",
       "coherence": "Coherence",
-      "lexical": "Lexical",
+      "lexical": "Vocabulary",
       "grammar": "Grammar",
-      "fullReport": "Full Report"
+      "fullReport": "Full Report",
+      "empty": "You have no essays yet. Let's start practicing!"
     }
   },
   "practiceList": {
     "hero": {
-      "badge": "Official Exam Portals",
+      "badge": "Official Exam Portal",
       "title": "VSTEP Writing",
       "titleHighlight": "Exam System",
-      "subtitle": "Standardized IELTS-equivalent writing tests for B1, B2, and C1 levels. Real instructions, real pressure, real feedback."
+      "subtitle": "Standard writing exams equivalent to IELTS for B1, B2, and C1 levels. Real prompts, real pressure, real feedback."
     },
     "tabs": {
       "all": "All",
       "task1": "Task 1",
       "task2": "Task 2"
     },
-    "search": "Search by topic, keyword or instruction...",
-    "loading": "Initializing Exam Data...",
+    "search": "Search by topic, keyword or prompt...",
+    "loading": "Loading exam data...",
     "empty": {
-      "title": "No Exams Found",
-      "subtitle": "We couldn't find any exam prompts matching your search or filters.",
-      "reset": "RESET ALL FILTERS"
+      "title": "No exams found",
+      "subtitle": "No exams match your search or filters.",
+      "reset": "RESET FILTERS"
     },
     "card": {
-      "minutes20": "20 Minutes",
-      "minutes40": "40 Minutes",
+      "minutes20": "20 minutes",
+      "minutes40": "40 minutes",
       "difficulty": "Difficulty",
       "startExam": "START EXAM",
       "vstepTask1": "VSTEP Task 1",
@@ -86,11 +89,11 @@
   "auth": {
     "login": {
       "title": "Sign In",
-      "subtitle": "Welcome back — let's continue your progress.",
+      "subtitle": "Welcome back — continue your learning journey.",
       "googleBtn": "Sign in with Google",
-      "orEmail": "or login with email",
+      "orEmail": "or sign in with email",
       "emailLabel": "Email Address",
-      "emailPlaceholder": "you@university.edu.vn",
+      "emailPlaceholder": "you@school.edu.vn",
       "passwordLabel": "Password",
       "passwordPlaceholder": "••••••••",
       "forgotPassword": "Forgot password?",
@@ -105,26 +108,26 @@
       "backHome": "Back to Home"
     },
     "register": {
-      "title": "Create an account",
-      "subtitle": "Start your journey to VSTEP mastery today.",
+      "title": "Create Account",
+      "subtitle": "Start your VSTEP conquest today.",
       "fullName": "Full Name",
-      "fullNamePlaceholder": "Nguyen Van A",
+      "fullNamePlaceholder": "John Doe",
       "email": "Email Address",
-      "emailPlaceholder": "you@university.edu.vn",
+      "emailPlaceholder": "you@school.edu.vn",
       "password": "Password",
       "passwordPlaceholder": "Create a strong password",
       "confirmPassword": "Confirm Password",
-      "confirmPasswordPlaceholder": "Confirm your password",
-      "submitBtn": "Get Started",
+      "confirmPasswordPlaceholder": "Re-enter password",
+      "submitBtn": "Start Now",
       "submitting": "Creating account...",
       "hasAccount": "Already have an account?",
-      "signIn": "Sign in"
+      "signIn": "Sign In"
     },
     "errors": {
-      "invalidEmail": "Vui lòng sử dụng email hợp lệ",
-      "fullNameRequired": "Full name is required",
-      "emailRequired": "Email is required",
-      "passwordRequired": "Password is required",
+      "invalidEmail": "Please use a valid email",
+      "fullNameRequired": "Please enter your full name",
+      "emailRequired": "Please enter your email",
+      "passwordRequired": "Please enter your password",
       "passwordTooShort": "Password must be at least 8 characters",
       "confirmPasswordRequired": "Please confirm your password",
       "passwordMismatch": "Passwords do not match"
@@ -132,7 +135,7 @@
   },
   "profile": {
     "title": "Profile & Settings",
-    "subtitle": "Manage your account details and preferences.",
+    "subtitle": "Manage your information and account preferences.",
     "nav": {
       "personalInfo": "Personal Info",
       "learningGoals": "Learning Goals",
@@ -150,16 +153,16 @@
       "saveChanges": "Save Changes"
     },
     "goals": {
-      "title": "Target Band Score",
-      "question": "What is your target VSTEP level?",
+      "title": "Target Score",
+      "question": "Which VSTEP level do you want to achieve?",
       "intermediate": "Intermediate",
-      "upperInter": "Upper Inter",
+      "upperInter": "Upper Intermediate",
       "advanced": "Advanced",
       "saveGoals": "Save Goals"
     },
     "danger": {
       "title": "Danger Zone",
-      "subtitle": "Once you delete your account, there is no going back. Please be certain.",
+      "subtitle": "Once you delete your account, it cannot be recovered. Please be certain.",
       "deleteBtn": "Delete Account"
     }
   },
@@ -170,6 +173,162 @@
     "save": "Save",
     "loading": "Loading...",
     "error": "An error occurred",
-    "success": "Success"
+    "success": "Success",
+    "words": "words"
+  },
+  "result": {
+    "header": {
+      "badge": "Detailed Result",
+      "subtitle": "Essay analysis based on VSTEP Writing standards"
+    },
+    "scoreCard": {
+      "title": "Detailed Scorecard",
+      "overall": "Overall VSTEP Score",
+      "criteria": {
+        "taskFulfilment": "Task Fulfillment",
+        "organization": "Organization",
+        "vocabulary": "Vocabulary",
+        "grammar": "Grammar"
+      }
+    },
+    "aiSummary": {
+      "title": "AI Overall Feedback",
+      "suggestions": "Suggestions for Improvement"
+    },
+    "roadmap": {
+      "title": "Personalized Learning Roadmap",
+      "subtitle": "Next steps to improve your band score",
+      "week": "Week",
+      "action": "Action",
+      "target": "Target"
+    },
+    "cta": {
+      "back": "Back to Practice List",
+      "new": "Start New Practice"
+    }
+  },
+  "feedback": {
+    "annotation": "Feedback",
+    "sentence": "Sentence Feedback",
+    "strength": "Strength",
+    "error": "Needs Attention",
+    "warning": "Suggestion",
+    "upgrade": "Upgrade Suggestion",
+    "understand": "Understood, back to essay",
+    "detail": "Feedback Details",
+    "selected": "For selected paragraph",
+    "aiUpgrade": "AI Upgrade Suggestions",
+    "types": {
+      "grammar": "Grammar",
+      "vocabulary": "Vocabulary",
+      "organization": "Organization",
+      "sentence": "Sentence Analysis",
+      "strength": "Strength",
+      "error": "Error",
+      "suggestion": "Suggestion",
+      "task_relevance": "Task Relevance",
+      "coherence": "Coherence"
+    }
+  },
+  "progress": {
+    "title": "Your Progress",
+    "subtitle": "Track your scores and improvement over time.",
+    "loading": "Loading progress...",
+    "notLoggedIn": "Please log in to view your progress.",
+    "empty": {
+      "title": "No essays yet",
+      "subtitle": "Start practicing now to track your progress!",
+      "cta": "Write Now"
+    },
+    "stats": {
+      "avgScore": "Current Avg Score",
+      "totalSubmissions": "Total Submissions",
+      "trend": "Trend",
+      "relevance": "Task Relevance",
+      "submissionsCount": "essays",
+      "trendStable": "→ Stable",
+      "trendComparison": "vs last 5 essays",
+      "relevanceGood": "Very Good",
+      "relevanceImprove": "Needs Improvement",
+      "relevanceAttention": "Needs Attention"
+    },
+    "radar": {
+      "title": "4 Criteria Performance",
+      "weakest": "Weakest criterion",
+      "taskFulfilment": "Task\nFulfilment",
+      "organization": "Organization",
+      "vocabulary": "Vocabulary",
+      "grammar": "Grammar"
+    },
+    "history": {
+      "title": "Score History (Last 10)",
+      "tableTitle": "Last 10 Submissions",
+      "date": "Date",
+      "task": "Task",
+      "score": "Score",
+      "cefr": "CEFR",
+      "relevance": "Relevance",
+      "details": "Details",
+      "viewDetails": "View Details",
+      "relevant": "Relevant",
+      "offTopic": "Off Topic"
+    }
+  },
+  "history": {
+    "title": "Practice History",
+    "subtitle": "View all your past essays and feedback reports",
+    "loading": "Loading history...",
+    "empty": {
+      "title": "No essays yet",
+      "subtitle": "Start practicing to see your diagnostic reports and improvements here.",
+      "cta": "Start Writing Now"
+    },
+    "item": {
+      "defaultTitle": "Your Submission",
+      "mode": "mode"
+    }
+  },
+  "resources": {
+    "title": "Learning Resources",
+    "subtitle": "Enrich your vocabulary, master sentence structures, and study sample essays.",
+    "tabs": {
+      "vocab": "Vocabulary Bank",
+      "structures": "Sentence Structures",
+      "samples": "Annotated Samples"
+    },
+    "headers": {
+      "vocab": "Flashcards & Lexical Resource",
+      "structures": "Task-specific Sentence Blueprints",
+      "samples": "High-Scoring Essays"
+    },
+    "copy": "Copy",
+    "copySuccess": "Copied to clipboard!",
+    "ttsError": "Text-to-speech not supported in this browser.",
+    "search": "Search...",
+    "pro": {
+      "title": "Unlock Examiner Analysis",
+      "subtitle": "Upgrade to VSTEP Pro to read this full Band 8.0+ essay.",
+      "button": "Upgrade to Pro Now",
+      "price": "Starting from 49.000đ / month"
+    },
+    "structures": {
+      "contrastIntro": {
+        "label": "Contrast / Intro",
+        "description": "Use this in the introduction to quickly state the two sides of the topic and present your personal thesis statement."
+      },
+      "advantagePresentation": {
+        "label": "Advantage Presentation",
+        "description": "Use this structure to introduce a compelling argument or advantage for the topic."
+      }
+    },
+    "samples": {
+      "annotatedTitle": "Band 8.0+ Model Essay & Examiner Notes",
+      "annotatedSubtitle": "Task 2 · Global Warming · C1 Level",
+      "lexicalHighlightTooltip": "Lexical Highlight: Powerful academic collocation",
+      "lexicalHighlightDescription": "A powerful collocation that scores highly for vocabulary range."
+    },
+    "lexical": "Lexical Highlight",
+    "examinerNotes": "Examiner Notes",
+    "annotated": "Band 8.0+ Model Essay & Examiner Notes"
   }
 }

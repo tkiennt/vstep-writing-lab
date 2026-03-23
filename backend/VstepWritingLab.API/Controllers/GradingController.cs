@@ -33,6 +33,7 @@ public class GradingController(IGradeEssayUseCase useCase) : ControllerBase
             Prompt:    request.Prompt,
             EssayText: request.EssayText,
             WordCount: request.WordCount,
+            Language:  request.Language,
             Mode:      request.Mode,
             UserHistory: request.UserHistory == null ? null : new UserHistory(
                 request.UserHistory.Weaknesses,

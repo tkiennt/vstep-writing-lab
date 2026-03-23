@@ -129,6 +129,7 @@ export interface GradeEssayRequest {
   wordCount: number;
   // NEW:
   mode?:     "exam" | "practice" | "guide";
+  language?: string;
   userHistory?: UserHistoryType;
 }
 
@@ -164,7 +165,7 @@ export async function gradeEssay(request: GradeEssayRequest, studentId: string):
   // We do NOT retry on failure here: a retry would double wait time and token cost.
   const token = await getIdToken();
   const controller = new AbortController();
-  const timerId = setTimeout(() => controller.abort(), 120_000);
+  const timerId = setTimeout(() => controller.abort(), 180_000);
 
   let res: Response;
   try {
@@ -222,3 +223,41 @@ export async function updateSession(sessionId: string, request: UpdateSessionReq
     timeoutMs: 5_000,
   });
 }
+/**
+ * Fetch user progress (streak, averages, score history).
+ */
+export async function getProgress(): Promise<ProgressResponse> {
+  return fetchWithRetry<ProgressResponse>('/api/progress', {
+    timeoutMs: 5_000,
+  });
+}
+
+/**
+ * Fetch a list of past submissions for the current user.
+ */
+export async function getSubmissionHistory(limit = 20): Promise<SubmissionListItemResponse[]> {
+  return fetchWithRetry<SubmissionListItemResponse[]>(`/api/submissions/submission-history?limit=${limit}`, {
+    timeoutMs: 5_000,
+  });
+}
+
+/**
+ * Fetch full submission details (with feedback/scores).
+ */
+export async function getSubmissionById(id: string): Promise<GradingResult> {
+  return fetchWithRetry<GradingResult>(`/api/submissions/${id}`, {
+    timeoutMs: 5_000,
+  });
+}
+
+/**
+ * Retry a failed submission.
+ */
+export async function retrySubmission(id: string): Promise<GradingResult> {
+  return fetchWithRetry<GradingResult>(`/api/submissions/${id}/retry`, {
+    method: 'POST',
+    timeoutMs: 60_000, // Retrying involves AI, so give it time
+  });
+}
+
+import { ProgressResponse, SubmissionListItemResponse } from '@/types/grading';

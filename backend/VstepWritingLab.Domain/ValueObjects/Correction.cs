@@ -8,4 +8,7 @@ public record Correction(
     [property: FirestoreProperty("corrected")] string Corrected,
     [property: FirestoreProperty("reasonEn")] string ReasonEn,
     [property: FirestoreProperty("reasonVi")] string ReasonVi
-);
+)
+{
+    public Correction() : this("", "", "", "") { }
+}

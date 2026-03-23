@@ -32,26 +32,26 @@ function toDate(value: unknown): Date {
 function docToGradingResult(id: string, data: Record<string, any>): GradingResultDoc {
   return {
     id: id,
-    essayId: data.essayId ?? id,
-    taskType: data.taskType ?? 'task2',
-    userUid: data.userUid ?? data.studentId ?? '',
-    examId: data.examId ?? '',
-    gradedAt: toDate(data.gradedAt),
-    essayText: data.essayText ?? '',
-    wordCount: data.wordCount ?? 0,
-    aiModel: data.aiModel ?? '',
-    isRelevant: data.isRelevant ?? false,
-    relevanceScore: data.relevanceScore ?? 0,
+    essayId: data.essayId ?? data.QuestionId ?? id,
+    taskType: data.taskType ?? data.TaskType ?? 'task2',
+    userUid: data.userUid ?? data.studentId ?? data.UserId ?? data.StudentId ?? '',
+    examId: data.examId ?? data.QuestionId ?? '',
+    gradedAt: toDate(data.gradedAt ?? data.CreatedAt),
+    essayText: data.essayText ?? data.EssayText ?? '',
+    wordCount: data.wordCount ?? data.WordCount ?? 0,
+    aiModel: data.aiModel ?? data.AiModel ?? '',
+    isRelevant: data.isRelevant ?? data.Relevance?.isRelevant ?? false,
+    relevanceScore: data.relevanceScore ?? data.Relevance?.score ?? 0,
     verdictVi: data.verdictVi ?? '',
-    missingPointsVi: data.missingPointsVi ?? [],
-    offTopicSentences: data.offTopicSentences ?? [],
-    taskFulfilmentScore: data.taskFulfilment ?? 0,
-    organizationScore: data.organization ?? 0,
-    vocabularyScore: data.vocabulary ?? 0,
-    grammarScore: data.grammar ?? 0,
-    totalScore: data.totalScore ?? 0,
-    cefrLevel: data.cefrLevel ?? '',
-    vstepComparison: data.vstepComparison ?? '',
+    missingPointsVi: data.missingPointsVi ?? data.Relevance?.missingPoints ?? [],
+    offTopicSentences: data.offTopicSentences ?? data.Relevance?.offTopicSentences ?? [],
+    taskFulfilmentScore: data.taskFulfilment ?? data.TaskFulfilment?.score ?? 0,
+    organizationScore: data.organization ?? data.Organization?.score ?? 0,
+    vocabularyScore: data.vocabulary ?? data.Vocabulary?.score ?? 0,
+    grammarScore: data.grammar ?? data.Grammar?.score ?? 0,
+    totalScore: data.totalScore ?? data.TotalScore ?? 0,
+    cefrLevel: data.cefrLevel ?? data.CefrLevel ?? '',
+    vstepComparison: data.vstepComparison ?? data.VstepComparison ?? '',
     strengthsVi: data.strengthsVi ?? [],
     improvementsVi: data.improvementsVi ?? [],
     corrections: data.corrections ?? [],
@@ -107,7 +107,13 @@ function docToGradingResult(id: string, data: Record<string, any>): GradingResul
 export async function getExamPrompt(examId: string): Promise<ExamPrompt | null> {
   const snap = await getDoc(doc(db, 'exam_prompts', examId));
   if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() } as ExamPrompt;
+  const data = snap.data();
+  
+  // Convert any Firestore Timestamps to Dates to avoid Next.js serialization errors (toJSON)
+  const exam = { id: snap.id, ...data } as any;
+  if (exam.createdAt instanceof Timestamp) exam.createdAt = exam.createdAt.toDate();
+  
+  return exam as ExamPrompt;
 }
 
 /**
@@ -124,20 +130,20 @@ export async function getProgressSummary(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const d = snap.data() as Record<string, any>;
   return {
-    totalSubmissions: d.totalSubmissions ?? 0,
-    avgScore: d.avgScore ?? 0,
-    avgTaskFulfilment: d.avgTaskFulfilment ?? 0,
-    avgOrganization: d.avgOrganization ?? 0,
-    avgVocabulary: d.avgVocabulary ?? 0,
-    avgGrammar: d.avgGrammar ?? 0,
-    weakestCriterion: d.weakestCriterion ?? '',
+    totalSubmissions: d.TotalEssays ?? d.totalSubmissions ?? 0,
+    avgScore: d.WeightedOverallScore ?? d.avgScore ?? 0,
+    avgTaskFulfilment: d.AverageBySkill?.taskFulfilment ?? d.avgTaskFulfilment ?? 0,
+    avgOrganization: d.AverageBySkill?.organization ?? d.avgOrganization ?? 0,
+    avgVocabulary: d.AverageBySkill?.vocabulary ?? d.avgVocabulary ?? 0,
+    avgGrammar: d.AverageBySkill?.grammar ?? d.avgGrammar ?? 0,
+    weakestCriterion: d.WeakSkills?.[0] ?? d.weakestCriterion ?? '',
     strongestCriterion: d.strongestCriterion ?? '',
     trend: d.trend ?? 'Stable',
     trendValue: d.trendValue ?? 0,
     currentCefr: d.currentCefr ?? '',
-    vstepComparison: d.vstepComparison ?? '',
+    vstepComparison: d.VstepComparison ?? d.vstepComparison ?? '',
     relevanceRate: d.relevanceRate ?? 0,
-    lastUpdated: toDate(d.lastUpdated),
+    lastUpdated: toDate(d.LastUpdatedAt ?? d.lastUpdated),
   };
 }
 
@@ -152,8 +158,8 @@ export async function getGradingHistory(
   const col = collection(db, 'grading_results');
   const q = query(
     col,
-    where('studentId', '==', uid),
-    orderBy('gradedAt', 'desc'),
+    where('UserId', '==', uid),
+    orderBy('CreatedAt', 'desc'),
     limit(limitCount)
   );
   const snap = await getDocs(q);
@@ -175,8 +181,8 @@ export function subscribeToHistory(
   const col = collection(db, 'grading_results');
   const q = query(
     col,
-    where('studentId', '==', uid),
-    orderBy('gradedAt', 'desc'),
+    where('UserId', '==', uid),
+    orderBy('CreatedAt', 'desc'),
     limit(limitCount)
   );
 

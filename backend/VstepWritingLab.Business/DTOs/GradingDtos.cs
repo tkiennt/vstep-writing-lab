@@ -17,6 +17,7 @@ public record GradeEssayRequest(
     string   EssayText,
     int      WordCount,
     // NEW:
+    string   Language     = "vi",
     string   Mode         = "exam",    // "exam" | "practice" | "guide"
     UserHistoryRequest? UserHistory = null
 );
@@ -35,6 +36,7 @@ public record GradeEssayCommand(
     string   EssayText,
     int      WordCount,
     // NEW:
+    string   Language    = "vi",
     string   Mode        = "exam",
     UserHistory? UserHistory = null
 );

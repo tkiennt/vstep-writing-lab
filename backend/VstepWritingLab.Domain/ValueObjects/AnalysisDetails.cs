@@ -10,21 +10,30 @@ public record InlineHighlight(
     [property: FirestoreProperty("issueVi")]  string IssueVi,
     [property: FirestoreProperty("fix")]      string Fix,
     [property: FirestoreProperty("category")] string Category  // "grammar" | "vocabulary" | etc
-);
+)
+{
+    public InlineHighlight() : this("error", "", "", "", "", "grammar") { }
+}
 
 [FirestoreData]
 public record RecommendedStructure(
     [property: FirestoreProperty("structureName")] string StructureName,
     [property: FirestoreProperty("example")]       string Example,
     [property: FirestoreProperty("whyUseItVi")]    string WhyUseItVi
-);
+)
+{
+    public RecommendedStructure() : this("", "", "") { }
+}
 
 [FirestoreData]
 public record RewriteSample(
     [property: FirestoreProperty("original")]      string Original,
     [property: FirestoreProperty("rewritten")]     string Rewritten,
     [property: FirestoreProperty("explanationVi")] string ExplanationVi
-);
+)
+{
+    public RewriteSample() : this("", "", "") { }
+}
 
 [FirestoreData]
 public record GradingRoadmap(
@@ -32,7 +41,10 @@ public record GradingRoadmap(
     [property: FirestoreProperty("targetLevel")]    string TargetLevel,
     [property: FirestoreProperty("estimatedWeeks")] int    EstimatedWeeks,
     [property: FirestoreProperty("weeklyPlan")]     WeeklyPlanTask[] WeeklyPlan
-);
+)
+{
+    public GradingRoadmap() : this("", "", 0, Array.Empty<WeeklyPlanTask>()) { }
+}
 
 [FirestoreData]
 public record WeeklyPlanTask(
@@ -40,4 +52,7 @@ public record WeeklyPlanTask(
     [property: FirestoreProperty("focus")] string   Focus,
     [property: FirestoreProperty("tasks")] string[] Tasks,
     [property: FirestoreProperty("goal")]  string   Goal
-);
+)
+{
+    public WeeklyPlanTask() : this(0, "", Array.Empty<string>(), "") { }
+}

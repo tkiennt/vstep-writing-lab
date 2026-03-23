@@ -175,7 +175,7 @@ export interface EssaySubmission {
 }
 
 export interface SubmissionResponse {
-  submissionId: string;
+  id: string;
   questionId: string;
   taskType: string;
   mode: string;
@@ -191,7 +191,7 @@ export interface SubmissionResponse {
 }
 
 export interface SubmissionListItemResponse {
-  submissionId: string;
+  id: string;
   questionId: string;
   questionTitle: string;
   taskType: string;

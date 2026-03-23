@@ -6,6 +6,7 @@ using VstepWritingLab.Data.Repositories;
 using VstepWritingLab.Data.Services;
 using VstepWritingLab.Data.Services.Gemini;
 using VstepWritingLab.Data.Services.Qdrant;
+using VstepWritingLab.Business.Interfaces;
 using VstepWritingLab.Business.UseCases;
 using Google.Cloud.Firestore;
 using Qdrant.Client;
@@ -32,7 +33,7 @@ public static class DependencyInjection
 
         // Gemini Services
         services.AddHttpClient<GeminiClient>();
-        services.AddSingleton<GeminiClient>();
+        services.AddSingleton<IAiClient, GeminiClient>();
         services.AddSingleton<IGradingAiService, GeminiGradingService>();
 
 

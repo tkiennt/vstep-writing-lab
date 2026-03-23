@@ -1,14 +1,16 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, PenTool, FileText, BookOpen, Database,
-  Users, Cpu, LogOut, Settings
+  Users, Cpu, LogOut, Settings, Languages
 } from 'lucide-react';
 import { Role } from '@/config/routes';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
+import { STORAGE_KEY } from '@/i18n/config';
 
 interface SidebarProps {
   role: Role;
@@ -17,13 +19,18 @@ interface SidebarProps {
 export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const MENU_ITEMS = [
     // User routes
     { titleKey: 'nav.dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['user'] },
     { titleKey: 'nav.examSystem', path: '/practice-list', icon: PenTool, roles: ['guest', 'user'] },
-    { titleKey: 'nav.myResults', path: '/results/list', icon: FileText, roles: ['user'] },
+    { titleKey: 'nav.myResults', path: '/history', icon: FileText, roles: ['user'] },
     { titleKey: 'nav.resources', path: '/resources', icon: Database, roles: ['user'] },
     
     // Teacher routes
@@ -56,8 +63,8 @@ export function Sidebar({ role }: SidebarProps) {
 
       {/* Menu */}
       <div className="flex-1 overflow-y-auto py-5 px-3 space-y-0.5">
-        <div className="mb-3 px-3 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
-          {t('nav.mainMenu')}
+        <div className="mb-3 px-3 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest min-h-[1rem]">
+          {mounted ? t('nav.mainMenu') : ''}
         </div>
         {filteredMenuItems.map((item) => {
           const isActive = pathname.startsWith(item.path);
@@ -72,11 +79,43 @@ export function Sidebar({ role }: SidebarProps) {
               }`}
             >
               <item.icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
-              <span className="text-sm">{t(item.titleKey)}</span>
+              <span className="text-sm">{mounted ? t(item.titleKey) : ''}</span>
               {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />}
             </Link>
           );
         })}
+      </div>
+
+      {/* Language Switcher */}
+      <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-700/40">
+        <div className="flex items-center justify-between p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+           <button 
+             onClick={() => {
+               i18n.changeLanguage('vi');
+               localStorage.setItem(STORAGE_KEY, 'vi');
+             }}
+             className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 ${
+               i18n.language === 'vi' 
+                 ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm grow-[1.2]' 
+                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+             }`}
+           >
+             Tiếng Việt
+           </button>
+           <button 
+             onClick={() => {
+               i18n.changeLanguage('en');
+               localStorage.setItem(STORAGE_KEY, 'en');
+             }}
+             className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 ${
+               i18n.language === 'en' 
+                 ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm grow-[1.2]' 
+                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+             }`}
+           >
+             English
+           </button>
+        </div>
       </div>
 
       {/* Logout */}
@@ -86,7 +125,7 @@ export function Sidebar({ role }: SidebarProps) {
           className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-slate-500 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 transition-all duration-150"
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          <span className="text-sm font-medium">{t('nav.logOut')}</span>
+          <span className="text-sm font-medium">{mounted ? t('nav.logOut') : ''}</span>
         </button>
       </div>
     </aside>

@@ -3,6 +3,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>vstep-writing-lab-api-secret-12345</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FirebaseAdmin" />

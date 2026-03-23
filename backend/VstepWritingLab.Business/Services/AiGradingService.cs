@@ -26,24 +26,24 @@ namespace VstepWritingLab.Business.Services
 
     public class AiGradingService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IAiClient _aiClient;
         private readonly IConfiguration _config;
         private readonly IRubricRepository _rubricRepo;
         private readonly IAiUsageLogRepository _aiLogRepo;
         private readonly ILogger<AiGradingService> _logger;
 
         public AiGradingService(
-            IHttpClientFactory httpClientFactory,
+            IAiClient aiClient,
             IConfiguration config,
             IRubricRepository rubricRepo,
             IAiUsageLogRepository aiLogRepo,
             ILogger<AiGradingService> logger)
         {
-            _httpClientFactory = httpClientFactory;
-            _config            = config;
-            _rubricRepo        = rubricRepo;
-            _aiLogRepo         = aiLogRepo;
-            _logger            = logger;
+            _aiClient      = aiClient;
+            _config       = config;
+            _rubricRepo   = rubricRepo;
+            _aiLogRepo    = aiLogRepo;
+            _logger       = logger;
         }
 
         public async Task<AiGradingResult> GradeAsync(
@@ -52,48 +52,22 @@ namespace VstepWritingLab.Business.Services
             TaskModel task)
         {
             var startTime = DateTime.UtcNow;
-            var apiKey = _config["Gemini:ApiKey"];
-            var modelName = _config["Gemini:Model"] ?? "gemini-2.5-flash";
-            var url = $"v1beta/models/{modelName}:generateContent?key={apiKey}";
+            string modelUsed = "unknown";
 
             try
             {
                 var rubric = await _rubricRepo.GetByTaskTypeAsync(submission.TaskType);
                 if (rubric == null) throw new Exception($"Rubric not found for {submission.TaskType}");
 
-                var systemPrompt = ConstructSystemPrompt(rubric);
+                var systemPrompt = ConstructSystemPrompt(rubric, submission.Language ?? "vi");
                 var userPrompt = ConstructUserPrompt(submission, question, task);
 
-                var requestBody = new GeminiRequest
-                {
-                    SystemInstruction = new GeminiSystemInstruction
-                    {
-                        Parts = new List<GeminiPart> { new() { Text = systemPrompt } }
-                    },
-                    Contents = new List<GeminiContent>
-                    {
-                        new() { Parts = new List<GeminiPart> { new() { Text = userPrompt } } }
-                    },
-                    GenerationConfig = new GeminiGenerationConfig
-                    {
-                        ResponseMimeType = "application/json"
-                    }
-                };
-
-                using var client = _httpClientFactory.CreateClient("GeminiClient");
-                var response = await client.PostAsJsonAsync(url, requestBody);
-                
-                if (!response.IsSuccessStatusCode)
-                {
-                    var error = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Gemini API error: {response.StatusCode} - {error}");
-                }
-
-                var geminiResponse = await response.Content.ReadFromJsonAsync<GeminiResponse>();
-                var jsonResult = geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
+                // Call the unified Gemini/Vertex client
+                var (jsonResult, modelUsedName) = await _aiClient.GenerateAsync(systemPrompt, userPrompt);
+                modelUsed = modelUsedName;
 
                 if (string.IsNullOrWhiteSpace(jsonResult))
-                    throw new Exception("Gemini returned empty content");
+                    throw new Exception("AI returned empty content");
 
                 var startIndex = jsonResult.IndexOf('{');
                 var endIndex = jsonResult.LastIndexOf('}');
@@ -117,20 +91,23 @@ namespace VstepWritingLab.Business.Services
                 };
 
                 var latency = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;
-                await LogUsageAsync(submission, modelName, geminiResponse.UsageMetadata, latency);
+                // Dummy usage metadata since GenerateAsync returns raw text
+                var usage = new GeminiUsageMetadata { TotalTokenCount = 0 }; 
+                await LogUsageAsync(submission, modelUsed, usage, latency);
 
                 return result;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "AI Grading failed for submission {Id}", submission.SubmissionId);
-                await LogErrorAsync(submission, modelName, ex.Message, (int)(DateTime.UtcNow - startTime).TotalMilliseconds);
+                await LogErrorAsync(submission, modelUsed, ex.Message, (int)(DateTime.UtcNow - startTime).TotalMilliseconds);
                 throw;
             }
         }
 
-        private string ConstructSystemPrompt(RubricModel rubric)
+        private string ConstructSystemPrompt(RubricModel rubric, string language)
         {
+            var targetLang = language == "en" ? "English" : "Vietnamese";
             var prompt = $@"You are an expert VSTEP Writing Examiner. Your task is to grade a student's essay based on the official VSTEP Rating Scale.
 
 RUBRIC DATA:
@@ -152,23 +129,42 @@ RESPONSE FORMAT:
 You must return a valid JSON object strictly following this structure:
 {
   ""score"": {
-    ""taskFulfilment"": number,
-    ""organization"": number,
-    ""vocabulary"": number,
-    ""grammar"": number,
-    ""overall"": number
+    ""taskFulfilment"": 0-10 integer,
+    ""organization"": 0-10 integer,
+    ""vocabulary"": 0-10 integer,
+    ""grammar"": 0-10 integer,
+    ""overall"": 0-10 number
   },
   ""summary"": ""concise overall feedback"",
   ""suggestions"": [""specific improvement 1"", ""specific improvement 2""],
-  ""highlights"": [
-    { ""text"": ""exact text from essay"", ""issue"": ""description of error"", ""type"": ""grammar|vocabulary|structure"" }
-  ]
+  ""annotations"": [
+    { ""startIndex"": number, ""endIndex"": number, ""type"": ""grammar|vocabulary|structure|off_topic|strength"", ""message"": ""error description"", ""suggestion"": ""suggested correction"", ""severity"": ""error|warning|info|good"" }
+  ],
+  ""sentenceAnalysis"": [
+    { ""sentence"": ""full sentence"", ""quality"": ""strong|adequate|weak"", ""feedbackVi"": ""critique of this specific sentence"", ""improvedVersion"": ""better way to write it"", ""structureUsed"": ""name of grammar structure"" }
+  ],
+  ""suggestedStructures"": [
+    { ""structure"": ""name"", ""example"": ""example sentence"", ""usageTip"": ""how to use it"" }
+  ],
+  ""taskRelevance"": {
+    ""isRelevant"": boolean,
+    ""relevanceScore"": 0-100,
+    ""verdictVi"": ""explanation of relevance"",
+    ""missingPointsVi"": [""point 1"", ""point 2""],
+    ""offTopicSentencesEn"": []
+  }
 }
+
+LANGUAGE RULE:
+You MUST provide all natural language fields (summary, suggestions, annotations.message, annotations.suggestion, sentenceAnalysis.feedbackVi, sentenceAnalysis.improvedVersion, suggestedStructures.structure, suggestedStructures.example, suggestedStructures.usageTip, taskRelevance.verdictVi, taskRelevance.missingPointsVi) strictly in " + targetLang + @". 
+Do NOT use any other language for these fields. 
+The names like 'feedbackVi' and 'verdictVi' must still be used in JSON keys, but their values must be in " + targetLang + @".
 
 GRADING RULES:
 1. Overall score is the average of the 4 criteria scores.
 2. Be strict but fair according to the descriptors.
-3. Identify at least 3-5 key highlights (errors or areas for improvement).
+3. Identify at least 5-10 key annotations (errors or areas for improvement).
+4. Provide analysis for important sentences in the essay.
 ";
             return prompt;
         }

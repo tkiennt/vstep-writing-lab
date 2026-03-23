@@ -45,6 +45,8 @@ namespace VstepWritingLab.Shared.Models.Entities
         [FirestoreProperty] public int RetryCount { get; set; }
         // increments on each retry, max 3
 
+        [FirestoreProperty] public string Language { get; set; } = "vi";
+
         [FirestoreProperty] public Timestamp CreatedAt { get; set; }
 
         [FirestoreProperty] public Timestamp? ScoredAt { get; set; }

@@ -24,7 +24,7 @@ if (!string.IsNullOrEmpty(credentialPath))
         using var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read);
         FirebaseApp.Create(new AppOptions
         {
-            Credential = GoogleCredential.FromStream(stream)
+            Credential = GoogleCredential.FromFile(credentialPath)
         });
     }
 }
@@ -105,7 +105,11 @@ builder.Services.AddTransient<GlobalExceptionHandler>();
 builder.Services.AddMemoryCache();
 builder.Services.AddResponseCaching();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

@@ -23,11 +23,12 @@ import { TrendingUp, TrendingDown, Minus, PenLine } from 'lucide-react';
 import { getProgressSummary, subscribeToHistory } from '@/lib/firestore';
 import type { ProgressSummary, GradingResultDoc } from '@/types/grading';
 import { useGradingAuth } from '@/hooks/useGradingAuth';
+import { useTranslation } from 'react-i18next';
 
 // ── Helpers ──────────────────────────────────────────────────
 
-function formatDate(d: Date): string {
-  return new Date(d).toLocaleDateString('vi-VN', {
+function formatDate(d: Date, lang: string = 'vi'): string {
+  return new Date(d).toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', {
     day: '2-digit',
     month: '2-digit',
   });
@@ -65,22 +66,23 @@ function LoadingSkeleton() {
 // ── Empty state ───────────────────────────────────────────────
 
 function EmptyState() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <div className="rounded-full bg-indigo-500/10 p-6 mb-4 border border-indigo-500/20">
         <PenLine className="h-10 w-10 text-indigo-400" />
       </div>
       <h2 className="text-xl font-semibold text-foreground mb-2">
-        Chưa có bài nào
+        {t('progress.empty.title')}
       </h2>
       <p className="text-muted-foreground mb-6 max-w-xs">
-        Bắt đầu luyện tập ngay để theo dõi tiến độ của bạn!
+        {t('progress.empty.subtitle')}
       </p>
       <Link
-        href="/practice"
+        href="/practice-list"
         className="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
       >
-        Viết bài ngay
+        {t('progress.empty.cta')}
       </Link>
     </div>
   );
@@ -89,6 +91,7 @@ function EmptyState() {
 // ── Section 1: Overview cards ─────────────────────────────────
 
 function OverviewCards({ summary }: { summary: ProgressSummary }) {
+  const { t } = useTranslation();
   const trendIcon =
     summary.trend === 'Improving' ? (
       <TrendingUp className="h-4 w-4 text-emerald-400" />
@@ -103,11 +106,11 @@ function OverviewCards({ summary }: { summary: ProgressSummary }) {
       ? `↗ +${summary.trendValue.toFixed(1)}`
       : summary.trend === 'Declining'
       ? `↘ ${summary.trendValue.toFixed(1)}`
-      : '→ Ổn định';
+      : t('progress.stats.trendStable');
 
   const cards = [
     {
-      label: 'Điểm TB hiện tại',
+      label: t('progress.stats.avgScore'),
       value: (
         <div className="flex items-center gap-2">
           <span className="text-3xl font-bold text-indigo-400">
@@ -121,16 +124,16 @@ function OverviewCards({ summary }: { summary: ProgressSummary }) {
       sub: summary.vstepComparison,
     },
     {
-      label: 'Tổng bài đã nộp',
+      label: t('progress.stats.totalSubmissions'),
       value: (
         <span className="text-3xl font-bold text-foreground">
           {summary.totalSubmissions}
         </span>
       ),
-      sub: 'bài viết',
+      sub: t('progress.stats.submissionsCount'),
     },
     {
-      label: 'Xu hướng',
+      label: t('progress.stats.trend'),
       value: (
         <div className="flex items-center gap-2">
           {trendIcon}
@@ -147,10 +150,10 @@ function OverviewCards({ summary }: { summary: ProgressSummary }) {
           </span>
         </div>
       ),
-      sub: 'so với 5 bài gần nhất',
+      sub: t('progress.stats.trendComparison'),
     },
     {
-      label: 'Bám đề',
+      label: t('progress.stats.relevance'),
       value: (
         <span
           className={`text-3xl font-bold ${relevanceColor(summary.relevanceRate)}`}
@@ -160,10 +163,10 @@ function OverviewCards({ summary }: { summary: ProgressSummary }) {
       ),
       sub:
         summary.relevanceRate >= 80
-          ? 'Rất tốt'
+          ? t('progress.stats.relevanceGood')
           : summary.relevanceRate >= 60
-          ? 'Cần cải thiện'
-          : 'Cần chú ý',
+          ? t('progress.stats.relevanceImprove')
+          : t('progress.stats.relevanceAttention'),
     },
   ];
 
@@ -188,16 +191,17 @@ function OverviewCards({ summary }: { summary: ProgressSummary }) {
 // ── Section 2: Radar chart ────────────────────────────────────
 
 function CriteriaRadar({ summary }: { summary: ProgressSummary }) {
+  const { t } = useTranslation();
   const data = [
-    { criterion: 'Hoàn thành\nnhiệm vụ', value: summary.avgTaskFulfilment },
-    { criterion: 'Tổ chức', value: summary.avgOrganization },
-    { criterion: 'Từ vựng', value: summary.avgVocabulary },
-    { criterion: 'Ngữ pháp', value: summary.avgGrammar },
+    { criterion: t('progress.radar.taskFulfilment'), value: summary.avgTaskFulfilment },
+    { criterion: t('progress.radar.organization'), value: summary.avgOrganization },
+    { criterion: t('progress.radar.vocabulary'), value: summary.avgVocabulary },
+    { criterion: t('progress.radar.grammar'), value: summary.avgGrammar },
   ];
 
   return (
     <div className="rounded-2xl border border-border bg-card shadow-sm p-5">
-      <h3 className="text-base font-semibold text-foreground mb-1">Năng lực 4 tiêu chí</h3>
+      <h3 className="text-base font-semibold text-foreground mb-1">{t('progress.radar.title')}</h3>
       <ResponsiveContainer width="100%" height={220}>
         <RadarChart data={data} cx="50%" cy="50%" outerRadius={80}>
           <PolarGrid stroke="rgba(255,255,255,0.1)" />
@@ -215,7 +219,7 @@ function CriteriaRadar({ summary }: { summary: ProgressSummary }) {
         </RadarChart>
       </ResponsiveContainer>
       <p className="text-xs text-red-400 text-center mt-1">
-        Tiêu chí yếu nhất:{' '}
+        {t('progress.radar.weakest')}:{' '}
         <span className="font-semibold">{summary.weakestCriterion}</span>
       </p>
     </div>
@@ -237,20 +241,21 @@ function ColoredDot(props: any) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomTooltip({ active, payload }: any) {
+  const { t, i18n } = useTranslation();
   if (!active || !payload?.length) return null;
   const d = payload[0].payload as GradingResultDoc;
   return (
     <div className="rounded-xl bg-card border border-border shadow-lg px-3 py-2 text-xs space-y-0.5">
-      <p className="font-semibold text-foreground">{formatDate(d.gradedAt)}</p>
+      <p className="font-semibold text-foreground">{formatDate(d.gradedAt, i18n.language)}</p>
       <p>
-        Điểm:{' '}
+        {t('progress.history.score')}:{' '}
         <span className="font-bold text-indigo-400">{d.totalScore.toFixed(1)}</span>
       </p>
-      <p className="text-muted-foreground">CEFR: {d.cefrLevel}</p>
+      <p className="text-muted-foreground">{t('progress.history.cefr')}: {d.cefrLevel}</p>
       <p>
-        {d.taskType === 'task1' ? 'Task 1' : 'Task 2'} —{' '}
+        {d.taskType === 'task1' ? t('practiceList.tabs.task1') : t('practiceList.tabs.task2')} —{' '}
         <span className={d.isRelevant ? 'text-emerald-400' : 'text-red-400'}>
-          {d.isRelevant ? 'Bám đề' : 'Lạc đề'}
+          {d.isRelevant ? t('progress.history.relevant') : t('progress.history.offTopic')}
         </span>
       </p>
     </div>
@@ -258,19 +263,20 @@ function CustomTooltip({ active, payload }: any) {
 }
 
 function ScoreHistoryChart({ history }: HistoryChartProps) {
+  const { t, i18n } = useTranslation();
   const data = [...history]
     .reverse()
     .slice(-10)
     .map((h) => ({
       ...h,
-      date: formatDate(h.gradedAt),
+      date: formatDate(h.gradedAt, i18n.language),
       score: h.totalScore,
     }));
 
   return (
     <div className="rounded-2xl border border-border bg-card shadow-sm p-5">
       <h3 className="text-base font-semibold text-foreground mb-4">
-        Lịch sử điểm (10 bài gần nhất)
+        {t('progress.history.title')}
       </h3>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data} margin={{ top: 4, right: 8, bottom: 4, left: -20 }}>
@@ -294,23 +300,24 @@ function ScoreHistoryChart({ history }: HistoryChartProps) {
 // ── Section 4: History table ──────────────────────────────────
 
 function HistoryTable({ history }: { history: GradingResultDoc[] }) {
+  const { t, i18n } = useTranslation();
   return (
     <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
       <div className="px-5 py-4 border-b border-border">
         <h3 className="text-base font-semibold text-foreground">
-          10 bài gần nhất
+          {t('progress.history.tableTitle')}
         </h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wider">
-              <th className="text-left px-5 py-3">Ngày</th>
-              <th className="text-left px-5 py-3">Task</th>
-              <th className="text-left px-5 py-3">Điểm</th>
-              <th className="text-left px-5 py-3">CEFR</th>
-              <th className="text-left px-5 py-3">Bám đề</th>
-              <th className="text-left px-5 py-3">Chi tiết</th>
+              <th className="text-left px-5 py-3">{t('progress.history.date')}</th>
+              <th className="text-left px-5 py-3">{t('progress.history.task')}</th>
+              <th className="text-left px-5 py-3">{t('progress.history.score')}</th>
+              <th className="text-left px-5 py-3">{t('progress.history.cefr')}</th>
+              <th className="text-left px-5 py-3">{t('progress.history.relevance')}</th>
+              <th className="text-left px-5 py-3">{t('progress.history.details')}</th>
             </tr>
           </thead>
           <tbody>
@@ -320,7 +327,7 @@ function HistoryTable({ history }: { history: GradingResultDoc[] }) {
                 className="border-b border-border hover:bg-muted/30 transition-colors"
               >
                 <td className="px-5 py-3 tabular-nums text-muted-foreground">
-                  {formatDate(row.gradedAt)}
+                  {formatDate(row.gradedAt, i18n.language)}
                 </td>
                 <td className="px-5 py-3">
                   <span
@@ -330,7 +337,7 @@ function HistoryTable({ history }: { history: GradingResultDoc[] }) {
                         : 'bg-orange-500/15 text-orange-400'
                     }`}
                   >
-                    {row.taskType === 'task1' ? 'Task 1' : 'Task 2'}
+                    {row.taskType === 'task1' ? t('practiceList.tabs.task1') : t('practiceList.tabs.task2')}
                   </span>
                 </td>
                 <td className="px-5 py-3 font-bold tabular-nums text-indigo-400">
@@ -349,7 +356,7 @@ function HistoryTable({ history }: { history: GradingResultDoc[] }) {
                     href={`/practice/${row.promptId}/result?id=${row.id}`}
                     className="text-indigo-400 hover:text-indigo-300 underline text-xs"
                   >
-                    Xem chi tiết
+                    {t('progress.history.viewDetails')}
                   </Link>
                 </td>
               </tr>
@@ -364,6 +371,7 @@ function HistoryTable({ history }: { history: GradingResultDoc[] }) {
 // ── Page ──────────────────────────────────────────────────────
 
 export default function ProgressPage() {
+  const { t, i18n } = useTranslation();
   const { user, loading: authLoading } = useGradingAuth();
   const [summary, setSummary] = useState<ProgressSummary | null>(null);
   const [history, setHistory] = useState<GradingResultDoc[]>([]);
@@ -400,9 +408,9 @@ export default function ProgressPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Tiến độ của bạn</h1>
+        <h1 className="text-3xl font-bold text-foreground">{t('progress.title')}</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Theo dõi điểm số và tiến bộ theo thời gian.
+          {t('progress.subtitle')}
         </p>
       </div>
 
@@ -410,7 +418,7 @@ export default function ProgressPage() {
         <LoadingSkeleton />
       ) : !user ? (
         <div className="text-center py-10 text-muted-foreground">
-          Vui lòng đăng nhập để xem tiến độ.
+          {t('progress.notLoggedIn')}
         </div>
       ) : history.length === 0 && !summary ? (
         <EmptyState />

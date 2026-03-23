@@ -10,9 +10,9 @@ public class FirestoreGradingResultRepository(FirestoreDb _db) : IGradingResultR
 {
     private const string COLLECTION = "grading_results";
 
-    public async Task<string> SaveAsync(GradingResult result, string essayText, int wordCount, CancellationToken ct = default)
+    public async Task<string> SaveAsync(GradingResult result, CancellationToken ct = default)
     {
-        var doc = GradingResultDocument.FromDomain(result, essayText, wordCount);
+        var doc = GradingResultDocument.FromDomain(result);
         await _db.Collection(COLLECTION).Document(result.Id).SetAsync(doc, cancellationToken: ct);
         return result.Id;
     }
@@ -30,12 +30,12 @@ public class FirestoreGradingResultRepository(FirestoreDb _db) : IGradingResultR
         string studentId, string? taskType = null, int limit = 20, CancellationToken ct = default)
     {
         var query = _db.Collection(COLLECTION)
-            .WhereEqualTo("StudentId", studentId);
+            .WhereEqualTo("UserId", studentId);
 
         if (!string.IsNullOrEmpty(taskType))
             query = query.WhereEqualTo("TaskType", taskType);
 
-        query = query.OrderByDescending("GradedAt").Limit(limit);
+        query = query.OrderByDescending("CreatedAt").Limit(limit);
 
         var snapshots = await query.GetSnapshotAsync(ct);
         return snapshots.Documents

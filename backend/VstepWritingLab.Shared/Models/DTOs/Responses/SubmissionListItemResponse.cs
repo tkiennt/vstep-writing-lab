@@ -4,7 +4,7 @@ namespace VstepWritingLab.Shared.Models.DTOs.Responses
 {
     public class SubmissionListItemResponse
     {
-        public string SubmissionId { get; set; }
+        public string Id { get; set; }
         public string QuestionId { get; set; }
         public string QuestionTitle { get; set; }  // denormalized for UI
         public string TaskType { get; set; }
