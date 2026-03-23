@@ -12,6 +12,7 @@ import PracticeScreen from '../screens/main/PracticeScreen';
 import PracticeModeSelectScreen from '../screens/main/PracticeModeSelectScreen';
 import PracticeWriteScreen from '../screens/main/PracticeWriteScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
+import SubmissionHistoryScreen from '../screens/main/SubmissionHistoryScreen';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import type { PracticeStackParamList, ProfileStackParamList } from './types';
 import { useAppSettings } from '../context/AppSettingsContext';
@@ -37,6 +38,11 @@ function ProfileStackNavigator() {
         name="ProfileMain"
         component={ProfileScreen}
         options={{ title: t('nav_profile') }}
+      />
+      <ProfileStack.Screen
+        name="SubmissionHistory"
+        component={SubmissionHistoryScreen}
+        options={{ title: t('history_title') }}
       />
     </ProfileStack.Navigator>
   );

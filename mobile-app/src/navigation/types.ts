@@ -3,6 +3,7 @@ import type { PracticeSessionMode } from '../types/practiceMode';
 
 export type ProfileStackParamList = {
   ProfileMain: undefined;
+  SubmissionHistory: undefined;
 };
 
 export type PracticeStackParamList = {

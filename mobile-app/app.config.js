@@ -3,6 +3,12 @@ const withAndroidCmakeBest = require('./plugins/withAndroidCmakeBest');
 // Đảm bảo luôn đọc .env trong thư mục mobile-app (tránh inject 0 biến khi cwd khác)
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
+/** Tránh .env có "localhost: 5288" — bỏ mọi khoảng trắng trong giá trị URL */
+function cleanApiUrl(v) {
+  if (v == null || v === '') return v;
+  return String(v).replace(/[\s\u00A0\uFEFF\u200B-\u200D\u202F\u2060]+/g, '').trim();
+}
+
 module.exports = {
   expo: {
     // RN / Expo: tat New Architecture (tranh CMake phuc tap tren Windows)
@@ -46,7 +52,10 @@ module.exports = {
       ],
     ],
     extra: {
-      apiUrl: process.env.EXPO_PUBLIC_API_URL,
+      eas: {
+        projectId: 'dcd74936-dadc-486f-84e9-be690ab937c2',
+      },
+      apiUrl: cleanApiUrl(process.env.EXPO_PUBLIC_API_URL),
       firebase: {
         apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
         authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,

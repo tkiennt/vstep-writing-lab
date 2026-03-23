@@ -22,7 +22,7 @@ import type { ExamPrompt, OutlineStep } from '../../types/exam';
 import type { FullAnalysisResponse } from '../../types/gradingApi';
 import { GradingResultView } from '../../components/grading/GradingResultView';
 import type { SemanticTheme } from '../../theme/semanticTheme';
-import { config } from '../../config/env';
+import { compactApiUrl, config } from '../../config/env';
 import type { PracticeStackParamList } from '../../navigation/types';
 import type { PracticeSessionMode } from '../../types/practiceMode';
 import { extractApiErrorMessage } from '../../utils/apiError';
@@ -352,7 +352,7 @@ export default function PracticeWriteScreen() {
         t('write_load_fail_title'),
         interpolate(t('write_load_fail_msg'), {
           detail,
-          apiUrl: config.API_BASE_URL,
+          apiUrl: compactApiUrl(config.API_BASE_URL),
         }),
         [{ text: t('common_ok'), onPress: () => navigation.goBack() }]
       );

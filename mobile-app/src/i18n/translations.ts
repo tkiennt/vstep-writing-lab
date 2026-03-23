@@ -20,6 +20,13 @@ export type TranslationDict = {
   profile_language: string;
   profile_language_vi: string;
   profile_language_en: string;
+  profile_history: string;
+  history_title: string;
+  history_loading: string;
+  history_empty: string;
+  history_word_count: string;
+  history_time: string;
+  history_score: string;
   practice_lead: string;
   practice_loading: string;
   practice_all: string;
@@ -140,6 +147,13 @@ export const translations: Record<AppLanguage, TranslationDict> = {
     profile_language: 'Ngôn ngữ',
     profile_language_vi: 'Tiếng Việt',
     profile_language_en: 'English',
+    profile_history: 'Lịch sử làm bài',
+    history_title: 'Lịch sử làm bài',
+    history_loading: 'Đang tải lịch sử…',
+    history_empty: 'Bạn chưa có bài nộp nào.',
+    history_word_count: 'Số từ',
+    history_time: 'Thời gian',
+    history_score: 'Điểm',
     practice_lead:
       'Chọn đề rồi chọn chế độ: Guided / Practice / Exam (giống flow web). Có thể lọc Task 1–2 và tìm theo từ khóa.',
     practice_loading: 'Đang tải đề thi…',
@@ -282,6 +296,13 @@ Backend: dotnet run --launch-profile http
     profile_language: 'Language',
     profile_language_vi: 'Vietnamese',
     profile_language_en: 'English',
+    profile_history: 'Submission history',
+    history_title: 'Submission history',
+    history_loading: 'Loading history…',
+    history_empty: 'No submissions yet.',
+    history_word_count: 'Words',
+    history_time: 'Time',
+    history_score: 'Score',
     practice_lead:
       'Pick a prompt, then choose Guided / Practice / Exam (same as the web). Filter Task 1–2 and search by keyword.',
     practice_loading: 'Loading prompts…',

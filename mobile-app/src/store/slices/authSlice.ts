@@ -42,7 +42,7 @@ export const login = createAsyncThunk(
   ) => {
     try {
       const cred = await authService.login(email, password);
-      const token = await cred.user.getIdToken();
+      const token = await cred.user.getIdToken(true);
       const user = await authService.syncUser(token);
       await AsyncStorage.setItem(TOKEN_KEY, token);
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
@@ -65,7 +65,7 @@ export const register = createAsyncThunk(
   ) => {
     try {
       const cred = await authService.register(email, password, displayName);
-      const token = await cred.user.getIdToken();
+      const token = await cred.user.getIdToken(true);
       const user = await authService.syncUser(token);
       await AsyncStorage.setItem(TOKEN_KEY, token);
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));

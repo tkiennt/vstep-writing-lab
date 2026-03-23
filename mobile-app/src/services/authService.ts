@@ -46,7 +46,7 @@ export const authService = {
     const headers = token
       ? { Authorization: `Bearer ${token}` }
       : undefined;
-    const { data } = await api.post<UserDoc>('/auth/sync', null, { headers });
+    const { data } = await api.post<UserDoc>('/auth/sync', {}, { headers });
     return data;
   },
 

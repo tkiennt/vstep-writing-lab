@@ -1,5 +1,5 @@
 import axios, { type AxiosError } from 'axios';
-import { config } from '../config/env';
+import { compactApiUrl, config } from '../config/env';
 
 const UNKNOWN =
   'Lỗi không xác định. Xem log Metro hoặc terminal backend; thử lại.';
@@ -32,7 +32,7 @@ export function extractApiErrorMessage(err: unknown): string {
     return ensure(
       `Không kết nối được API (${err.message || 'network'}).\n` +
         `Kiểm tra WiFi / EXPO_PUBLIC_API_URL (không dùng 127.0.0.1 trên máy thật nếu chưa adb reverse).\n\n` +
-        `${config.API_BASE_URL}`
+        `${compactApiUrl(config.API_BASE_URL)}`
     );
   }
 

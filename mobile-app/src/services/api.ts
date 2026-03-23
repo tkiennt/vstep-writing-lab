@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { config } from '../config/env';
+import { compactApiUrl, config } from '../config/env';
 import { auth } from '../lib/firebase';
 import { attachUserMessage } from '../utils/apiError';
 
@@ -10,19 +10,30 @@ type RetryConfig = InternalAxiosRequestConfig & { _retry401?: boolean };
 
 /** Timeout mặc định; riêng chấm AI dùng timeout dài hơn trong `gradingService`. */
 export const api: AxiosInstance = axios.create({
-  baseURL: config.API_URL,
+  baseURL: compactApiUrl(config.API_URL),
   timeout: 60000,
   headers: { 'Content-Type': 'application/json' },
 });
 
+function getExistingAuthorization(
+  headers: InternalAxiosRequestConfig['headers']
+): string | undefined {
+  if (!headers) return undefined;
+  const h = headers as Record<string, string> & { get?: (k: string) => string };
+  return h.Authorization ?? h.get?.('Authorization');
+}
+
 // Add Firebase token to requests (or stored token when restoring session)
 api.interceptors.request.use(
   async (axiosConfig) => {
+    // auth/sync gửi Bearer sẵn — không ghi đè (tránh race getIdToken vs token vừa đăng nhập)
+    if (getExistingAuthorization(axiosConfig.headers)) {
+      return axiosConfig;
+    }
     let token: string | null = null;
     const user = auth.currentUser;
     if (user) {
       try {
-        // Không dùng getIdToken(false): SDK vẫn refresh khi token sắp hết hạn
         token = await user.getIdToken();
       } catch (_) {
         // ignore

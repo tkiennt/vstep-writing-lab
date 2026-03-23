@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { examPromptService } from '../../services/examPromptService';
 import type { ExamPrompt } from '../../types/exam';
-import { config } from '../../config/env';
+import { compactApiUrl, config } from '../../config/env';
 import type { PracticeStackParamList } from '../../navigation/types';
 import { useAppSettings } from '../../context/AppSettingsContext';
 import { interpolate } from '../../i18n/translations';
@@ -145,7 +145,7 @@ export default function PracticeScreen() {
       const data = await examPromptService.getAll();
       setPrompts(Array.isArray(data) ? data.filter((p) => p.isActive !== false) : []);
     } catch (e) {
-      const base = config.API_BASE_URL;
+      const base = compactApiUrl(config.API_BASE_URL);
       const net =
         axios.isAxiosError(e) && !e.response ? ` (${e.message || 'Network'})` : '';
       setError(

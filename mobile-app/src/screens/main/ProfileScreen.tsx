@@ -7,12 +7,16 @@ import {
   ScrollView,
   Switch,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../store/slices/authSlice';
 import { useAppSettings } from '../../context/AppSettingsContext';
 import type { AppLanguage } from '../../i18n/translations';
+import type { ProfileStackParamList } from '../../navigation/types';
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => s.auth);
   const { theme, t, language, setLanguage, themeMode, setThemeMode } = useAppSettings();
@@ -105,11 +109,26 @@ export default function ProfileScreen() {
           borderRadius: 12,
           padding: 16,
           alignItems: 'center',
+          marginTop: 8,
+        },
+        historyButton: {
+          backgroundColor: theme.card,
+          borderRadius: 12,
+          padding: 16,
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: theme.border,
+          marginBottom: 12,
         },
         logoutText: {
           color: '#fff',
           fontSize: 16,
           fontWeight: '600',
+        },
+        historyText: {
+          color: theme.linkAccent,
+          fontSize: 16,
+          fontWeight: '700',
         },
       }),
     [theme]
@@ -188,6 +207,13 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <TouchableOpacity
+        style={styles.historyButton}
+        onPress={() => navigation.navigate('SubmissionHistory')}
+      >
+        <Text style={styles.historyText}>{t('profile_history')}</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutText}>{t('profile_logout')}</Text>
