@@ -99,6 +99,8 @@ builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<IEssayService, EssayService>();
 builder.Services.AddScoped<IOutlineService, OutlineService>();
 
+builder.Services.AddScoped<IUserService, UserService>();
+
 // ── Middleware ───────────────────────────────────────────────────────────
 builder.Services.AddTransient<GlobalExceptionHandler>();
 

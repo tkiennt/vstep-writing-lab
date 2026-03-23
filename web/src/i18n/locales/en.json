@@ -160,6 +160,26 @@
       "advanced": "Advanced",
       "saveGoals": "Save Goals"
     },
+    "notifications": {
+      "title": "Notification Settings",
+      "email": "Email Notifications",
+      "emailDesc": "Receive result reports and learning materials via email.",
+      "web": "Web Notifications",
+      "webDesc": "Receive instant notifications when results are ready."
+    },
+    "security": {
+      "title": "Security & Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "btn": "Update Password",
+      "tips": {
+        "title": "Security Tips",
+        "length": "Use at least 8 characters",
+        "complexity": "Include uppercase, lowercase, and numbers",
+        "common": "Avoid using common passwords"
+      }
+    },
     "danger": {
       "title": "Danger Zone",
       "subtitle": "Once you delete your account, it cannot be recovered. Please be certain.",

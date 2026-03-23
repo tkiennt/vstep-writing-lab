@@ -160,6 +160,26 @@
       "advanced": "Nâng cao",
       "saveGoals": "Lưu mục tiêu"
     },
+    "notifications": {
+      "title": "Cài đặt thông báo",
+      "email": "Thông báo qua Email",
+      "emailDesc": "Nhận báo cáo kết quả và tài liệu học tập qua email.",
+      "web": "Thông báo trình duyệt",
+      "webDesc": "Nhận thông báo tức thì khi có kết quả chấm bài."
+    },
+    "security": {
+      "title": "Bảo mật & Mật khẩu",
+      "currentPassword": "Mật khẩu hiện tại",
+      "newPassword": "Mật khẩu mới",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "btn": "Cập nhật mật khẩu",
+      "tips": {
+        "title": "Lời khuyên bảo mật",
+        "length": "Sử dụng ít nhất 8 ký tự",
+        "complexity": "Bao gồm cả chữ hoa, chữ thường và chữ số",
+        "common": "Không sử dụng mật khẩu quá phổ biến"
+      }
+    },
     "danger": {
       "title": "Vùng nguy hiểm",
       "subtitle": "Sau khi xóa tài khoản, bạn không thể khôi phục lại. Hãy chắc chắn trước khi thực hiện.",
