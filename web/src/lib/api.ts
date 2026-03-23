@@ -129,6 +129,7 @@ export interface GradeEssayRequest {
   wordCount: number;
   // NEW:
   mode?:     "exam" | "practice" | "guide";
+  language?: string;
   userHistory?: UserHistoryType;
 }
 

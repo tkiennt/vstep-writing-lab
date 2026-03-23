@@ -59,7 +59,7 @@ namespace VstepWritingLab.Business.Services
                 var rubric = await _rubricRepo.GetByTaskTypeAsync(submission.TaskType);
                 if (rubric == null) throw new Exception($"Rubric not found for {submission.TaskType}");
 
-                var systemPrompt = ConstructSystemPrompt(rubric);
+                var systemPrompt = ConstructSystemPrompt(rubric, submission.Language ?? "vi");
                 var userPrompt = ConstructUserPrompt(submission, question, task);
 
                 // Call the unified Gemini/Vertex client
@@ -105,8 +105,9 @@ namespace VstepWritingLab.Business.Services
             }
         }
 
-        private string ConstructSystemPrompt(RubricModel rubric)
+        private string ConstructSystemPrompt(RubricModel rubric, string language)
         {
+            var targetLang = language == "en" ? "English" : "Vietnamese";
             var prompt = $@"You are an expert VSTEP Writing Examiner. Your task is to grade a student's essay based on the official VSTEP Rating Scale.
 
 RUBRIC DATA:
@@ -128,23 +129,42 @@ RESPONSE FORMAT:
 You must return a valid JSON object strictly following this structure:
 {
   ""score"": {
-    ""taskFulfilment"": number,
-    ""organization"": number,
-    ""vocabulary"": number,
-    ""grammar"": number,
-    ""overall"": number
+    ""taskFulfilment"": 0-10 integer,
+    ""organization"": 0-10 integer,
+    ""vocabulary"": 0-10 integer,
+    ""grammar"": 0-10 integer,
+    ""overall"": 0-10 number
   },
   ""summary"": ""concise overall feedback"",
   ""suggestions"": [""specific improvement 1"", ""specific improvement 2""],
-  ""highlights"": [
-    { ""text"": ""exact text from essay"", ""issue"": ""description of error"", ""type"": ""grammar|vocabulary|structure"" }
-  ]
+  ""annotations"": [
+    { ""startIndex"": number, ""endIndex"": number, ""type"": ""grammar|vocabulary|structure|off_topic|strength"", ""message"": ""error description"", ""suggestion"": ""suggested correction"", ""severity"": ""error|warning|info|good"" }
+  ],
+  ""sentenceAnalysis"": [
+    { ""sentence"": ""full sentence"", ""quality"": ""strong|adequate|weak"", ""feedbackVi"": ""critique of this specific sentence"", ""improvedVersion"": ""better way to write it"", ""structureUsed"": ""name of grammar structure"" }
+  ],
+  ""suggestedStructures"": [
+    { ""structure"": ""name"", ""example"": ""example sentence"", ""usageTip"": ""how to use it"" }
+  ],
+  ""taskRelevance"": {
+    ""isRelevant"": boolean,
+    ""relevanceScore"": 0-100,
+    ""verdictVi"": ""explanation of relevance"",
+    ""missingPointsVi"": [""point 1"", ""point 2""],
+    ""offTopicSentencesEn"": []
+  }
 }
+
+LANGUAGE RULE:
+You MUST provide all natural language fields (summary, suggestions, annotations.message, annotations.suggestion, sentenceAnalysis.feedbackVi, sentenceAnalysis.improvedVersion, suggestedStructures.structure, suggestedStructures.example, suggestedStructures.usageTip, taskRelevance.verdictVi, taskRelevance.missingPointsVi) strictly in " + targetLang + @". 
+Do NOT use any other language for these fields. 
+The names like 'feedbackVi' and 'verdictVi' must still be used in JSON keys, but their values must be in " + targetLang + @".
 
 GRADING RULES:
 1. Overall score is the average of the 4 criteria scores.
 2. Be strict but fair according to the descriptors.
-3. Identify at least 3-5 key highlights (errors or areas for improvement).
+3. Identify at least 5-10 key annotations (errors or areas for improvement).
+4. Provide analysis for important sentences in the essay.
 ";
             return prompt;
         }

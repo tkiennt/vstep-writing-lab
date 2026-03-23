@@ -33,8 +33,10 @@
     "chart": {
       "title": "Xu hướng tiến bộ",
       "last30": "30 NGÀY GẦN ĐÂY",
+      "last7": "7 BÀI GẦN NHẤT",
       "allTime": "TẤT CẢ"
     },
+    "loading": "Đang tải tiến trình của bạn...",
     "cta": {
       "title": "Sẵn sàng cho thử thách tiếp theo?",
       "subtitle": "Duy trì chuỗi 5 ngày của bạn. Chúng tôi gợi ý luyện Task 1 hôm nay.",
@@ -51,7 +53,8 @@
       "coherence": "Mạch lạc",
       "lexical": "Từ vựng",
       "grammar": "Ngữ pháp",
-      "fullReport": "Báo cáo đầy đủ"
+      "fullReport": "Báo cáo đầy đủ",
+      "empty": "Bạn chưa có bài viết nào. Hãy bắt đầu luyện tập ngay nhé!"
     }
   },
   "practiceList": {
@@ -170,6 +173,162 @@
     "save": "Lưu",
     "loading": "Đang tải...",
     "error": "Đã có lỗi xảy ra",
-    "success": "Thành công"
+    "success": "Thành công",
+    "words": "từ"
+  },
+  "result": {
+    "header": {
+      "badge": "Kết quả chi tiết",
+      "subtitle": "Phân tích bài viết dựa trên tiêu chuẩn VSTEP Writing"
+    },
+    "scoreCard": {
+      "title": "Bảng điểm chi tiết",
+      "overall": "Điểm tổng kết VSTEP",
+      "criteria": {
+        "taskFulfilment": "Hoàn thành yêu cầu đề bài",
+        "organization": "Tổ chức bài viết",
+        "vocabulary": "Từ vựng",
+        "grammar": "Ngữ pháp"
+      }
+    },
+    "aiSummary": {
+      "title": "Nhận xét tổng quát từ AI",
+      "suggestions": "Gợi ý cải thiện"
+    },
+    "roadmap": {
+      "title": "Lộ trình học tập cá nhân hóa",
+      "subtitle": "Các bước tiếp theo để nâng băng điểm của bạn",
+      "week": "Tuần",
+      "action": "Hành động",
+      "target": "Mục tiêu"
+    },
+    "cta": {
+      "back": "Quay lại danh sách luyện tập",
+      "new": "Luyện tập bài mới"
+    }
+  },
+  "feedback": {
+    "annotation": "Nhận xét",
+    "sentence": "Nhận xét câu",
+    "strength": "Điểm tốt",
+    "error": "Cần chú ý",
+    "warning": "Gợi ý",
+    "upgrade": "Gợi ý nâng cấp",
+    "understand": "Đã hiểu, quay lại bài viết",
+    "detail": "Chi tiết nhận xét",
+    "selected": "Dành cho đoạn văn đã chọn",
+    "aiUpgrade": "Gợi ý nâng cấp từ AI",
+    "types": {
+      "grammar": "Ngữ pháp",
+      "vocabulary": "Từ vựng",
+      "organization": "Tổ chức",
+      "sentence": "Nhận xét câu",
+      "strength": "Điểm tốt",
+      "error": "Lỗi sai",
+      "suggestion": "Gợi ý",
+      "task_relevance": "Sự bám đề",
+      "coherence": "Mạch lạc"
+    }
+  },
+  "progress": {
+    "title": "Tiến độ của bạn",
+    "subtitle": "Theo dõi điểm số và tiến bộ theo thời gian.",
+    "loading": "Đang tải tiến trình...",
+    "notLoggedIn": "Vui lòng đăng nhập để xem tiến độ.",
+    "empty": {
+      "title": "Chưa có bài nào",
+      "subtitle": "Bắt đầu luyện tập ngay để theo dõi tiến độ của bạn!",
+      "cta": "Viết bài ngay"
+    },
+    "stats": {
+      "avgScore": "Điểm TB hiện tại",
+      "totalSubmissions": "Tổng bài đã nộp",
+      "trend": "Xu hướng",
+      "relevance": "Bám đề",
+      "submissionsCount": "bài viết",
+      "trendStable": "→ Ổn định",
+      "trendComparison": "so với 5 bài gần nhất",
+      "relevanceGood": "Rất tốt",
+      "relevanceImprove": "Cần cải thiện",
+      "relevanceAttention": "Cần chú ý"
+    },
+    "radar": {
+      "title": "Năng lực 4 tiêu chí",
+      "weakest": "Tiêu chí yếu nhất",
+      "taskFulfilment": "Hoàn thành\nnhiệm vụ",
+      "organization": "Tổ chức",
+      "vocabulary": "Từ vựng",
+      "grammar": "Ngữ pháp"
+    },
+    "history": {
+      "title": "Lịch sử điểm (10 bài gần nhất)",
+      "tableTitle": "10 bài gần nhất",
+      "date": "Ngày",
+      "task": "Task",
+      "score": "Điểm",
+      "cefr": "CEFR",
+      "relevance": "Bám đề",
+      "details": "Chi tiết",
+      "viewDetails": "Xem chi tiết",
+      "relevant": "Bám đề",
+      "offTopic": "Lạc đề"
+    }
+  },
+  "history": {
+    "title": "Lịch sử luyện tập",
+    "subtitle": "Xem lại tất cả các bài viết và báo cáo phản hồi của bạn",
+    "loading": "Đang tải lịch sử...",
+    "empty": {
+      "title": "Chưa có bài viết nào",
+      "subtitle": "Hãy bắt đầu luyện tập để xem báo cáo chẩn đoán và sự cải thiện của bạn tại đây.",
+      "cta": "Bắt đầu viết ngay"
+    },
+    "item": {
+      "defaultTitle": "Bài viết của bạn",
+      "mode": "chế độ"
+    }
+  },
+  "resources": {
+    "title": "Tài nguyên học tập",
+    "subtitle": "Trau dồi vốn từ vựng, làm chủ các cấu trúc câu và học hỏi từ các bài mẫu.",
+    "tabs": {
+      "vocab": "Ngân hàng từ vựng",
+      "structures": "Cấu trúc câu",
+      "samples": "Bài mẫu có chú thích"
+    },
+    "headers": {
+      "vocab": "Thẻ ghi nhớ & Nguồn tài liệu từ vựng",
+      "structures": "Bản thiết kế câu cho từng nhiệm vụ",
+      "samples": "Các bài luận đạt điểm cao"
+    },
+    "copy": "Sao chép",
+    "copySuccess": "Đã sao chép vào bộ nhớ tạm!",
+    "ttsError": "Trình duyệt này không hỗ trợ chuyển văn bản thành giọng nói.",
+    "search": "Tìm kiếm...",
+    "pro": {
+      "title": "Mở khóa phân tích từ giám khảo",
+      "subtitle": "Nâng cấp lên VSTEP Pro để đọc toàn bộ bài văn Band 8.0+ này.",
+      "button": "Nâng cấp lên Pro ngay",
+      "price": "Chỉ từ 49.000đ / tháng"
+    },
+    "structures": {
+      "contrastIntro": {
+        "label": "Tương phản / Mở bài",
+        "description": "Sử dụng cấu trúc này trong phần mở bài để nhanh chóng đưa ra hai mặt của vấn đề và trình bày luận điểm cá nhân."
+      },
+      "advantagePresentation": {
+        "label": "Trình bày ưu điểm",
+        "description": "Sử dụng cấu trúc này để giới thiệu một ưu điểm hoặc lập luận mạnh mẽ cho chủ đề."
+      }
+    },
+    "samples": {
+      "annotatedTitle": "Bài mẫu Band 8.0+ & Ghi chú giám khảo",
+      "annotatedSubtitle": "Task 2 · Biến đổi khí hậu · Cấp độ C1",
+      "lexicalHighlightTooltip": "Điểm nhấn từ vựng: Sự kết hợp từ học thuật mạnh mẽ",
+      "lexicalHighlightDescription": "Một sự kết hợp từ (collocation) mạnh mẽ giúp ghi điểm cao ở tiêu chí vốn từ vựng."
+    },
+    "lexical": "Điểm nhấn từ vựng",
+    "examinerNotes": "Ghi chú từ giám khảo",
+    "annotated": "Bài mẫu Band 8.0+ & Ghi chú giám khảo"
   }
 }

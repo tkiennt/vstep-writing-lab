@@ -15,9 +15,9 @@ import { getProgress, getSubmissionHistory } from '@/lib/api';
 import { ProgressResponse, SubmissionListItemResponse } from '@/types/grading';
 
 // Native formatter for Vietnamese locale
-const formatDate = (dateStr: string) => {
+const formatDate = (dateStr: string, lang: string = 'vi') => {
   try {
-    return new Intl.DateTimeFormat('vi-VN', { 
+    return new Intl.DateTimeFormat(lang === 'vi' ? 'vi-VN' : 'en-US', { 
       day: '2-digit', 
       month: '2-digit', 
       year: 'numeric' 
@@ -86,7 +86,7 @@ export default function StudentDashboard() {
   const [history, setHistory] = useState<SubmissionListItemResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   
   useEffect(() => {
     const fetchData = async () => {
@@ -113,7 +113,7 @@ export default function StudentDashboard() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
-        <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Loading your progress...</p>
+        <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">{t('dashboard.loading')}</p>
       </div>
     );
   }
@@ -183,7 +183,7 @@ export default function StudentDashboard() {
                 <LineChartIcon className="w-4 h-4 text-slate-400 dark:text-slate-500" /> {t('dashboard.chart.title')}
               </h2>
               <div className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-500/20">
-                7 bài gần nhất
+                {t('dashboard.chart.last7')}
               </div>
             </div>
             <div className="flex-1 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700/30 flex items-end">
@@ -234,7 +234,7 @@ export default function StudentDashboard() {
                 {history.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500 font-medium italic">
-                      Bạn chưa có bài viết nào. Hãy bắt đầu luyện tập ngay nhé!
+                      {t('dashboard.history.empty')}
                     </td>
                   </tr>
                 ) : history.map((item) => (
@@ -244,11 +244,11 @@ export default function StudentDashboard() {
                         <p className="font-semibold text-slate-900 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-1">{item.questionTitle || "Đề bài tự do"}</p>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
                           ${item.taskType === 'task1' ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' : 'bg-fuchsia-100 dark:bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400'}`}>
-                          {item.taskType === 'task1' ? 'Task 1: Letter' : 'Task 2: Essay'}
+                          {item.taskType === 'task1' ? t('practiceList.card.vstepTask1') : t('practiceList.card.vstepTask2')}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-slate-500 dark:text-slate-400 font-medium">
-                        {formatDate(item.createdAt)}
+                        {formatDate(item.createdAt, i18n.language)}
                       </td>
                       <td className="px-6 py-4 text-center">
                         {item.status === 'scored' ? (

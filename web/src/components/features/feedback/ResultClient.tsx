@@ -6,6 +6,7 @@ import { mapRawToGradingResultDoc } from '@/lib/mapping';
 import { ScoreSummaryCard } from './ScoreSummaryCard';
 import { AnnotatedEssay } from './AnnotatedEssay';
 import { Loader2, Zap, FileText, CheckCheck, RefreshCw, AlertCircle, BrainCircuit, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { getSubmissionById } from '@/lib/api';
 
@@ -14,6 +15,7 @@ interface ResultClientProps {
 }
 
 export function ResultClient({ essayId }: ResultClientProps) {
+  const { t } = useTranslation();
   const [result, setResult] = useState<GradingResultDoc | null>(null);
   const [status, setStatus] = useState<'pending' | 'ready' | 'error'>('pending');
 
@@ -65,9 +67,9 @@ export function ResultClient({ essayId }: ResultClientProps) {
              <BrainCircuit className="w-8 h-8 text-emerald-600 animate-pulse" />
           </div>
         </div>
-        <h2 className="text-3xl font-black text-slate-900 tracking-tight">AI đang chấm bài của bạn...</h2>
+        <h2 className="text-3xl font-black text-slate-900 tracking-tight">{t('common.loading')}</h2>
         <p className="text-slate-500 mt-4 max-w-sm font-medium leading-relaxed">
-          Quá trình này thường mất khoảng 10-30 giây. Chúng mình đang phân tích ngữ pháp, từ vựng và cấu trúc bài viết của bạn.
+          {t('practiceList.loading')}
         </p>
       </div>
     );
@@ -78,8 +80,8 @@ export function ResultClient({ essayId }: ResultClientProps) {
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center p-12 bg-white rounded-[2rem] shadow-sm border border-slate-100">
            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-           <h3 className="text-xl font-bold text-slate-900">Không thể tải kết quả</h3>
-           <p className="text-slate-500 mt-2">Vui lòng thử lại sau giây lát hoặc liên hệ hỗ trợ.</p>
+           <h3 className="text-xl font-bold text-slate-900">{t('common.error')}</h3>
+           <p className="text-slate-500 mt-2">{t('practiceList.empty.subtitle')}</p>
         </div>
       </div>
     );
@@ -94,10 +96,10 @@ export function ResultClient({ essayId }: ResultClientProps) {
             <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-900/20">
               <Zap className="w-6 h-6 fill-current" />
             </div>
-            <div>
-              <h2 className="font-black text-slate-900 dark:text-white tracking-tight text-lg">{result.questionTitle || 'Kết quả luyện tập'}</h2>
+             <div>
+              <h2 className="font-black text-slate-900 dark:text-white tracking-tight text-lg">{result.questionTitle || t('nav.myResults')}</h2>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded uppercase">{result.taskType === 'task1' ? 'Task 1' : 'Task 2'}</span>
+                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded uppercase">{result.taskType === 'task1' ? t('practiceList.card.vstepTask1') : t('practiceList.card.vstepTask2')}</span>
                 <span className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">ID: {essayId.slice(0, 8)}</span>
               </div>
             </div>
@@ -106,7 +108,7 @@ export function ResultClient({ essayId }: ResultClientProps) {
             onClick={() => window.location.href = '/practice-list'}
             className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-widest rounded-2xl transition-all shadow-md shadow-emerald-900/10 active:scale-95"
           >
-            Xuất báo cáo
+            {t('result.cta.back')}
           </button>
         </div>
       </div>
@@ -120,7 +122,7 @@ export function ResultClient({ essayId }: ResultClientProps) {
             <section className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-800 shadow-sm">
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-emerald-600" /> Bài viết & Nhận xét chi tiết
+                  <FileText className="w-5 h-5 text-emerald-600" /> {t('feedback.detail')}
                 </h3>
               </div>
               
@@ -131,12 +133,12 @@ export function ResultClient({ essayId }: ResultClientProps) {
                 />
                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-full text-[9px] font-bold text-slate-400 border border-slate-100 dark:border-slate-700 uppercase tracking-wider">
-                      {result.wordCount} từ
+                      {result.wordCount} {t('common.words')}
                    </div>
                 </div>
               </div>
               <p className="mt-6 text-[11px] text-slate-400 dark:text-slate-500 font-medium italic flex items-center gap-2">
-                <RefreshCw className="w-3 h-3" /> * Di chuột vào các phần được gạch chân để xem lỗi sai và gợi ý sửa từ AI.
+                <RefreshCw className="w-3 h-3" /> * {t('common.loading')}
               </p>
             </section>
           </div>
@@ -147,7 +149,7 @@ export function ResultClient({ essayId }: ResultClientProps) {
             <section className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
               <div className="relative z-10">
                 <h3 className="text-xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                  <BrainCircuit className="w-5 h-5 text-emerald-600" /> Tổng kết từ AI
+                  <BrainCircuit className="w-5 h-5 text-emerald-600" /> {t('result.aiSummary.title')}
                 </h3>
                 <div className="p-6 bg-emerald-50/50 dark:bg-emerald-500/10 rounded-3xl border border-emerald-100/50 dark:border-emerald-500/20 text-slate-700 dark:text-slate-300 font-medium leading-[1.8] text-sm italic whitespace-pre-wrap">
                   "{result.summary}"
@@ -162,10 +164,10 @@ export function ResultClient({ essayId }: ResultClientProps) {
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-8">
                     <h3 className="text-xl font-black flex items-center gap-2 text-white">
-                      <TrendingUp className="w-5 h-5 text-emerald-400" /> Lộ trình Cấp tốc
+                      <TrendingUp className="w-5 h-5 text-emerald-400" /> {t('result.roadmap.title')}
                     </h3>
                     <div className="bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter shadow-lg shadow-emerald-500/20">
-                      Mục tiêu {result.roadmap.targetCefr}
+                      {t('result.roadmap.target')} {result.roadmap.targetCefr}
                     </div>
                   </div>
 
@@ -176,7 +178,7 @@ export function ResultClient({ essayId }: ResultClientProps) {
                     {result.roadmap.weekly_plan.slice(0, 4).map((step, i) => (
                       <div key={i} className="flex gap-4 group">
                         <div className="relative z-10 w-10 h-10 rounded-full bg-slate-800 dark:bg-slate-900 border-2 border-slate-700 dark:border-slate-800 flex items-center justify-center shrink-0 group-hover:border-emerald-500 transition-colors shadow-sm">
-                           <span className="text-xs font-black text-emerald-400">W{step.week}</span>
+                           <span className="text-xs font-black text-emerald-400">{t('result.roadmap.week').charAt(0)}{step.week}</span>
                         </div>
                         <div className="flex-1 pb-4">
                            <div className="bg-white/5 hover:bg-white/[0.08] p-5 rounded-2xl border border-white/5 transition-all">
@@ -188,11 +190,11 @@ export function ResultClient({ essayId }: ResultClientProps) {
                     ))}
                   </div>
 
-                  <button 
+                   <button 
                     onClick={() => window.location.href = '/practice-list'}
                     className="w-full py-4 bg-emerald-500 rounded-2xl font-black text-sm mt-6 hover:bg-emerald-400 transition-all hover:shadow-lg hover:shadow-emerald-500/20 text-white"
                   >
-                    Bắt đầu luyện tập ngay
+                    {t('result.cta.new')}
                   </button>
                 </div>
                 {/* Decorative background circle */}

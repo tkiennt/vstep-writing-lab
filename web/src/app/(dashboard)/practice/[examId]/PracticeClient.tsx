@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ExamPrompt } from '@/types/grading';
 import { useAuth } from '@/hooks/useAuth';
 import { gradeEssay, GradeEssayRequest, startSession, updateSession, ExamSession } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
 import { Save, Loader2, BookOpen, Layers, CheckCircle2, ChevronUp, ChevronDown, X, AlertTriangle, AlertCircle, LogOut, Sparkles, ArrowRight, Clock, Target } from 'lucide-react';
 
 import { ModeSelector } from '@/components/features/practice/ModeSelector';
@@ -22,6 +23,7 @@ type PracticeMode = 'selecting' | 'exam' | 'practice' | 'guide';
 export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
   const router = useRouter();
   const { user, userDoc } = useAuth();
+  const { i18n, t } = useTranslation();
 
   const [mode, setMode] = useState<PracticeMode>('selecting');
   const [isPromptExpanded, setIsPromptExpanded] = useState(true);
@@ -150,6 +152,7 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
       essayText: essayText,
       wordCount: wordCount,
       mode: (mode === 'selecting' ? 'practice' : mode) as any,
+      language: i18n.language,
       userHistory: userHistory
     };
 
@@ -281,10 +284,10 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
             </div>
             
             <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-2">
-              AI đang chấm bài...
+              {t('common.loading')}
             </h2>
             <p className="text-emerald-600/60 font-black text-[10px] uppercase tracking-[0.3em]">
-              Đang phân tích kết quả
+              {t('practiceList.loading')}
             </p>
           </div>
         </div>

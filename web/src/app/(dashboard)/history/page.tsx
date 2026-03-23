@@ -6,8 +6,10 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getSubmissionHistory } from '@/lib/api';
 import { SubmissionListItemResponse } from '@/types/grading';
+import { useTranslation } from 'react-i18next';
 
 export default function HistoryPage() {
+  const { t, i18n } = useTranslation();
   const [submissions, setSubmissions] = useState<SubmissionListItemResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +31,7 @@ export default function HistoryPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 min-h-[60vh]">
         <Loader2 className="h-10 w-10 text-emerald-500 animate-spin mb-4" />
-        <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">Loading history...</p>
+        <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">{t('history.loading')}</p>
       </div>
     );
   }
@@ -37,19 +39,19 @@ export default function HistoryPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12 px-4 sm:px-6">
       <div className="pt-6">
-        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Practice History</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">View all your past essays and feedback reports</p>
+        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{t('history.title')}</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">{t('history.subtitle')}</p>
       </div>
 
       {submissions.length === 0 ? (
         <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700/50 p-16 text-center">
           <History className="h-16 w-16 text-slate-200 dark:text-slate-700 mx-auto mb-6" />
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No essays yet</h2>
-          <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto">Start practicing to see your diagnostic reports and improvements here.</p>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('history.empty.title')}</h2>
+          <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto">{t('history.empty.subtitle')}</p>
           <Link href="/practice-list">
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 h-12 rounded-xl font-bold shadow-lg shadow-emerald-900/10">
               <FileText className="mr-2 h-4 w-4" />
-              Start Writing Now
+              {t('history.empty.cta')}
             </Button>
           </Link>
         </div>
@@ -74,17 +76,19 @@ export default function HistoryPage() {
                       <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${
                         s.taskType.toLowerCase().includes('task1') ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' : 'bg-fuchsia-100 dark:bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400'
                       }`}>
-                        {s.taskType.toLowerCase().includes('task1') ? 'Task 1: Letter' : 'Task 2: Essay'}
+                        {s.taskType.toLowerCase().includes('task1') ? t('practiceList.card.vstepTask1') : t('practiceList.card.vstepTask2')}
                       </span>
                       <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {new Date(s.createdAt).toLocaleDateString('vi-VN')}
+                        {new Date(s.createdAt).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}
                       </span>
                     </div>
                     <h3 className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                      {s.questionTitle || 'Writing Submission'}
+                      {s.questionTitle || t('history.item.defaultTitle')}
                     </h3>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest">{s.wordCount} words • {s.mode} mode</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest">
+                      {s.wordCount} {t('common.words')} • {s.mode} {t('history.item.mode')}
+                    </p>
                   </div>
                 </div>
 

@@ -12,22 +12,24 @@ public class GeminiGradingService(
     ILogger<GeminiGradingService> _logger)
     : IGradingAiService
 {
-    private static string BuildSystemPrompt(string mode) => mode switch
+    private static string BuildSystemPrompt(string mode, string language) => mode switch
     {
-        "guide" => @"
+        "guide" => $@"
 You are an expert VSTEP writing coach from ULIS-VNU Hanoi.
 The student wants GUIDANCE ONLY — do NOT grade, do NOT write full sentences.
 Analyze the topic, create an outline, suggest sentence STARTERS only.
 Match suggestions to student's level: B1=simple, B2=complex, C1=advanced.
 Personalize based on student's known weaknesses.
+IMPORTANT: Provide all feedback and suggestions strictly in {(language == "vi" ? "Vietnamese" : "English")}.
 Return ONLY valid JSON, no markdown.",
 
-        "practice" => @"
+        "practice" => $@"
 You are a VSTEP writing tutor from ULIS-VNU Hanoi.
 Grade lightly — focus on 2 key improvements, keep feedback encouraging.
+IMPORTANT: Provide all feedback and suggestions strictly in {(language == "vi" ? "Vietnamese" : "English")}.
 Return ONLY valid JSON, no markdown.",
 
-        _ => @"
+        _ => $@"
 You are an expert English writing tutor. Your task is to evaluate a student’s essay and provide structured feedback according to the rules provided. Follow these steps precisely:
 
 1. Sentence Feedback: Analyze meaningful sentences, skip boilerplate/standard signatures. Mark good sentences as is_good:true. Provide clear explanation and suggestions for weak sentences.
@@ -37,6 +39,7 @@ You are an expert English writing tutor. Your task is to evaluate a student’s 
 5. Rewrite Samples: 2 weakest sentences.
 6. Roadmap: Dynamic 8-week plan based on this specific essay analysis.
 
+IMPORTANT: Provide all feedback (summary, explanations, suggestions, roadmap) strictly in {(language == "vi" ? "Vietnamese" : "English")}.
 Return ONLY valid JSON, no markdown, no preamble."
     };
 
@@ -206,9 +209,10 @@ PRACTICE RULES:
         string rubricContext, string taskType, string instruction,
         string[] keyPoints, int wordCount, string essayText,
         string mode = "exam", UserHistory? history = null,
+        string language = "vi",
         CancellationToken ct = default)
     {
-        var systemPrompt = BuildSystemPrompt(mode);
+        var systemPrompt = BuildSystemPrompt(mode, language);
         var historyCtx   = BuildHistoryContext(history);
         var jsonTemplate = BuildJsonTemplate(mode);
 

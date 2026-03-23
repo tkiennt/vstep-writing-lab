@@ -2,8 +2,9 @@
 
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Annotation } from '@/types/grading';
-import { CheckCircle2, AlertTriangle, Info, Star, Lightbulb } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Info, Star, Lightbulb, AlertCircle } from 'lucide-react';
 
 interface AnnotatedEssayProps {
   text: string;
@@ -11,6 +12,7 @@ interface AnnotatedEssayProps {
 }
 
 export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotations }) => {
+  const { t } = useTranslation();
   const [activeId, setActiveId] = useState<number | null>(null);
   const [activeEnd, setActiveEnd] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -97,7 +99,7 @@ export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotation
                           <div className="flex items-center gap-2">
                              <Icon className={`w-4 h-4 ${a.severity === 'good' ? 'text-emerald-500' : 'text-slate-400 dark:text-slate-500'}`} />
                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                                {a.type === 'sentence' ? 'Nhận xét câu' : (a.type === 'strength' ? 'Điểm tốt' : a.type)}
+                                {t(`feedback.types.${a.type}`, { defaultValue: a.type })}
                              </span>
                           </div>
                         </div>
@@ -134,8 +136,8 @@ export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotation
               {/* Modal Header */}
               <div className="px-10 py-8 bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white">Chi tiết nhận xét</h3>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Dành cho đoạn văn đã chọn</p>
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white">{t('feedback.detail')}</h3>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{t('feedback.selected')}</p>
                 </div>
                 <button 
                   onClick={() => setSelectedId(null)}
@@ -159,9 +161,9 @@ export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotation
                                  <Icon className="w-6 h-6" />
                               </div>
                               <div>
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">{a.type}</span>
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">{t(`feedback.types.${a.type}`, { defaultValue: a.type })}</span>
                                  <span className={`text-xs font-extrabold uppercase ${getSeverityBadge(a.severity)} px-2 py-0.5 rounded`}>
-                                    {a.severity === 'good' ? 'Ưu điểm' : (a.severity === 'error' ? 'Lỗi sai' : 'Góp ý')}
+                                    {a.severity === 'good' ? t('feedback.strength') : (a.severity === 'error' ? t('feedback.error') : t('feedback.warning'))}
                                  </span>
                               </div>
                            </div>
@@ -175,7 +177,7 @@ export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotation
                           <div className="p-8 bg-emerald-50 dark:bg-emerald-500/5 rounded-[2rem] border border-emerald-100/50 dark:border-emerald-500/10">
                             <div className="flex items-center gap-2 mb-4">
                               <Lightbulb className="w-5 h-5 text-emerald-500" />
-                              <span className="text-xs font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Gợi ý nâng cấp từ AI</span>
+                              <span className="text-xs font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">{t('feedback.aiUpgrade')}</span>
                             </div>
                             <div className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-[1.8] italic whitespace-pre-wrap">
                                “{a.suggestion}”
@@ -192,7 +194,7 @@ export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotation
                   onClick={() => setSelectedId(null)}
                   className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-sm hover:opacity-90 transition-opacity"
                  >
-                   Đã hiểu, quay lại bài viết
+                   {t('feedback.understand')}
                  </button>
               </div>
             </motion.div>

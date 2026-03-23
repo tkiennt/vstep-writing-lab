@@ -73,6 +73,7 @@ namespace VstepWritingLab.Business.Services
                 BelowMinWords = belowMin,
                 Status       = "pending",
                 RetryCount   = 0,
+                Language     = request.Language ?? "vi",
                 CreatedAt    = Timestamp.GetCurrentTimestamp()
             };
 

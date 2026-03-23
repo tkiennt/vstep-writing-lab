@@ -54,7 +54,7 @@ public class GradeEssayUseCase(
         var aiResult = await aiService.GradeAsync(
             rubricContext, command.TaskType, command.Prompt,
             exam.KeyPoints, command.WordCount, command.EssayText,
-            command.Mode, domainHistory, ct);
+            command.Mode, domainHistory, command.Language ?? "vi", ct);
 
         if (!aiResult.IsSuccess || aiResult.Value == null) 
             return Result<FullAnalysisResponse>.Fail(FriendlyErrorMapper.MapAiError(aiResult.Error ?? "AI grading failed"));

@@ -8,6 +8,7 @@ public interface IGradingAiService
         string rubricContext, string taskType, string instruction,
         string[] keyPoints, int wordCount, string essayText,
         string mode = "exam", UserHistory? history = null,
+        string language = "vi",
         CancellationToken ct = default);
 }
 
