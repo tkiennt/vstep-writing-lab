@@ -7,6 +7,7 @@
     <PackageReference Include="FirebaseAdmin" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="Google.Cloud.Firestore" />
+    <PackageReference Include="MassTransit" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Extensions.Http" />
   </ItemGroup>

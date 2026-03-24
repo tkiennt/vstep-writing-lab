@@ -147,6 +147,7 @@ export function mapRawToGradingResultDoc(raw: any, essayId: string): GradingResu
       weekly_plan: raw.roadmap?.weeklyPlan || raw.Roadmap?.WeeklyPlan || raw.roadmap?.weekly_plan || apiFeedback.roadmap?.weeklyPlan
     } : undefined,
     mode: (raw.mode || raw.Mode || 'exam') as any,
+    status: raw.status || raw.Status || (raw.id ? 'scored' : 'pending'),
   };
 
   return mapped;

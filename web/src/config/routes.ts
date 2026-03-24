@@ -23,6 +23,7 @@ export const APP_ROUTES: RouteConfig[] = [
   { path: '/teacher/system-prompt', roles: ['teacher', 'admin'] },
 
   // System (Admin)
+  { path: '/admin/dashboard', roles: ['admin'] },
   { path: '/admin/user-management', roles: ['admin'] },
   { path: '/admin/ai-import', roles: ['admin'] },
 ];

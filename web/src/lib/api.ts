@@ -294,4 +294,14 @@ export async function updateProfile(request: UpdateProfileRequest): Promise<User
   });
 }
 
+/**
+ * Retry grading for a failed submission (AI timeout).
+ */
+export async function retryGrading(submissionId: string): Promise<GradingResult> {
+  return fetchWithRetry<GradingResult>(`/api/submissions/${submissionId}/retry`, {
+    method: 'POST',
+    timeoutMs: 10_000,
+  });
+}
+
 import { ProgressResponse, SubmissionListItemResponse } from '@/types/grading';

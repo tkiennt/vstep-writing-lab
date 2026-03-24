@@ -39,6 +39,7 @@ export function Sidebar({ role }: SidebarProps) {
     { titleKey: 'nav.systemPrompts', path: '/teacher/system-prompt', icon: Settings, roles: ['teacher'] },
     
     // Admin routes
+    { titleKey: 'nav.dashboard', path: '/admin/dashboard', icon: LayoutDashboard, roles: ['admin'] },
     { titleKey: 'nav.topicsManagement', path: '/admin/topics', icon: BookOpen, roles: ['admin'] },
     { titleKey: 'nav.resources', path: '/admin/resources', icon: Database, roles: ['admin'] },
     { titleKey: 'nav.systemPrompts', path: '/admin/system-prompt', icon: Settings, roles: ['admin'] },

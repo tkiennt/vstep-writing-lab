@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   Save, 
@@ -12,8 +12,87 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { adminQuestionService } from '@/services/admin/adminQuestionService';
 
 export default function CreateTopic() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const editId = searchParams.get('id');
+
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
+
+  const [formData, setFormData] = useState({
+    title: '',
+    type: 'Task 1',
+    level: 'B1',
+    content: '',
+    status: 'draft'
+  });
+
+  useEffect(() => {
+    if (editId) {
+      setFetching(true);
+      // We would ideally have a getById in adminQuestionService
+      // but if not, we get all and find it, or we assume getById exists:
+      apiFetchTopic(editId);
+    }
+  }, [editId]);
+
+  const apiFetchTopic = async (id: string) => {
+    try {
+      // Temporary workaround if getById is not exported directly:
+      // In a real scenario we'd call adminQuestionService.getById(id)
+      const all = await adminQuestionService.getAll();
+      const match = all.find(q => q.id === id);
+      if (match) {
+        setFormData({
+          title: match.title || '',
+          type: match.type || 'Task 1',
+          level: match.level || 'B1',
+          content: (match as any).content || '', // assuming content exists
+          status: match.status || 'draft'
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const handleSave = async (status: string) => {
+    if (!formData.title) {
+      alert('Please enter a topic title');
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload = { ...formData, status };
+      if (editId) {
+        await adminQuestionService.update(editId, payload);
+      } else {
+        await adminQuestionService.create(payload);
+      }
+      router.push('/teacher/topics');
+      router.refresh();
+    } catch (error) {
+      console.error('Save failed', error);
+      alert('Failed to save the topic');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (fetching) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="flex flex-col h-full bg-background">
@@ -26,14 +105,23 @@ export default function CreateTopic() {
                     <ArrowLeft className="w-5 h-5" />
                  </Button>
               </Link>
-              <h1 className="text-xl font-bold text-foreground">Create New Topic</h1>
+              <h1 className="text-xl font-bold text-foreground">{editId ? 'Edit Topic' : 'Create New Topic'}</h1>
            </div>
            <div className="flex items-center gap-3">
-              <Button variant="outline" className="flex items-center gap-2 text-foreground border-border hover:bg-muted">
-                 <Eye className="w-4 h-4" /> Preview
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2 text-foreground border-border hover:bg-muted"
+                onClick={() => handleSave('draft')}
+                disabled={loading}
+              >
+                 <Save className="w-4 h-4" /> Save as Draft
               </Button>
-              <Button className="flex items-center gap-2 bg-vstep-dark hover:bg-emerald-900 text-white rounded-xl shadow-sm">
-                 <Save className="w-4 h-4" /> Save &amp; Publish
+              <Button 
+                className="flex items-center gap-2 bg-vstep-dark hover:bg-emerald-900 text-white rounded-xl shadow-sm"
+                onClick={() => handleSave('published')}
+                disabled={loading}
+              >
+                 <Eye className="w-4 h-4" /> {editId ? 'Update & Publish' : 'Save & Publish'}
               </Button>
            </div>
         </header>
@@ -50,23 +138,35 @@ export default function CreateTopic() {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2 md:col-span-2">
                        <label className="text-sm font-medium text-foreground">Topic Title</label>
-                       <input type="text" placeholder="e.g. Advantages and Disadvantages of Studying Abroad" className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors bg-background text-foreground placeholder:text-muted-foreground" />
+                       <input 
+                         type="text" 
+                         value={formData.title}
+                         onChange={e => setFormData({...formData, title: e.target.value})}
+                         placeholder="e.g. Advantages and Disadvantages of Studying Abroad" 
+                         className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors bg-background text-foreground placeholder:text-muted-foreground" 
+                       />
                     </div>
                     <div className="space-y-2">
                        <label className="text-sm font-medium text-foreground">Task Type</label>
-                       <select className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-background text-foreground">
-                          <option>Task 1 (Letter/Email)</option>
-                          <option>Task 2 (Essay)</option>
+                       <select 
+                         value={formData.type}
+                         onChange={e => setFormData({...formData, type: e.target.value})}
+                         className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-background text-foreground"
+                       >
+                          <option value="Task 1">Task 1 (Letter/Email)</option>
+                          <option value="Task 2">Task 2 (Essay)</option>
                        </select>
                     </div>
                     <div className="space-y-2">
                        <label className="text-sm font-medium text-foreground">Level Focus</label>
-                       <select className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-background text-foreground">
-                          <option>B1</option>
-                          <option>B2</option>
-                          <option>C1</option>
-                          <option>B1 - B2</option>
-                          <option>B2 - C1</option>
+                       <select 
+                         value={formData.level}
+                         onChange={e => setFormData({...formData, level: e.target.value})}
+                         className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-background text-foreground"
+                       >
+                          <option value="B1">B1</option>
+                          <option value="B2">B2</option>
+                          <option value="C1">C1</option>
                        </select>
                     </div>
                  </div>
@@ -82,45 +182,14 @@ export default function CreateTopic() {
                        <label className="text-sm font-medium text-foreground">Full Prompt Content</label>
                        <textarea 
                           rows={6}
+                          value={formData.content}
+                          onChange={e => setFormData({...formData, content: e.target.value})}
                           placeholder="Enter the exact prompt students will see..." 
                           className="w-full px-4 py-3 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors bg-background text-foreground placeholder:text-muted-foreground resize-y"
                        />
                     </div>
                  </div>
               </section>
-
-              {/* Hints & Vocabulary Support */}
-              <section className="bg-card rounded-2xl border border-border shadow-sm p-8">
-                 <h2 className="text-lg font-bold text-foreground mb-6 flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                       <BookOpen className="w-5 h-5 text-muted-foreground" /> Structure &amp; Vocabulary Hints
-                    </span>
-                    <Button variant="ghost" size="sm" className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 font-semibold text-xs border border-emerald-500/30">
-                       <Plus className="w-4 h-4 mr-1" /> Add Hint
-                    </Button>
-                 </h2>
-                 
-                 <div className="bg-muted/30 p-4 rounded-xl border border-border mb-4 flex items-start justify-between group">
-                    <div className="flex-1 mr-4">
-                       <input type="text" defaultValue="Structure Suggestion" className="font-semibold text-sm bg-transparent border-none outline-none text-foreground mb-2 w-full" />
-                       <textarea rows={2} defaultValue="Consider a 4-paragraph structure: Introduction, Arguments for, Arguments against, Conclusion." className="w-full bg-transparent border-none outline-none text-sm text-muted-foreground resize-none h-auto overflow-hidden" />
-                    </div>
-                    <button className="text-muted-foreground/30 hover:text-red-400 transition-colors bg-card p-1 rounded shadow-sm border border-border">
-                       <X className="w-4 h-4" />
-                    </button>
-                 </div>
-
-                 <div className="bg-muted/30 p-4 rounded-xl border border-border flex items-start justify-between group">
-                    <div className="flex-1 mr-4">
-                       <input type="text" defaultValue="Vocabulary Focus" className="font-semibold text-sm bg-transparent border-none outline-none text-foreground mb-2 w-full" />
-                       <textarea rows={2} defaultValue="global perspective, cultural immersion, familiar environment, exorbitant tuition" className="w-full bg-transparent border-none outline-none text-sm text-muted-foreground resize-none h-auto overflow-hidden font-mono" />
-                    </div>
-                    <button className="text-muted-foreground/30 hover:text-red-400 transition-colors bg-card p-1 rounded shadow-sm border border-border">
-                       <X className="w-4 h-4" />
-                    </button>
-                 </div>
-              </section>
-
            </div>
         </main>
       </div>

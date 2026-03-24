@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BookOpen, 
   Search, 
@@ -10,45 +10,51 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-
-const ALL_TOPICS = [
-  { id: 'T001', title: 'Advantages of Studying Abroad', type: 'Task 2', level: 'B2', status: 'published', lastEdited: 'Oct 25, 2026' },
-  { id: 'T002', title: 'Formal Email to Hotel Manager', type: 'Task 1', level: 'B1', status: 'draft', lastEdited: 'Oct 26, 2026' },
-  { id: 'T003', title: 'Impact of AI on Modern Jobs', type: 'Task 2', level: 'C1', status: 'published', lastEdited: 'Oct 20, 2026' },
-  { id: 'T004', title: 'Informal Letter to a Friend', type: 'Task 1', level: 'B1', status: 'published', lastEdited: 'Sep 15, 2026' },
-  { id: 'T005', title: 'Urbanization Problems and Solutions', type: 'Task 2', level: 'B2', status: 'archived', lastEdited: 'Aug 10, 2026' },
-  { id: 'T006', title: 'Climate Change Effects on Agriculture', type: 'Task 2', level: 'C1', status: 'published', lastEdited: 'Jul 05, 2026' },
-  { id: 'T007', title: 'Complaint Letter About Noisy Neighbors', type: 'Task 1', level: 'B1', status: 'draft', lastEdited: 'Jun 18, 2026' },
-  { id: 'T008', title: 'Benefits of Remote Work', type: 'Task 2', level: 'B2', status: 'published', lastEdited: 'May 22, 2026' },
-  { id: 'T009', title: 'Email Requesting a Refund', type: 'Task 1', level: 'B2', status: 'published', lastEdited: 'Apr 14, 2026' },
-  { id: 'T010', title: 'Social Media Impact on Youth', type: 'Task 2', level: 'C1', status: 'published', lastEdited: 'Mar 30, 2026' },
-  { id: 'T011', title: 'Letter of Application for a Job', type: 'Task 1', level: 'B2', status: 'draft', lastEdited: 'Mar 10, 2026' },
-  { id: 'T012', title: 'Online Learning vs Traditional Learning', type: 'Task 2', level: 'B2', status: 'published', lastEdited: 'Feb 28, 2026' },
-];
+import { adminQuestionService, QuestionDTO } from '@/services/admin/adminQuestionService';
 
 const ITEMS_PER_PAGE = 5;
 
 export default function ExamStructureManager() {
+  const [topics, setTopics] = useState<QuestionDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [levelFilter, setLevelFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
 
+  const fetchTopics = async () => {
+    setLoading(true);
+    try {
+      const data = await adminQuestionService.getAll();
+      setTopics(data);
+    } catch (error) {
+      console.error('Failed to load topics', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTopics();
+  }, []);
+
   // Filter & Search logic
   const filtered = useMemo(() => {
-    return ALL_TOPICS.filter(topic => {
+    return topics.filter(topic => {
       const matchSearch = searchQuery === '' || 
-        topic.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        topic.id.toLowerCase().includes(searchQuery.toLowerCase());
+        topic.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        topic.id?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchType = typeFilter === 'All' || topic.type === typeFilter;
       const matchLevel = levelFilter === 'All' || topic.level === levelFilter;
       return matchSearch && matchType && matchLevel;
     });
-  }, [searchQuery, typeFilter, levelFilter]);
+  }, [topics, searchQuery, typeFilter, levelFilter]);
 
   // Pagination logic
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -63,12 +69,37 @@ export default function ExamStructureManager() {
   const handleTypeChange = (val: string) => { setTypeFilter(val); setCurrentPage(1); };
   const handleLevelChange = (val: string) => { setLevelFilter(val); setCurrentPage(1); };
 
-  const [deletedIds, setDeletedIds] = useState<string[]>([]);
-  const handleDelete = (id: string) => {
-    setDeletedIds([...deletedIds, id]);
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this topic?')) {
+      try {
+        await adminQuestionService.delete(id);
+        setTopics(topics.filter(t => t.id !== id));
+      } catch (error) {
+        console.error('Failed to delete topic', error);
+        alert('Failed to delete topic');
+      }
+    }
   };
 
-  const visibleTopics = paginatedTopics.filter(t => !deletedIds.includes(t.id));
+  const visibleTopics = paginatedTopics;
+
+  // Format date safely
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return dateString;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full bg-background items-center justify-center">
+         <Activity className="w-8 h-8 text-emerald-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -163,9 +194,9 @@ export default function ExamStructureManager() {
                             <div className="flex items-center gap-2">
                                <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
                                   ${topic.type === 'Task 1' ? 'bg-indigo-500/15 text-indigo-400' : 'bg-fuchsia-500/15 text-fuchsia-400'}`}>
-                                  {topic.type}
+                                  {topic.type || 'Task'}
                                </span>
-                               <span className="text-xs font-bold text-muted-foreground border border-border px-2 py-0.5 rounded uppercase">{topic.level}</span>
+                               <span className="text-xs font-bold text-muted-foreground border border-border px-2 py-0.5 rounded uppercase">{topic.level || 'B1'}</span>
                             </div>
                          </td>
                          <td className="px-6 py-4 text-center">
@@ -173,11 +204,11 @@ export default function ExamStructureManager() {
                               ${topic.status === 'published' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 
                                 topic.status === 'draft' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' : 
                                 'bg-muted text-muted-foreground border border-border'}`}>
-                             {topic.status}
+                             {topic.status || 'draft'}
                            </span>
                          </td>
                          <td className="px-6 py-4 text-muted-foreground font-medium text-xs">
-                            {topic.lastEdited}
+                            {formatDate(topic.updatedAt)}
                          </td>
                          <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-1">
@@ -186,7 +217,7 @@ export default function ExamStructureManager() {
                                     <Eye className="w-4 h-4" />
                                  </Button>
                                </Link>
-                               <Link href="/teacher/topics/create">
+                               <Link href={`/teacher/topics/create?id=${topic.id}`}>
                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-400 hover:bg-blue-500/10" title="Edit">
                                     <Edit3 className="w-4 h-4" />
                                  </Button>
@@ -212,7 +243,7 @@ export default function ExamStructureManager() {
              {/* Pagination Footer */}
              <div className="px-6 py-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground bg-muted/30">
                <span>
-                 Showing <strong className="text-foreground">{((safeCurrentPage - 1) * ITEMS_PER_PAGE) + 1}</strong> to{' '}
+                 Showing <strong className="text-foreground">{((safeCurrentPage - 1) * ITEMS_PER_PAGE) + Math.min(1, filtered.length)}</strong> to{' '}
                  <strong className="text-foreground">{Math.min(safeCurrentPage * ITEMS_PER_PAGE, filtered.length)}</strong> of{' '}
                  <strong className="text-foreground">{filtered.length}</strong> entries
                </span>

@@ -23,6 +23,10 @@ namespace VstepWritingLab.Business.Services
         private readonly ITaskRepository _taskRepo;
         private readonly AiGradingService _aiGradingService;
         private readonly IProgressUseCase _progressUseCase;
+        private readonly IGradeEssayUseCase _gradeUseCase;
+        private readonly IExamPromptRepository _examPromptRepo;
+        private readonly IBackgroundGradingService _backgroundGrading;
+        private readonly IRubricContextService _rubricService;
         private readonly ILogger<SubmissionService> _logger;
 
         public SubmissionService(
@@ -31,14 +35,22 @@ namespace VstepWritingLab.Business.Services
             ITaskRepository taskRepo,
             AiGradingService aiGradingService,
             IProgressUseCase progressUseCase,
+            IGradeEssayUseCase gradeUseCase,
+            IExamPromptRepository examPromptRepo,
+            IBackgroundGradingService backgroundGrading,
+            IRubricContextService rubricService,
             ILogger<SubmissionService> logger)
         {
-            _historyRepo      = historyRepo;
-            _questionRepo     = questionRepo;
-            _taskRepo         = taskRepo;
-            _aiGradingService = aiGradingService;
-            _progressUseCase  = progressUseCase;
-            _logger           = logger;
+            _historyRepo       = historyRepo;
+            _questionRepo      = questionRepo;
+            _taskRepo          = taskRepo;
+            _aiGradingService  = aiGradingService;
+            _progressUseCase   = progressUseCase;
+            _gradeUseCase      = gradeUseCase;
+            _examPromptRepo    = examPromptRepo;
+            _backgroundGrading = backgroundGrading;
+            _rubricService     = rubricService;
+            _logger            = logger;
         }
 
         public async Task<SubmissionResponse> SubmitEssayAsync(
@@ -62,28 +74,34 @@ namespace VstepWritingLab.Business.Services
             var wordCount   = CountWords(request.EssayContent);
             var belowMin    = wordCount < task.MinWords;
 
-            var submission = new SubmissionModel
+            var command = new VstepWritingLab.Business.DTOs.GradeEssayCommand(
+                StudentId: userId,
+                EssayId:   request.QuestionId,
+                TaskType:  question.TaskType,
+                Prompt:    "System generated prompt", // Backend will look it up
+                EssayText: request.EssayContent.Trim(),
+                WordCount: wordCount,
+                Language:  request.Language ?? "vi",
+                Mode:      request.Mode,
+                UserHistory: null
+            );
+
+            // This will enqueue the task to RabbitMQ via IBackgroundGradingService
+            var useCaseResult = await _gradeUseCase.ExecuteAsync(command);
+
+            var responseId = useCaseResult.IsSuccess && useCaseResult.Value != null 
+                             ? useCaseResult.Value.Id 
+                             : Guid.NewGuid().ToString();
+
+            return new SubmissionResponse
             {
-                UserId       = userId,
-                QuestionId   = request.QuestionId,
-                TaskType     = question.TaskType,
-                Mode         = request.Mode,
-                EssayContent = request.EssayContent.Trim(),
-                WordCount    = wordCount,
-                BelowMinWords = belowMin,
-                Status       = "pending",
-                RetryCount   = 0,
-                Language     = request.Language ?? "vi",
-                CreatedAt    = Timestamp.GetCurrentTimestamp()
+                Id = responseId,
+                QuestionId = request.QuestionId,
+                TaskType = question.TaskType,
+                Mode = request.Mode,
+                Status = "pending",
+                CreatedAt = DateTime.UtcNow
             };
-
-            // var submissionId = await _submissionRepo.CreateAsync(submission);
-            // submission.SubmissionId = submissionId;
-            submission.SubmissionId = Guid.NewGuid().ToString(); // Use GUID as per user's system B
-
-            _ = GradeAndUpdateAsync(submission, question, task);
-
-            return MapToResponse(submission);
         }
 
         private async Task GradeAndUpdateAsync(
@@ -179,19 +197,29 @@ namespace VstepWritingLab.Business.Services
                 }
             }
 
-            return results.Select(r => new SubmissionListItemResponse
+            return results.Select(r =>
             {
-                Id            = r.Id,
-                QuestionId    = r.ExamId,
-                QuestionTitle = !string.IsNullOrEmpty(r.ExamId) && questionMap.TryGetValue(r.ExamId, out var title) 
-                                ? title : "Writing Submission",
-                TaskType      = r.TaskType,
-                Mode          = r.Mode,
-                WordCount     = r.WordCount,
-                BelowMinWords = false,
-                Status        = "scored",
-                OverallScore  = r.TotalScore,
-                CreatedAt     = r.GradedAt
+                var status = r.Status?.ToLower() switch
+                {
+                    "pending"   => "pending",
+                    "failed"    => "failed",
+                    _           => "scored"
+                };
+
+                return new SubmissionListItemResponse
+                {
+                    Id            = r.Id,
+                    QuestionId    = r.ExamId,
+                    QuestionTitle = !string.IsNullOrEmpty(r.ExamId) && questionMap.TryGetValue(r.ExamId, out var title)
+                                    ? title : "Writing Submission",
+                    TaskType      = r.TaskType,
+                    Mode          = r.Mode,
+                    WordCount     = r.WordCount,
+                    BelowMinWords = false,
+                    Status        = status,
+                    OverallScore  = r.TotalScore,
+                    CreatedAt     = r.GradedAt
+                };
             }).ToList();
         }
 
@@ -251,7 +279,7 @@ namespace VstepWritingLab.Business.Services
                 QuestionTitle = questionTitle,
                 TaskType      = r.TaskType,
                 Mode          = r.Mode,
-                Status        = "scored",
+                Status        = r.Status?.ToLower() == "pending" ? "pending" : r.Status?.ToLower() == "failed" ? "error" : "scored",
                 EssayContent  = r.EssayText,
                 WordCount     = r.WordCount,
                 CreatedAt     = r.GradedAt,
@@ -303,35 +331,59 @@ namespace VstepWritingLab.Business.Services
             string userId,
             string submissionId)
         {
+            // 1. Load the failed record
             var result = await _historyRepo.GetByIdAsync(submissionId);
-            if (result == null) throw new Exception("Submission not found");
-            if (result.StudentId != userId) throw new Exception("Unauthorized");
+            if (result == null)
+                throw new KeyNotFoundException($"Submission '{submissionId}' not found");
+            if (result.StudentId != userId)
+                throw new UnauthorizedAccessException("You do not own this submission");
 
-            var question = await _questionRepo.GetByIdAsync(result.ExamId);
-            if (question == null) throw new Exception("Question not found");
+            var normalised = result.Status?.ToLower();
+            if (normalised != "failed" && normalised != "error")
+                throw new InvalidOperationException(
+                    $"Only failed submissions can be retried. Current status: {result.Status}");
 
-            var task = await _taskRepo.GetByIdAsync(question.TaskType);
-            if (task == null) throw new Exception("Task not found");
+            // 2. Load the exam prompt (Domain entity)
+            var exam = await _examPromptRepo.GetByIdAsync(result.ExamId);
+            if (exam == null)
+                throw new Exception($"Exam prompt '{result.ExamId}' not found");
 
-            // Create a fake submission model to pass to AI service
-            var submission = new SubmissionModel
+            // 3. Reset Firestore status to Pending so the idempotency check in the
+            //    consumer (Status == "Completed") will not skip it.
+            await _historyRepo.UpdateStatusAsync(submissionId, "Pending", "Đang chấm lại...");
+
+            // 4. Build the grading command — reuse the SAME submissionId so the
+            //    consumer overwrites the same Firestore document when grading finishes.
+            var command = new VstepWritingLab.Business.DTOs.GradeEssayCommand(
+                StudentId:   userId,
+                EssayId:     result.ExamId,
+                TaskType:    result.TaskType,
+                Prompt:      exam.Instruction,
+                EssayText:   result.EssayText,
+                WordCount:   result.WordCount,
+                Language:    "vi",
+                Mode:        result.Mode,
+                UserHistory: null
+            );
+
+            // 5. Build rubric context, then directly publish to RabbitMQ.
+            //    We bypass GradeEssayUseCase entirely so a NEW resultId is not generated.
+            var rubricContext = await _rubricService.GetContextAsync(
+                result.EssayText, result.TaskType);
+
+            _backgroundGrading.EnqueueGradingTask(submissionId, command, exam, rubricContext);
+
+            _logger.LogInformation("Retry enqueued for submission {Id} by user {Uid}", submissionId, userId);
+
+            return new SubmissionResponse
             {
-                SubmissionId = result.Id,
-                UserId = result.StudentId,
+                Id         = submissionId,
                 QuestionId = result.ExamId,
-                TaskType = question.TaskType,
-                Mode = result.Mode,
-                EssayContent = result.EssayText, 
-                WordCount = result.WordCount
+                TaskType   = result.TaskType,
+                Mode       = result.Mode,
+                Status     = "pending",
+                CreatedAt  = DateTime.UtcNow
             };
-
-            // In a real retry, we should fetch the content from wherever it's stored.
-            // For now, if content is missing, we might have to store it in GradingResult.
-            // But let's assume the AI service can handle it or we fetch it from another source if needed.
-            
-            _ = GradeAndUpdateAsync(submission, question, task);
-
-            return MapDomainToResponse(result);
         }
 
         private int CountWords(string text) =>

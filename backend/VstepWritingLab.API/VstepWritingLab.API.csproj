@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="FirebaseAdmin" />
     <PackageReference Include="Google.Cloud.Firestore" />
+    <PackageReference Include="MassTransit.RabbitMQ" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
     <PackageReference Include="Swashbuckle.AspNetCore" />

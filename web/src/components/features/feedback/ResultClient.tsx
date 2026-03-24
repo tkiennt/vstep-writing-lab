@@ -1,79 +1,183 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GradingResultDoc } from '@/types/grading';
 import { mapRawToGradingResultDoc } from '@/lib/mapping';
 import { ScoreSummaryCard } from './ScoreSummaryCard';
 import { AnnotatedEssay } from './AnnotatedEssay';
-import { Loader2, Zap, FileText, CheckCheck, RefreshCw, AlertCircle, BrainCircuit, TrendingUp } from 'lucide-react';
+import { Zap, FileText, RefreshCw, AlertCircle, BrainCircuit, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
+import * as signalR from '@microsoft/signalr';
+import { auth } from '@/lib/firebase';
 import { getSubmissionById } from '@/lib/api';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5260';
 
 interface ResultClientProps {
   essayId: string;
+  examId?: string;
 }
 
-export function ResultClient({ essayId }: ResultClientProps) {
+export function ResultClient({ essayId, examId }: ResultClientProps) {
   const { t } = useTranslation();
   const [result, setResult] = useState<GradingResultDoc | null>(null);
   const [status, setStatus] = useState<'pending' | 'ready' | 'error'>('pending');
+  const connectionRef = useRef<signalR.HubConnection | null>(null);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let pollingTimer: NodeJS.Timeout;
+    let isMounted = true;
 
-    const fetchResult = async () => {
+    // ── 1. Try to load immediately from cache or API ──────────────────────
+    const tryLoadResult = async () => {
       try {
+        // Skip pending cache entries
         const cached = sessionStorage.getItem('lastGradingResult');
         if (cached) {
           const raw = JSON.parse(cached);
-          if (raw.id === essayId || raw.submissionId === essayId) {
+          if ((raw.id === essayId || raw.submissionId === essayId) &&
+              raw.status !== 'pending' && raw.status !== 'Pending') {
             const mapped = mapRawToGradingResultDoc(raw, essayId);
-            setResult(mapped);
-            setStatus('ready');
-            return;
+            if (isMounted) { setResult(mapped); setStatus('ready'); }
+            return true;
           }
         }
 
         const data = await getSubmissionById(essayId);
-        if (data) {
-          if (data.status === 'pending') {
-            setStatus('pending');
-            timer = setTimeout(fetchResult, 3000);
-            return;
+        if (!data) { if (isMounted) setStatus('error'); return false; }
+
+        if (data.status === 'error' || data.status === 'failed' || data.status === 'Failed') {
+          if (isMounted) {
+            setStatus('error');
+            if (examId) window.location.href = `/practice/${examId}?error=grading_failed`;
           }
-          const mapped = mapRawToGradingResultDoc(data, essayId);
-          setResult(mapped);
-          setStatus('ready');
-        } else {
-          setStatus('error');
+          return true; // stop polling
         }
-      } catch (err) {
-        console.error("Result loading error", err);
-        setStatus('error');
+
+        if (data.status === 'pending' || data.status === 'Pending') {
+          return false; // still waiting
+        }
+
+        const mapped = mapRawToGradingResultDoc(data, essayId);
+        if (isMounted) { setResult(mapped); setStatus('ready'); }
+        return true;
+      } catch {
+        return false;
       }
     };
 
-    fetchResult();
-    return () => clearTimeout(timer);
+    // ── 2. Set up SignalR for real-time push ──────────────────────────────
+    const setupSignalR = async () => {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${API_BASE}/hubs/grading?access_token=${token}`, {
+          skipNegotiation: false,
+          transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling,
+        })
+        .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.Warning)
+        .build();
+
+      connection.on('GradingCompleted', async (payload: { resultId: string }) => {
+        if (payload.resultId !== essayId || !isMounted) return;
+        console.log('[SignalR] GradingCompleted for', payload.resultId);
+        const done = await tryLoadResult();
+        if (!done && isMounted) {
+          // Fallback: poll once more after a short delay
+          pollingTimer = setTimeout(tryLoadResult, 2000);
+        }
+      });
+
+      connection.on('GradingFailed', (payload: { resultId: string }) => {
+        if (payload.resultId !== essayId || !isMounted) return;
+        console.warn('[SignalR] GradingFailed for', payload.resultId);
+        if (isMounted) {
+          setStatus('error');
+          if (examId) window.location.href = `/practice/${examId}?error=grading_failed`;
+        }
+      });
+
+      try {
+        await connection.start();
+        connectionRef.current = connection;
+        console.log('[SignalR] Connected, waiting for grading result...');
+      } catch (err) {
+        console.warn('[SignalR] Connection failed, falling back to polling', err);
+        startPolling();
+      }
+    };
+
+    // ── 3. Polling fallback (used if SignalR fails to connect) ────────────
+    const startPolling = () => {
+      const poll = async () => {
+        const done = await tryLoadResult();
+        if (!done && isMounted) {
+          pollingTimer = setTimeout(poll, 4000);
+        }
+      };
+      poll();
+    };
+
+    // ── Main init: first check if already done, then set up SignalR ───────
+    (async () => {
+      const alreadyDone = await tryLoadResult();
+      if (alreadyDone) return;
+
+      // Not ready yet — connect SignalR and also do one poll in 4s as safety net
+      await setupSignalR();
+      pollingTimer = setTimeout(async () => {
+        if (!isMounted || status === 'ready') return;
+        const done = await tryLoadResult();
+        if (!done) startPolling();
+      }, 4000);
+    })();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(pollingTimer);
+      connectionRef.current?.stop();
+    };
   }, [essayId]);
 
   if (status === 'pending') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        {/* Spinner with brain icon */}
         <div className="relative mb-10">
-          <div className="w-24 h-24 border-8 border-emerald-100 border-t-emerald-600 rounded-full animate-spin" />
+          <div className="w-28 h-28 border-8 border-emerald-100 border-t-emerald-600 rounded-full animate-spin" />
           <div className="absolute inset-0 flex items-center justify-center">
-             <BrainCircuit className="w-8 h-8 text-emerald-600 animate-pulse" />
+            <BrainCircuit className="w-9 h-9 text-emerald-600 animate-pulse" />
           </div>
         </div>
+
         <h2 className="text-3xl font-black text-slate-900 tracking-tight">{t('common.loading')}</h2>
         <p className="text-slate-500 mt-4 max-w-sm font-medium leading-relaxed">
-          {t('practiceList.loading')}
+          AI đang chấm bài của bạn. Quá trình này có thể mất 30–60 giây.
+          <br />
+          <span className="text-slate-400 text-sm">Bạn có thể rời khỏi trang — kết quả vẫn được lưu lại.</span>
         </p>
+
+        {/* Action buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-10">
+          <button
+            onClick={() => window.location.href = '/practice-list'}
+            className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-lg shadow-emerald-900/10 transition-all active:scale-95 uppercase tracking-widest text-sm"
+          >
+            Về trang chủ
+          </button>
+          <button
+            onClick={() => window.location.href = '/history'}
+            className="px-8 py-3 bg-white text-slate-600 font-bold border border-slate-200 rounded-2xl hover:bg-slate-50 shadow-sm transition-all active:scale-95 uppercase tracking-widest text-sm"
+          >
+            Xem lịch sử
+          </button>
+        </div>
       </div>
     );
   }
+
 
   if (status === 'error' || !result) {
     return (
@@ -152,7 +256,7 @@ export function ResultClient({ essayId }: ResultClientProps) {
                   <BrainCircuit className="w-5 h-5 text-emerald-600" /> {t('result.aiSummary.title')}
                 </h3>
                 <div className="p-6 bg-emerald-50/50 dark:bg-emerald-500/10 rounded-3xl border border-emerald-100/50 dark:border-emerald-500/20 text-slate-700 dark:text-slate-300 font-medium leading-[1.8] text-sm italic whitespace-pre-wrap">
-                  "{result.summary}"
+                  &quot;{result.summary}&quot;
                 </div>
               </div>
               <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-50 dark:bg-emerald-500/10 rounded-full blur-3xl opacity-50 group-hover:scale-110 transition-transform" />
@@ -172,7 +276,6 @@ export function ResultClient({ essayId }: ResultClientProps) {
                   </div>
 
                   <div className="space-y-4 relative">
-                    {/* Visual line */}
                     <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-gradient-to-b from-emerald-500/50 via-slate-700 dark:via-slate-800 to-transparent" />
                     
                     {result.roadmap.weekly_plan.slice(0, 4).map((step, i) => (
@@ -197,7 +300,6 @@ export function ResultClient({ essayId }: ResultClientProps) {
                     {t('result.cta.new')}
                   </button>
                 </div>
-                {/* Decorative background circle */}
                 <div className="absolute -top-12 -right-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
               </section>
             )}

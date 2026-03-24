@@ -44,6 +44,7 @@ public class GradingResult
     public string EssayText { get; private set; } = string.Empty;
     public int    WordCount { get; private set; }
     public string Summary   { get; private set; } = string.Empty;
+    public string Status    { get; private set; } = "Completed"; // Pending, Completed, Failed
 
     // Constructor for mapping/deserialization
     public GradingResult(
@@ -59,7 +60,8 @@ public class GradingResult
         string mode = "exam",
         string essayText = "",
         int wordCount = 0,
-        string summary = "")
+        string summary = "",
+        string status = "Completed")
     {
         this.Id = id;
         this.StudentId = studentId;
@@ -87,6 +89,7 @@ public class GradingResult
         this.EssayText = essayText;
         this.WordCount = wordCount;
         this.Summary = summary;
+        this.Status = status;
 
         TotalScore = ComputeTotal(
             taskFulfilment.Score, organization.Score,

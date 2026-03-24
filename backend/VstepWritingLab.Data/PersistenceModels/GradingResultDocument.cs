@@ -42,6 +42,7 @@ public class GradingResultDocument
     [FirestoreProperty] public string EssayText { get; set; } = string.Empty;
     [FirestoreProperty] public int    WordCount { get; set; }
     [FirestoreProperty] public string Summary   { get; set; } = string.Empty;
+    [FirestoreProperty] public string Status    { get; set; } = "Completed";
 
     public static GradingResultDocument FromDomain(GradingResult domain) => new()
     {
@@ -72,7 +73,8 @@ public class GradingResultDocument
         Mode = domain.Mode,
         EssayText = domain.EssayText,
         WordCount = domain.WordCount,
-        Summary = domain.Summary
+        Summary = domain.Summary,
+        Status = domain.Status
     };
 
     public GradingResult ToDomain()
@@ -101,7 +103,8 @@ public class GradingResultDocument
             Mode ?? "exam",
             EssayText ?? "", 
             WordCount,
-            Summary ?? "Xem chi tiết đánh giá từng tiêu chí bên dưới."
+            Summary ?? "Xem chi tiết đánh giá từng tiêu chí bên dưới.",
+            Status ?? "Completed"
         );
     }
 }

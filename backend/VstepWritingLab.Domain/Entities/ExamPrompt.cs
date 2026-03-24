@@ -20,7 +20,7 @@ public class ExamPrompt
     public int      UsageCount         { get; private set; }
     public DateTime CreatedAt          { get; private set; }
 
-    private ExamPrompt() { } // For deserialization
+    public ExamPrompt() { } // For deserialization
 
     public static Result<ExamPrompt> Create(
         string taskType, string cefrLevel, string instruction,

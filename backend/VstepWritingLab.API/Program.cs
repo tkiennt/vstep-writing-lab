@@ -2,8 +2,12 @@ using System.IO;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
+using VstepWritingLab.API.Hubs;
+using VstepWritingLab.API.Consumers;
 using VstepWritingLab.API.Middleware;
 using VstepWritingLab.Data.Repositories;
 using VstepWritingLab.Business.Services;
@@ -45,6 +49,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience    = validAudience,
             ValidateLifetime = true
         };
+
+        // Allow JWT token in query string for SignalR WebSocket connections
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 // ── Authorization Policies ────────────────────────────────────────────────
@@ -57,24 +76,73 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("admin"));
 });
 
+// ── CORS (must allow credentials for SignalR WebSocket) ───────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:3000",   // React dev
-                "http://localhost:3001",   // Next.js dev alternate port
-                "http://localhost:5173",   // Vite dev
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "http://localhost:5173",
                 "https://your-production-domain.com")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials(); // Required for SignalR
     });
 });
+
+// ── SignalR ───────────────────────────────────────────────────────────────
+builder.Services.AddSignalR();
+
+// Allow GradingHub to identify users by their Firebase UID (sub claim)
+builder.Services.AddSingleton<IUserIdProvider, FirebaseUserIdProvider>();
+
+// ── MassTransit (RabbitMQ / In-Memory Toggle) ──────────────────────────────
+var useRabbitMq = builder.Configuration.GetValue<bool>("RabbitMQ:Enabled", false);
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<GradeEssayConsumer>();
+
+    if (useRabbitMq)
+    {
+        var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+        x.UsingRabbitMq((ctx, cfg) =>
+        {
+            cfg.Host(rabbitHost, "/", h =>
+            {
+                h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
+                h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+            });
+
+            // Configure retry policy for production (RabbitMQ)
+            cfg.UseMessageRetry(r => r.Exponential(3, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(2)));
+
+            cfg.ConfigureEndpoints(ctx);
+        });
+    }
+    else
+    {
+        x.UsingInMemory((ctx, cfg) =>
+        {
+            // Configure retry policy for development (InMemory)
+            cfg.UseMessageRetry(r => r.Exponential(3, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(2)));
+
+            cfg.ConfigureEndpoints(ctx);
+        });
+    }
+});
+
+// The Background Grading service relies on IPublishEndpoint, 
+// which MassTransit automatically injects regardless of the transport used.
+builder.Services.AddScoped<IBackgroundGradingService, RabbitMqBackgroundGradingService>();
+builder.Services.AddScoped<VstepWritingLab.Domain.Interfaces.IRubricContextService, VstepWritingLab.Data.Services.Qdrant.RubricContextService>();
 
 // ── Infrastructure & Application (Clean Architecture) ────────────────────────
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// ── Legacy Repositories (some might be redundant but kept for now) ────────────
+// ── Legacy Repositories ────────────────────────────────────────────────────
 builder.Services.AddScoped<ILegacyUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<ISubmissionRepository, SubmissionRepository>();
@@ -98,12 +166,10 @@ builder.Services.AddScoped<RubricService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<IEssayService, EssayService>();
 builder.Services.AddScoped<IOutlineService, OutlineService>();
-
 builder.Services.AddScoped<IUserService, UserService>();
 
 // ── Middleware ───────────────────────────────────────────────────────────
 builder.Services.AddTransient<GlobalExceptionHandler>();
-
 builder.Services.AddMemoryCache();
 builder.Services.AddResponseCaching();
 
@@ -117,8 +183,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-
-
 // ── Middleware Pipeline (ORDER MATTERS) ───────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
@@ -127,7 +191,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
+app.UseCors("AllowFrontend"); // Must be before UseAuthentication for SignalR
 
 // Global exception handler
 app.UseMiddleware<GlobalExceptionHandler>();
@@ -138,4 +202,8 @@ app.UseMiddleware<FirebaseAuthMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// ── SignalR Endpoints ────────────────────────────────────────────────────
+app.MapHub<GradingHub>("/hubs/grading");
+
 app.Run();

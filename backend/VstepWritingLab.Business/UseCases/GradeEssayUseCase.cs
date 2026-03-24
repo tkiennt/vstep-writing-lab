@@ -7,6 +7,7 @@ using VstepWritingLab.Business.Helpers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using VstepWritingLab.Business.Services;
 
 namespace VstepWritingLab.Business.UseCases;
 
@@ -16,12 +17,11 @@ public interface IGradeEssayUseCase
 }
 
 public class GradeEssayUseCase(
-    IGradingAiService aiService,
+    IBackgroundGradingService backgroundGradingService,
     IGradingResultRepository repository,
     IExamPromptRepository promptRepository,
     IExamSessionRepository sessionRepository,
     IRubricContextService rubricService,
-    IServiceScopeFactory scopeFactory,
     ILogger<GradeEssayUseCase> logger) : IGradeEssayUseCase
 {
     public async Task<Result<FullAnalysisResponse>> ExecuteAsync(GradeEssayCommand command, CancellationToken ct = default)
@@ -45,50 +45,50 @@ public class GradeEssayUseCase(
 
         var rubricContext = await rubricTask;
 
-        // 3. Call AI Service (tuned model with fallback)
-        var domainHistory = command.UserHistory == null ? null : new Domain.ValueObjects.UserHistory(
-            command.UserHistory.Weaknesses,
-            command.UserHistory.PastScores,
-            command.UserHistory.Level);
-
-        var aiResult = await aiService.GradeAsync(
-            rubricContext, command.TaskType, command.Prompt,
-            exam.KeyPoints, command.WordCount, command.EssayText,
-            command.Mode, domainHistory, command.Language ?? "vi", ct);
-
-        if (!aiResult.IsSuccess || aiResult.Value == null) 
-            return Result<FullAnalysisResponse>.Fail(FriendlyErrorMapper.MapAiError(aiResult.Error ?? "AI grading failed"));
-        
-        var ai = aiResult.Value;
-
-        // 4. Create Domain Entity using existing session ID
+        // 3. Create Pending Domain Entity
         var gradingResult = new GradingResult(
             resultId,
             command.StudentId,
             command.EssayId,
             command.TaskType,
             DateTime.UtcNow,
-            ai.Relevance,
-            ai.TaskFulfilment,
-            ai.Organization,
-            ai.Vocabulary,
-            ai.Grammar,
-            ai.StrengthsVi,
-            ai.ImprovementsVi,
-            ai.Corrections,
-            ai.AiModel,
-            ai.InlineHighlights,
-            ai.RecommendedStructures,
-            ai.RewriteSamples,
-            ai.Roadmap,
-            ai.SentenceFeedback,
-            ai.ImprovementTracking,
+            new TaskRelevance(true, 10, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>()),
+            new CriterionScore(0, "N/A", "", "", ""),
+            new CriterionScore(0, "N/A", "", "", ""),
+            new CriterionScore(0, "N/A", "", "", ""),
+            new CriterionScore(0, "N/A", "", "", ""),
+            Array.Empty<string>(),
+            Array.Empty<string>(),
+            Array.Empty<Correction>(),
+            "", // AiModel
+            Array.Empty<InlineHighlight>(),
+            Array.Empty<RecommendedStructure>(),
+            Array.Empty<RewriteSample>(),
+            new GradingRoadmap("", "", 0, Array.Empty<WeeklyPlanTask>()),
+            Array.Empty<SentenceFeedback>(),
+            null, // ImprovementTracking
             command.Mode,
             command.EssayText,
-            command.WordCount
+            command.WordCount,
+            "Đang chấm điểm...",
+            "Pending"
         );
 
-        // 5. Map to Response DTO
+        // 4. Persistence (Save Pending history)
+        logger.LogInformation("Saving Pending grading result {ResultId} for user {StudentId} (Mode: {Mode})", 
+            gradingResult.Id, command.StudentId, command.Mode);
+            
+        await repository.SaveAsync(gradingResult, ct);
+
+        // 5. Enqueue actual AI work to background service
+        backgroundGradingService.EnqueueGradingTask(
+            resultId,
+            command,
+            exam,
+            rubricContext
+        );
+
+        // 6. Map to Response DTO (Pending form)
         var response = new FullAnalysisResponse(
             gradingResult.Id,
             gradingResult.StudentId,
@@ -109,43 +109,13 @@ public class GradeEssayUseCase(
             gradingResult.InlineHighlights,
             gradingResult.RecommendedStructures,
             gradingResult.RewriteSamples,
-            gradingResult.Roadmap!,
+            gradingResult.Roadmap,
             gradingResult.AiModel,
             gradingResult.SentenceFeedback,
             gradingResult.ImprovementTracking,
-            ai.GuideMode,
+            null, // GuideMode
             gradingResult.Mode
         );
-
-        // 6. Persistence (Always save history)
-        logger.LogInformation("Saving grading result {ResultId} for user {StudentId} (Mode: {Mode})", 
-            gradingResult.Id, command.StudentId, command.Mode);
-            
-        await repository.SaveAsync(gradingResult, ct);
-        await promptRepository.IncrementUsageAsync(command.EssayId, ct);
-
-        // Update session status to Completed
-        if (activeSession != null)
-        {
-            activeSession.Status = ExamSessionStatus.Completed;
-            activeSession.LastUpdatedAt = DateTime.UtcNow;
-            await sessionRepository.UpdateAsync(activeSession, ct);
-        }
-
-        // 7. Progress update (ONLY for exam mode)
-        if (command.Mode == "exam")
-        {
-            logger.LogInformation("Updating progress for user {StudentId} after Exam submission", command.StudentId);
-            _ = Task.Run(async () => {
-                try {
-                    using var scope = scopeFactory.CreateScope();
-                    var scopedProgress = scope.ServiceProvider.GetRequiredService<IProgressUseCase>();
-                    await scopedProgress.UpdateAsync(command.StudentId);
-                } catch (Exception ex) {
-                    logger.LogError(ex, "Background progress update failed for User {StudentId}", command.StudentId);
-                }
-            });
-        }
 
         return Result<FullAnalysisResponse>.Ok(response);
     }
