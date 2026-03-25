@@ -59,6 +59,7 @@ export interface ProgressResponse {
 }
 
 export interface SubmissionListItemResponse {
+  submissionId: string;
   id:   string;
   questionId:     string;
   questionTitle:  string;
@@ -91,6 +92,8 @@ export interface Correction {
 
 // ── Full grading result (API response) ──────────────────────
 export interface GradingResult {
+  submissionId: string;
+  id:                  string;
   score: {
     taskFulfilment: number;
     organization: number;
@@ -109,7 +112,6 @@ export interface GradingResult {
   suggestedStructures: SuggestedStructure[];
   taskRelevance: TaskRelevanceResult;
   // NEW:
-  id:                  string;
   sentenceFeedback:    SentenceFeedback[];
   improvementTracking?: ImprovementTracking;
   guideMode?:          GuideOutput;
