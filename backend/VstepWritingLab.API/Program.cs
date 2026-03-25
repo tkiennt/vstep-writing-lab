@@ -224,11 +224,8 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
     // ── Middleware Pipeline (ORDER MATTERS) ───────────────────────────────────
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // app.UseHttpsRedirection();
 app.UseCors("AllowFrontend"); // Must be before UseAuthentication for SignalR
@@ -245,5 +242,9 @@ app.MapControllers();
 
 // ── SignalR Endpoints ────────────────────────────────────────────────────
 app.MapHub<GradingHub>("/hubs/grading");
+
+// ── Health Checks ─────────────────────────────────────────────────────────
+app.MapGet("/health", () => Results.Ok("ok"));
+app.MapGet("/api/ping", () => Results.Ok("pong"));
 
 app.Run();
