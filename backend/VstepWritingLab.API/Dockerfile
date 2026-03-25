@@ -2,6 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
+# Copy Central Package Management files FIRST (required before restore)
+COPY ["Directory.Packages.props", "."]
+COPY ["Directory.Build.props", "."]
+
 # Copy csproj files and restore dependencies (layer cache optimization)
 COPY ["VstepWritingLab.API/VstepWritingLab.API.csproj", "VstepWritingLab.API/"]
 COPY ["VstepWritingLab.Business/VstepWritingLab.Business.csproj", "VstepWritingLab.Business/"]
