@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, PenTool, FileText, BookOpen, Database,
-  Users, Cpu, LogOut, Settings
+  Users, Cpu, LogOut, Settings, BarChart3, ShieldAlert, ListChecks, History
 } from 'lucide-react';
 import { Role } from '@/config/routes';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,10 +40,13 @@ export function Sidebar({ role }: SidebarProps) {
     
     // Admin routes
     { titleKey: 'nav.dashboard', path: '/admin/dashboard', icon: LayoutDashboard, roles: ['admin'] },
-    { titleKey: 'nav.topicsManagement', path: '/admin/topics', icon: BookOpen, roles: ['admin'] },
-    { titleKey: 'nav.resources', path: '/admin/resources', icon: Database, roles: ['admin'] },
-    { titleKey: 'nav.systemPrompts', path: '/admin/system-prompt', icon: Settings, roles: ['admin'] },
     { titleKey: 'nav.userManagement', path: '/admin/user-management', icon: Users, roles: ['admin'] },
+    { titleKey: 'nav.essaysManagement', path: '/admin/essays', icon: ListChecks, roles: ['admin'] },
+    { titleKey: 'nav.topicsManagement', path: '/admin/topics', icon: BookOpen, roles: ['admin'] },
+    { titleKey: 'nav.aiMonitoring', path: '/admin/ai-monitoring', icon: ShieldAlert, roles: ['admin'] },
+    { titleKey: 'nav.reports', path: '/admin/reports', icon: BarChart3, roles: ['admin'] },
+    { titleKey: 'nav.settings', path: '/admin/settings', icon: Settings, roles: ['admin'] },
+    { titleKey: 'nav.logs', path: '/admin/logs', icon: History, roles: ['admin'] },
     { titleKey: 'nav.aiImportEngine', path: '/admin/ai-import', icon: Cpu, roles: ['admin'] },
   ];
 

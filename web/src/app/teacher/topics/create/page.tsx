@@ -25,7 +25,8 @@ function CreateTopicInner() {
 
   const [formData, setFormData] = useState({
     title: '',
-    type: 'Task 1',
+    taskType: 'task1',
+    category: 'General',
     level: 'B1',
     content: '',
     status: 'draft'
@@ -41,13 +42,14 @@ function CreateTopicInner() {
   const apiFetchTopic = async (id: string) => {
     try {
       const all = await adminQuestionService.getAll();
-      const match = all.find(q => q.id === id);
+      const match = all.find(q => q.questionId === id);
       if (match) {
         setFormData({
           title: match.title || '',
-          type: match.type || 'Task 1',
+          taskType: match.taskType || 'task1',
+          category: match.category || 'General',
           level: match.level || 'B1',
-          content: (match as any).content || '', 
+          content: (match as any).content || (match as any).instructions || '', 
           status: match.status || 'draft'
         });
       }
@@ -139,13 +141,23 @@ function CreateTopicInner() {
                   <div className="space-y-2">
                      <label className="text-sm font-medium text-foreground">Task Type</label>
                      <select 
-                       value={formData.type}
-                       onChange={e => setFormData({...formData, type: e.target.value})}
+                       value={formData.taskType}
+                       onChange={e => setFormData({...formData, taskType: e.target.value})}
                        className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground"
                      >
-                        <option value="Task 1">Task 1 (Letter/Email)</option>
-                        <option value="Task 2">Task 2 (Essay)</option>
+                        <option value="task1">Task 1 (Letter/Email)</option>
+                        <option value="task2">Task 2 (Essay)</option>
                      </select>
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-sm font-medium text-foreground">Topic Category</label>
+                     <input 
+                       type="text" 
+                       value={formData.category}
+                       onChange={e => setFormData({...formData, category: e.target.value})}
+                       placeholder="e.g. Education, Environment" 
+                       className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground"
+                     />
                   </div>
                   <div className="space-y-2">
                      <label className="text-sm font-medium text-foreground">Level Focus</label>

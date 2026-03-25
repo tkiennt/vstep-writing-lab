@@ -9,6 +9,7 @@ namespace VstepWritingLab.Shared.Models.DTOs.Responses
         public string DisplayName { get; set; }
         public string Role { get; set; }
         public bool IsActive { get; set; }
+        public long SubmissionCount { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastLoginAt { get; set; }
     }

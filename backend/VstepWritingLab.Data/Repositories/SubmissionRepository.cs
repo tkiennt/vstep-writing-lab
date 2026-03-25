@@ -16,6 +16,13 @@ public class SubmissionRepository(FirestoreDb db) : BaseRepository<SubmissionMod
         await UpdateAsync(submissionId, updates, ct);
     }
 
+    public async Task<long> CountByUserIdAsync(string userId, CancellationToken ct = default)
+    {
+        var query = Collection.WhereEqualTo("UserId", userId);
+        var snapshot = await query.Count().GetSnapshotAsync(ct);
+        return snapshot.Count ?? 0;
+    }
+
     public async Task<List<SubmissionModel>> GetByUserIdAsync(string userId, int limit, CancellationToken ct = default)
     {
         // Many frontend queries use 'studentId' or 'userUid'. 
@@ -25,4 +32,8 @@ public class SubmissionRepository(FirestoreDb db) : BaseRepository<SubmissionMod
         var snapshot = await Collection.WhereEqualTo("UserId", userId).Limit(limit).GetSnapshotAsync(ct);
         return snapshot.Documents.Select(d => d.ConvertTo<SubmissionModel>()).ToList();
     }
+
+    public override async Task DeleteAsync(string id, CancellationToken ct = default) => await base.DeleteAsync(id, ct);
+
+    public override async Task<List<SubmissionModel>> GetAllAsync(CancellationToken ct = default) => await base.GetAllAsync(ct);
 }

@@ -1,9 +1,10 @@
 import api from '../api';
 
 export interface QuestionDTO {
-  id: string;
+  questionId: string;
   title: string;
-  type: string;
+  taskType: string;
+  category: string;
   level: string;
   status: string;
   createdAt: string;

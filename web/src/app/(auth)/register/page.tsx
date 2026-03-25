@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const ROLE_ROUTES: Record<string, string> = {
@@ -66,71 +66,78 @@ export default function RegisterPage() {
     }
   };
 
-  const inputBase = 'bg-slate-900/60 border text-slate-200 text-sm rounded-xl block w-full p-3.5 transition-colors outline-none focus:ring-2 placeholder:text-slate-600';
-  const inputNormal = `${inputBase} border-white/5 focus:ring-emerald-500/30 focus:border-emerald-500/50`;
-  const inputError  = `${inputBase} border-red-500/30 focus:ring-red-500/20 focus:border-red-500/50`;
+  const inputBase = 'bg-muted border text-foreground text-sm rounded-xl block w-full p-3.5 transition-colors outline-none focus:ring-2 placeholder:text-muted-foreground';
+  const inputNormal = `${inputBase} border-input focus:ring-primary/20 focus:border-primary`;
+  const inputError  = `${inputBase} border-destructive/30 focus:ring-destructive/20 focus:border-destructive/50`;
 
   return (
-    <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-[#0f172a]">
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-16 w-[32rem] h-[32rem] bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-background">
+      {/* Decorative patterns */}
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-16 w-[32rem] h-[32rem] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-md bg-slate-800/70 rounded-3xl shadow-2xl shadow-black/40 border border-white/5 p-10 backdrop-blur-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-slate-100 tracking-tight">{t('auth.register.title')}</h1>
-          <p className="text-slate-500 mt-2 text-sm">{t('auth.register.subtitle')}</p>
+      <div className="relative z-10 w-full max-w-md bg-card rounded-3xl shadow-xl border border-border p-10 backdrop-blur-sm">
+        
+        <Link href="/login" className="absolute top-8 left-8 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          {t('auth.register.signIn')}
+        </Link>
+        
+        <div className="text-center mb-8 mt-4">
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">{t('auth.register.title')}</h1>
+          <p className="text-muted-foreground mt-2 text-sm">{t('auth.register.subtitle')}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {submitError && (
-            <div className="p-3.5 rounded-xl bg-red-950/50 border border-red-500/20 text-red-400 text-sm font-medium text-center">
+            <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium text-center">
               {submitError}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1.5">{t('auth.register.fullName')}</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{t('auth.register.fullName')}</label>
             <input type="text" name="fullName" value={formData.fullName} onChange={handleChange}
               placeholder={t('auth.register.fullNamePlaceholder')}
               className={errors.fullName ? inputError : inputNormal} disabled={isLoading} />
-            {errors.fullName && <p className="text-red-400 text-sm mt-1">{errors.fullName}</p>}
+            {errors.fullName && <p className="text-destructive text-xs mt-1 font-medium">{errors.fullName}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1.5">{t('auth.register.email')}</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{t('auth.register.email')}</label>
             <input type="email" name="email" value={formData.email} onChange={handleChange}
               placeholder={t('auth.register.emailPlaceholder')}
               className={errors.email ? inputError : inputNormal} disabled={isLoading} />
-            {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-destructive text-xs mt-1 font-medium">{errors.email}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1.5">{t('auth.register.password')}</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{t('auth.register.password')}</label>
             <input type="password" name="password" value={formData.password} onChange={handleChange}
               placeholder={t('auth.register.passwordPlaceholder')}
               className={errors.password ? inputError : inputNormal} disabled={isLoading} />
-            {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password}</p>}
+            {errors.password && <p className="text-destructive text-xs mt-1 font-medium">{errors.password}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1.5">{t('auth.register.confirmPassword')}</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{t('auth.register.confirmPassword')}</label>
             <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange}
               placeholder={t('auth.register.confirmPasswordPlaceholder')}
               className={errors.confirmPassword ? inputError : inputNormal} disabled={isLoading} />
-            {errors.confirmPassword && <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>}
+            {errors.confirmPassword && <p className="text-destructive text-xs mt-1 font-medium">{errors.confirmPassword}</p>}
           </div>
 
           <button type="submit" disabled={isLoading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold text-base hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-300 transform hover:-translate-y-0.5 mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            className="w-full py-3.5 rounded-xl bg-vstep-dark hover:bg-emerald-950 text-white font-bold text-base shadow-lg shadow-vstep-dark/10 transition-all duration-300 transform hover:-translate-y-0.5 mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
             {isLoading ? (
               <><Loader2 className="w-5 h-5 animate-spin" />{t('auth.register.submitting')}</>
             ) : t('auth.register.submitBtn')}
           </button>
         </form>
 
-        <p className="mt-7 text-center text-sm text-slate-500">
+        <p className="mt-8 text-center text-sm text-muted-foreground">
           {t('auth.register.hasAccount')}{' '}
-          <Link href="/login" className="text-emerald-400 font-semibold hover:underline">{t('auth.register.signIn')}</Link>
+          <Link href="/login" className="text-primary font-semibold hover:underline">{t('auth.register.signIn')}</Link>
         </p>
       </div>
     </div>

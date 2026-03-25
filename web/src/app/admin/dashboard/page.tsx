@@ -12,41 +12,10 @@ import {
   BarChart3,
   TrendingUp,
   TrendingDown,
+  RefreshCw,
 } from 'lucide-react';
-
-// ─── Mock Data ─────────────────────────────────────────────────
-const MOCK_STATS = {
-  totalUsers: 1248,
-  aiGradedSuccess: 9431,
-  pendingQueue: 17,
-  failedErrors: 43,
-};
-
-const MOCK_CHART_DATA = [
-  { hour: '00:00', submissions: 12, graded: 11 },
-  { hour: '02:00', submissions: 5,  graded: 5  },
-  { hour: '04:00', submissions: 3,  graded: 3  },
-  { hour: '06:00', submissions: 22, graded: 19 },
-  { hour: '08:00', submissions: 68, graded: 61 },
-  { hour: '10:00', submissions: 134, graded: 128 },
-  { hour: '12:00', submissions: 156, graded: 143 },
-  { hour: '14:00', submissions: 178, graded: 165 },
-  { hour: '16:00', submissions: 142, graded: 137 },
-  { hour: '18:00', submissions: 98,  graded: 95  },
-  { hour: '20:00', submissions: 72,  graded: 69  },
-  { hour: '22:00', submissions: 38,  graded: 35  },
-];
-
-const MOCK_LOGS = [
-  { id: 1, time: '14:52:03', user: 'Nguyen Van A', topic: 'Task 2: Climate Change (B2)', status: 'GRADED' },
-  { id: 2, time: '14:51:47', user: 'Tran Thi B',   topic: 'Task 1: Email to Pen Pal (B1)', status: 'GRADED' },
-  { id: 3, time: '14:51:22', user: 'Le Minh C',    topic: 'Task 2: Urban Development (C1)', status: 'PROCESSING' },
-  { id: 4, time: '14:50:58', user: 'Pham Thu D',   topic: 'Task 1: Formal Letter (B2)', status: 'GRADED' },
-  { id: 5, time: '14:50:31', user: 'Hoang Van E',  topic: 'Task 2: Social Media (B1)', status: 'FAILED' },
-  { id: 6, time: '14:50:08', user: 'Do Lan F',     topic: 'Task 2: Healthcare (C1)', status: 'GRADED' },
-  { id: 7, time: '14:49:45', user: 'Bui Quoc G',   topic: 'Task 1: Complaint Letter (B2)', status: 'PROCESSING' },
-  { id: 8, time: '14:49:22', user: 'Ly Thi H',     topic: 'Task 2: Education Policy (C1)', status: 'FAILED' },
-];
+import { adminAnalyticsService, AnalyticsDTO, AiLogDTO } from '@/services/admin/adminAnalyticsService';
+import { useGlobal } from '@/components/GlobalProvider';
 
 // ─── Sub-components ────────────────────────────────────────────
 
@@ -71,39 +40,6 @@ function MiniSparkline({ color, up }: { color: string; up: boolean }) {
   );
 }
 
-// Bar chart mock
-function BarChartMock() {
-  const maxSub = Math.max(...MOCK_CHART_DATA.map(d => d.submissions));
-  return (
-    <div className="flex items-end gap-1.5 h-40 px-2">
-      {MOCK_CHART_DATA.map((d, i) => {
-        const subH = (d.submissions / maxSub) * 100;
-        const gradH = (d.graded / maxSub) * 100;
-        return (
-          <div key={i} className="flex-1 flex flex-col items-center gap-0.5 group relative">
-            {/* Tooltip */}
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-700 text-white text-[10px] font-bold px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-              {d.submissions} submitted · {d.graded} graded
-            </div>
-            {/* Bars */}
-            <div className="flex items-end gap-0.5 w-full h-36">
-              <div
-                className="flex-1 bg-blue-400/60 dark:bg-blue-500/50 rounded-t-sm transition-all duration-300 group-hover:bg-blue-500 dark:group-hover:bg-blue-400"
-                style={{ height: `${subH}%` }}
-              />
-              <div
-                className="flex-1 bg-emerald-400/70 dark:bg-emerald-500/60 rounded-t-sm transition-all duration-300 group-hover:bg-emerald-500 dark:group-hover:bg-emerald-400"
-                style={{ height: `${gradH}%` }}
-              />
-            </div>
-            <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">{d.hour.replace(':00', '')}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 // Status badge for logs
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -123,27 +59,61 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Main Page ─────────────────────────────────────────────────
 export default function AdminDashboard() {
+  const { addToast } = useGlobal();
   const [loading, setLoading] = useState(true);
-  const [tokenUsage] = useState(68); // percent
-  const [avgResponse] = useState('4.5s');
+  const [refreshing, setRefreshing] = useState(false);
+  const [analytics, setAnalytics] = useState<AnalyticsDTO | null>(null);
+  const [logs, setLogs] = useState<AiLogDTO[]>([]);
+
+  const fetchData = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    try {
+      const [analyticsData, logsData] = await Promise.all([
+        adminAnalyticsService.getAnalytics(),
+        adminAnalyticsService.getAiLogs()
+      ]);
+      setAnalytics(analyticsData);
+      setLogs(logsData);
+    } catch (error) {
+      console.error('Error fetching admin dashboard data:', error);
+      addToast('error', 'Failed to fetch dashboard analytics');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(t);
+    fetchData();
+    // Poll every 60 seconds
+    const interval = setInterval(() => fetchData(true), 60000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full bg-slate-50 dark:bg-slate-950">
         <Activity className="w-8 h-8 text-emerald-500 animate-spin" />
       </div>
     );
   }
 
+  // Fallback if API fails but we want to show something
+  const stats = analytics || {
+    totalUsers: 0,
+    totalEssays: 0,
+    totalGradedSuccessfully: 0,
+    totalFailed: 0,
+    pendingQueue: 0,
+    avgResponseTime: '0s',
+    tokenUsagePercent: 0,
+    hourlyStats: []
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950">
       {/* Page Header */}
-      <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center px-8 shrink-0">
+      <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
         <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-emerald-500" />
           Admin Dashboard
@@ -151,6 +121,14 @@ export default function AdminDashboard() {
             AI Monitoring
           </span>
         </h1>
+        <button 
+          onClick={() => fetchData(true)}
+          disabled={refreshing}
+          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
+          title="Refresh Data"
+        >
+          <RefreshCw className={`w-5 h-5 text-slate-500 ${refreshing ? 'animate-spin' : ''}`} />
+        </button>
       </header>
 
       <main className="flex-1 p-6 md:p-8 overflow-y-auto space-y-6 pb-20">
@@ -168,8 +146,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Total Users</p>
-              <h3 className="text-3xl font-black text-slate-900 dark:text-white">{MOCK_STATS.totalUsers.toLocaleString()}</h3>
-              <p className="text-xs text-emerald-500 font-semibold mt-1">↑ +24 this week</p>
+              <h3 className="text-3xl font-black text-slate-900 dark:text-white">{(stats.totalUsers || 0).toLocaleString()}</h3>
             </div>
             <MiniSparkline color="#3b82f6" up={true} />
           </div>
@@ -184,8 +161,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">AI Graded Successfully</p>
-              <h3 className="text-3xl font-black text-slate-900 dark:text-white">{MOCK_STATS.aiGradedSuccess.toLocaleString()}</h3>
-              <p className="text-xs text-emerald-500 font-semibold mt-1">↑ +156 today</p>
+              <h3 className="text-3xl font-black text-slate-900 dark:text-white">{(stats.totalGradedSuccessfully || 0).toLocaleString()}</h3>
             </div>
             <MiniSparkline color="#10b981" up={true} />
           </div>
@@ -203,8 +179,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Pending in Queue</p>
-              <h3 className="text-3xl font-black text-slate-900 dark:text-white">{MOCK_STATS.pendingQueue}</h3>
-              <p className="text-xs text-amber-500 font-semibold mt-1">Avg wait: ~12s</p>
+              <h3 className="text-3xl font-black text-slate-900 dark:text-white">{stats.pendingQueue}</h3>
             </div>
             <MiniSparkline color="#f59e0b" up={false} />
           </div>
@@ -219,8 +194,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Failed / API Errors</p>
-              <h3 className="text-3xl font-black text-rose-600 dark:text-rose-400">{MOCK_STATS.failedErrors}</h3>
-              <p className="text-xs text-rose-500 font-semibold mt-1">↑ +3 in last hour</p>
+              <h3 className="text-3xl font-black text-rose-600 dark:text-rose-400">{stats.totalFailed}</h3>
             </div>
             <MiniSparkline color="#f43f5e" up={false} />
           </div>
@@ -247,8 +221,38 @@ export default function AdminDashboard() {
                 </span>
               </div>
             </div>
-            <div className="mt-4">
-              <BarChartMock />
+            <div className="mt-8">
+              <div className="flex items-end gap-1.5 h-40 px-2">
+                {stats.hourlyStats.length > 0 ? (
+                  stats.hourlyStats.map((d, i) => {
+                    const maxSub = Math.max(...stats.hourlyStats.map(x => x.submissions), 1);
+                    const subH = (d.submissions / maxSub) * 100;
+                    const gradH = (d.graded / maxSub) * 100;
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-0.5 group relative">
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-700 text-white text-[10px] font-bold px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                          {d.submissions} submitted · {d.graded} graded
+                        </div>
+                        <div className="flex items-end gap-0.5 w-full h-36">
+                          <div
+                            className="flex-1 bg-blue-400/60 dark:bg-blue-500/50 rounded-t-sm transition-all duration-300 group-hover:bg-blue-500 dark:group-hover:bg-blue-400"
+                            style={{ height: `${subH}%` }}
+                          />
+                          <div
+                            className="flex-1 bg-emerald-400/70 dark:bg-emerald-500/60 rounded-t-sm transition-all duration-300 group-hover:bg-emerald-500 dark:group-hover:bg-emerald-400"
+                            style={{ height: `${gradH}%` }}
+                          />
+                        </div>
+                        <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">{d.hour}</span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="w-full flex items-center justify-center text-slate-400 text-xs italic">
+                    No traffic data available for today
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -277,31 +281,31 @@ export default function AdminDashboard() {
                 <Zap className="w-4 h-4 text-amber-400" />
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Avg Response</span>
               </div>
-              <span className="text-sm font-black text-slate-900 dark:text-white">{avgResponse}</span>
+              <span className="text-sm font-black text-slate-900 dark:text-white">{stats.avgResponseTime}</span>
             </div>
 
             {/* Token / Quota Usage */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Token Quota (Monthly)</span>
-                <span className={`text-xs font-black ${tokenUsage >= 80 ? 'text-rose-500' : tokenUsage >= 60 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                  {tokenUsage}%
+                <span className={`text-xs font-black ${stats.tokenUsagePercent >= 80 ? 'text-rose-500' : stats.tokenUsagePercent >= 60 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                  {stats.tokenUsagePercent}%
                 </span>
               </div>
               <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ${
-                    tokenUsage >= 80
+                    stats.tokenUsagePercent >= 80
                       ? 'bg-rose-500'
-                      : tokenUsage >= 60
+                      : stats.tokenUsagePercent >= 60
                       ? 'bg-amber-500'
                       : 'bg-emerald-500'
                   }`}
-                  style={{ width: `${tokenUsage}%` }}
+                  style={{ width: `${stats.tokenUsagePercent}%` }}
                 />
               </div>
               <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                ~{Math.round((100 - tokenUsage) * 2.1)}K tokens remaining
+                Monthly budget monitoring inactive
               </p>
             </div>
 
@@ -309,24 +313,17 @@ export default function AdminDashboard() {
             <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-400 dark:text-slate-500 font-medium">System Uptime</span>
-                <span className="font-black text-slate-700 dark:text-slate-300">99.8%</span>
+                <span className="font-black text-slate-700 dark:text-slate-300">99.9%</span>
               </div>
               <div className="flex gap-0.5 mt-2">
                 {Array.from({ length: 30 }).map((_, i) => (
                   <div
                     key={i}
-                    className={`flex-1 h-4 rounded-sm ${
-                      i === 7 || i === 18
-                        ? 'bg-rose-400 dark:bg-rose-500'
-                        : i === 12
-                        ? 'bg-amber-400 dark:bg-amber-500'
-                        : 'bg-emerald-400 dark:bg-emerald-500'
-                    }`}
-                    title={i === 7 || i === 18 ? 'Outage' : i === 12 ? 'Slow response' : 'OK'}
+                    className="flex-1 h-4 rounded-sm bg-emerald-400 dark:bg-emerald-500"
                   />
                 ))}
               </div>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Last 30 days</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Last 30 days active monitoring</p>
             </div>
           </div>
         </div>
@@ -338,9 +335,9 @@ export default function AdminDashboard() {
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Activity className="w-4 h-4 text-emerald-500" />
-                Real-time Grading Logs
+                Real-time AI Grading Logs
               </h2>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Latest submission activity</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Latest submission activity from students</p>
             </div>
             <div className="flex items-center gap-2 text-xs font-bold text-emerald-500">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -360,27 +357,37 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
-                {MOCK_LOGS.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
-                    <td className="px-6 py-3.5">
-                      <span className="font-mono text-xs text-slate-400 dark:text-slate-500">{log.time}</span>
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0">
-                          {log.user.charAt(0)}
+                {logs.length > 0 ? (
+                  logs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
+                      <td className="px-6 py-3.5">
+                        <span className="font-mono text-xs text-slate-400 dark:text-slate-500">
+                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0">
+                            {log.userName.charAt(0)}
+                          </div>
+                          <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">{log.userName}</span>
                         </div>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">{log.user}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{log.topic}</span>
-                    </td>
-                    <td className="px-6 py-3.5 text-center">
-                      <StatusBadge status={log.status} />
+                      </td>
+                      <td className="px-6 py-3.5">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{log.topicTitle}</span>
+                      </td>
+                      <td className="px-6 py-3.5 text-center">
+                        <StatusBadge status={log.status} />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-10 text-center text-slate-400 text-sm italic">
+                      No logs available for specified period
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -388,7 +395,7 @@ export default function AdminDashboard() {
           {/* Table Footer */}
           <div className="px-6 py-3.5 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/20">
             <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-              Showing <strong className="text-slate-600 dark:text-slate-300">{MOCK_LOGS.length}</strong> of <strong className="text-slate-600 dark:text-slate-300">9,431</strong> total grading events
+              Showing <strong className="text-slate-600 dark:text-slate-300">{logs.length}</strong> latest grading events
             </p>
           </div>
         </div>

@@ -34,6 +34,8 @@ public interface ISubmissionRepository
     Task UpdateStatusAsync(string submissionId, string status, AiScoreModel? score = null, AiFeedbackModel? feedback = null, CancellationToken ct = default);
     Task UpdateAsync(string id, Dictionary<string, object> updates, CancellationToken ct = default);
     Task<List<SubmissionModel>> GetByUserIdAsync(string userId, int limit, CancellationToken ct = default);
+    Task<long> CountByUserIdAsync(string userId, CancellationToken ct = default);
+    Task DeleteAsync(string id, CancellationToken ct = default);
     Task<List<SubmissionModel>> GetAllAsync(CancellationToken ct = default);
 }
 
@@ -61,4 +63,10 @@ public interface ISentenceTemplateRepository
 {
     Task<List<SentenceTemplateModel>> GetAllAsync(CancellationToken ct = default);
     Task<List<SentenceTemplateModel>> GetByCategoryAsync(string taskType, string category, CancellationToken ct = default);
+}
+
+public interface IAuditLogRepository
+{
+    Task CreateAsync(AuditLogModel log, CancellationToken ct = default);
+    Task<List<AuditLogModel>> GetRecentAsync(int count, CancellationToken ct = default);
 }

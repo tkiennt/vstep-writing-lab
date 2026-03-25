@@ -1,0 +1,59 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+env:
+  PROJECT_ID: vstep-writing-lab
+  REGION: us-central1
+  SERVICE_NAME: vstep-api
+  IMAGE_NAME: gcr.io/vstep-writing-lab/api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authorize Docker
+        run: gcloud auth configure-docker gcr.io
+
+      - name: Build and Push Container
+        run: |-
+          docker build -t $IMAGE_NAME:${{ github.sha }} -f backend/VstepWritingLab.API/Dockerfile backend/
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:latest
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          env_vars: |-
+            ASPNETCORE_ENVIRONMENT=Production
+            FIREBASE__PROJECTID=vstep-writing-lab
+            APPLICATION_PORT=8080
+          # Secrets should be configured in Cloud Run directly or via this block
+          # secrets: |-
+          #   FIREBASE_ADMIN_SDK=firebase-sdk:latest

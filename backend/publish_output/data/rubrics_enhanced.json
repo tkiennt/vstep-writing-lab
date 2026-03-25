@@ -1,0 +1,21 @@
+{
+  "task1": {
+    "criteria": {
+      "task_fulfilment": {
+        "descriptors": {
+          "10": { "text_en": "The writing fully addresses all parts of the task with a very high degree of precision.", "text_vi": "Bài viết hoàn thành đầy đủ tất cả các yêu cầu của đề bài với độ chính xác rất cao." },
+          "5": { "text_en": "The writing addresses the main parts of the task but some details may be missing.", "text_vi": "Bài viết hoàn thành các phần chính của đề bài nhưng có thể thiếu một số chi tiết." }
+        }
+      }
+    }
+  },
+  "task2": {
+    "criteria": {
+      "task_fulfilment": {
+        "descriptors": {
+          "10": { "text_en": "The essay provides a very clear and well-developed response to the question.", "text_vi": "Bài viết đưa ra câu trả lời rất rõ ràng và phát triển tốt cho câu hỏi." }
+        }
+      }
+    }
+  }
+}

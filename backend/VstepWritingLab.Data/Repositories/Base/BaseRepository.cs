@@ -20,13 +20,14 @@ namespace VstepWritingLab.Data.Repositories.Base
         protected CollectionReference Collection =>
             _db.Collection(_collectionName);
 
-        public async Task<T?> GetByIdAsync(string id, CancellationToken ct = default)
+        public virtual async Task<T?> GetByIdAsync(string id, CancellationToken ct = default)
         {
+            if (string.IsNullOrEmpty(id)) return null;
             var doc = await Collection.Document(id).GetSnapshotAsync(ct);
             return doc.Exists ? doc.ConvertTo<T>() : null;
         }
 
-        public async Task<List<T>> GetAllAsync(CancellationToken ct = default)
+        public virtual async Task<List<T>> GetAllAsync(CancellationToken ct = default)
         {
             var snapshot = await Collection.GetSnapshotAsync(ct);
             return snapshot.Documents
@@ -35,24 +36,27 @@ namespace VstepWritingLab.Data.Repositories.Base
                 .ToList();
         }
 
-        public async Task<string> CreateAsync(T model, CancellationToken ct = default)
+        public virtual async Task<string> CreateAsync(T model, CancellationToken ct = default)
         {
             var docRef = await Collection.AddAsync(model, ct);
             return docRef.Id;
         }
 
-        public async Task SetAsync(string id, T model, CancellationToken ct = default)
+        public virtual async Task SetAsync(string id, T model, CancellationToken ct = default)
         {
+            if (string.IsNullOrEmpty(id)) throw new System.ArgumentNullException(nameof(id));
             await Collection.Document(id).SetAsync(model, SetOptions.MergeAll, ct);
         }
 
-        public async Task UpdateAsync(string id, Dictionary<string, object> fields, CancellationToken ct = default)
+        public virtual async Task UpdateAsync(string id, Dictionary<string, object> fields, CancellationToken ct = default)
         {
+            if (string.IsNullOrEmpty(id)) throw new System.ArgumentNullException(nameof(id));
             await Collection.Document(id).UpdateAsync(fields, cancellationToken: ct);
         }
 
-        public async Task DeleteAsync(string id, CancellationToken ct = default)
+        public virtual async Task DeleteAsync(string id, CancellationToken ct = default)
         {
+            if (string.IsNullOrEmpty(id)) throw new System.ArgumentNullException(nameof(id));
             await Collection.Document(id).DeleteAsync(cancellationToken: ct);
         }
 

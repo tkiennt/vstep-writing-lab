@@ -18,18 +18,43 @@ using VstepWritingLab.Data.Services.Qdrant;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Firebase Admin SDK ────────────────────────────────────────────────────
+// 1. Explicit path from appsettings (local dev)
+// 2. GOOGLE_APPLICATION_CREDENTIALS env var (Cloud Run / GCP — set at runtime)
 var credentialPath = builder.Configuration["Firebase:CredentialPath"];
-if (!string.IsNullOrEmpty(credentialPath))
+var gcpCredentialEnv = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
+
+if (!string.IsNullOrEmpty(credentialPath) && File.Exists(credentialPath))
 {
     Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialPath);
 
     if (FirebaseApp.DefaultInstance == null)
     {
-        using var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read);
         FirebaseApp.Create(new AppOptions
         {
             Credential = GoogleCredential.FromFile(credentialPath)
-        }); 
+        });
+    }
+}
+else if (!string.IsNullOrEmpty(gcpCredentialEnv) && File.Exists(gcpCredentialEnv))
+{
+    // Cloud Run: secret file mounted at GOOGLE_APPLICATION_CREDENTIALS
+    if (FirebaseApp.DefaultInstance == null)
+    {
+        FirebaseApp.Create(new AppOptions
+        {
+            Credential = GoogleCredential.FromFile(gcpCredentialEnv)
+        });
+    }
+}
+else
+{
+    // Fallback: Application Default Credentials (if running on GCP with Workload Identity)
+    if (FirebaseApp.DefaultInstance == null)
+    {
+        FirebaseApp.Create(new AppOptions
+        {
+            Credential = await GoogleCredential.GetApplicationDefaultAsync()
+        });
     }
 }
 
@@ -81,14 +106,23 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:5173",
-                "https://your-production-domain.com")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials(); // Required for SignalR
+        var allowedOrigins = new List<string>
+        {
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:5173"
+        };
+
+        // Read additional production origins from environment
+        var prodOrigin = builder.Configuration["Cors:ProductionOrigin"]
+                      ?? Environment.GetEnvironmentVariable("CORS_PRODUCTION_ORIGIN");
+        if (!string.IsNullOrEmpty(prodOrigin))
+            allowedOrigins.Add(prodOrigin);
+
+        policy.WithOrigins(allowedOrigins.ToArray())
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Required for SignalR
     });
 });
 
@@ -152,6 +186,7 @@ builder.Services.AddScoped<IRubricRepository, RubricRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ISentenceTemplateRepository, SentenceTemplateRepository>();
 builder.Services.AddScoped<IAiUsageLogRepository, AiUsageLogRepository>();
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
 // ── Legacy Services ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<AuthService>();
@@ -163,6 +198,10 @@ builder.Services.AddScoped<DataImportService>();
 builder.Services.AddScoped<AdminUserService>();
 builder.Services.AddScoped<AdminQuestionService>();
 builder.Services.AddScoped<AdminAnalyticsService>();
+builder.Services.AddScoped<AdminEssayService>();
+builder.Services.AddScoped<AdminAiMonitorService>();
+builder.Services.AddScoped<AdminReportsService>();
+builder.Services.AddScoped<AdminAuditLogService>();
 builder.Services.AddScoped<RubricService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<IEssayService, EssayService>();
