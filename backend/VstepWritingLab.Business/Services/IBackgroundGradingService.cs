@@ -36,12 +36,12 @@ public class RabbitMqBackgroundGradingService(
         {
             try
             {
-                await publishEndpoint.Publish(new GradeEssayMessage(resultId, command, exam, rubricContext));
-                logger.LogInformation("Published GradeEssayMessage to RabbitMQ for ResultId={ResultId}", resultId);
+                await publishEndpoint.Publish(new GradeEssayScoresMessage(resultId, command, exam, rubricContext));
+                logger.LogInformation("Published GradeEssayScoresMessage to RabbitMQ for ResultId={ResultId}", resultId);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to publish GradeEssayMessage to RabbitMQ for ResultId={ResultId}", resultId);
+                logger.LogError(ex, "Failed to publish GradeEssayScoresMessage to RabbitMQ for ResultId={ResultId}", resultId);
             }
         });
     }

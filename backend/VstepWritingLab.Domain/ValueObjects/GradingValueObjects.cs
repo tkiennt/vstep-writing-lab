@@ -7,11 +7,13 @@ public record SentenceFeedback(
     [property: FirestoreProperty("sentence")]    string Sentence,
     [property: FirestoreProperty("isGood")]      bool   IsGood,
     [property: FirestoreProperty("issueType")]   string IssueType,    // "grammar"|"vocab"|"coherence"|"task"|"none"
-    [property: FirestoreProperty("explanation")] string Explanation,
-    [property: FirestoreProperty("suggestion")]  string Suggestion
+    [property: FirestoreProperty("explanationEn")] string ExplanationEn,
+    [property: FirestoreProperty("explanationVi")] string ExplanationVi,
+    [property: FirestoreProperty("suggestionEn")]  string SuggestionEn,
+    [property: FirestoreProperty("suggestionVi")]  string SuggestionVi
 )
 {
-    public SentenceFeedback() : this("", true, "none", "", "") { }
+    public SentenceFeedback() : this("", true, "none", "", "", "", "") { }
 }
 
 [FirestoreData]

@@ -51,5 +51,13 @@ namespace VstepWritingLab.API.Controllers
             var result = await _submissionService.RetryAsync(uid, id);
             return Ok(result);
         }
+
+        [HttpPost("{id}/translate")]
+        public async Task<IActionResult> Translate(string id, [FromQuery] string lang = "vi")
+        {
+            var uid    = this.GetUserId();
+            var result = await _submissionService.TranslateAsync(uid, id, lang);
+            return Ok(result);
+        }
     }
 }

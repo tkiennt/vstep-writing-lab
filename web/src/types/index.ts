@@ -200,6 +200,8 @@ export interface SubmissionListItemResponse {
   belowMinWords: boolean;
   status: EssayStatus;
   overallScore?: number;
+  summaryEn?: string;
+  summaryVi?: string;
   createdAt: string;
 }
 

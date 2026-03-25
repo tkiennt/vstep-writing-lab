@@ -29,7 +29,7 @@ if (!string.IsNullOrEmpty(credentialPath))
         FirebaseApp.Create(new AppOptions
         {
             Credential = GoogleCredential.FromFile(credentialPath)
-        });
+        }); 
     }
 }
 
@@ -103,7 +103,8 @@ var useRabbitMq = builder.Configuration.GetValue<bool>("RabbitMQ:Enabled", false
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<GradeEssayConsumer>();
+    x.AddConsumer<GradeEssayScoresConsumer>();
+    x.AddConsumer<GradeEssayDetailsConsumer>();
 
     if (useRabbitMq)
     {
@@ -183,7 +184,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// ── Middleware Pipeline (ORDER MATTERS) ───────────────────────────────────
+    // ── Middleware Pipeline (ORDER MATTERS) ───────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

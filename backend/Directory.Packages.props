@@ -3,6 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Google.Apis.Auth" Version="1.68.0" />
     <PackageVersion Include="MassTransit" Version="8.3.6" />
     <PackageVersion Include="MassTransit.RabbitMQ" Version="8.3.6" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.2" />

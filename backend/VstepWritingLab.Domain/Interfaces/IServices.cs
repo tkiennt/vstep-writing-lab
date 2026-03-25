@@ -10,6 +10,25 @@ public interface IGradingAiService
         string mode = "exam", UserHistory? history = null,
         string language = "vi",
         CancellationToken ct = default);
+
+    Task<Result<AiGradingOutput>> GradePhase1Async(
+        string rubricContext, string taskType, string instruction,
+        string[] keyPoints, int wordCount, string essayText,
+        string mode = "exam", UserHistory? history = null,
+        string language = "vi",
+        CancellationToken ct = default);
+
+    Task<Result<AiGradingOutput>> GradePhase2Async(
+        string rubricContext, string taskType, string instruction,
+        string[] keyPoints, int wordCount, string essayText,
+        string mode = "exam", UserHistory? history = null,
+        string language = "vi",
+        CancellationToken ct = default);
+
+    Task<Result<AiGradingOutput>> TranslateAnalysisAsync(
+        AiGradingOutput source,
+        string targetLang = "vi",
+        CancellationToken ct = default);
 }
 
 public interface IRubricContextService
@@ -26,16 +45,19 @@ public record AiGradingOutput(
     CriterionScore Organization,
     CriterionScore Vocabulary,
     CriterionScore Grammar,
-    string[]       StrengthsVi,
-    string[]       ImprovementsVi,
+    string[]       StrengthsEn,
+    string[]?      StrengthsVi,
+    string[]       ImprovementsEn,
+    string[]?      ImprovementsVi,
     Correction[]   Corrections,
     InlineHighlight[]      InlineHighlights,
     RecommendedStructure[] RecommendedStructures,
     RewriteSample[]        RewriteSamples,
     GradingRoadmap         Roadmap,
     string         AiModel,
-    // NEW:
-    SentenceFeedback[]   SentenceFeedback,
+    string         SummaryEn,
+    string?        SummaryVi,
+    SentenceFeedback[]?   SentenceFeedback,
     ImprovementTracking? ImprovementTracking,
     GuideOutput?         GuideMode
 );

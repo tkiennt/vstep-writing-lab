@@ -21,7 +21,7 @@ namespace VstepWritingLab.Business.Services
         private readonly IGradingResultRepository _historyRepo;
         private readonly IQuestionRepository _questionRepo;
         private readonly ITaskRepository _taskRepo;
-        private readonly AiGradingService _aiGradingService;
+        private readonly IGradingAiService _aiGradingService;
         private readonly IProgressUseCase _progressUseCase;
         private readonly IGradeEssayUseCase _gradeUseCase;
         private readonly IExamPromptRepository _examPromptRepo;
@@ -33,7 +33,7 @@ namespace VstepWritingLab.Business.Services
             IGradingResultRepository historyRepo,
             IQuestionRepository questionRepo,
             ITaskRepository taskRepo,
-            AiGradingService aiGradingService,
+            IGradingAiService aiGradingService,
             IProgressUseCase progressUseCase,
             IGradeEssayUseCase gradeUseCase,
             IExamPromptRepository examPromptRepo,
@@ -111,28 +111,45 @@ namespace VstepWritingLab.Business.Services
         {
             try
             {
-                var result = await _aiGradingService.GradeAsync(
-                    submission, question, task);
+                var rubric = await _rubricService.GetContextAsync(submission.EssayContent, submission.TaskType);
+                var aiResult = await _aiGradingService.GradeAsync(
+                    rubric,
+                    submission.TaskType,
+                    question.Instructions,
+                    question.Requirements.ToArray(),
+                    submission.WordCount,
+                    submission.EssayContent,
+                    submission.Mode,
+                    null, // history
+                    "en" // Always grade in English first
+                );
+
+                if (!aiResult.IsSuccess) throw new Exception("AI Grading failed: " + aiResult.Error);
+                var result = aiResult.Value;
 
                 var aiScore = new AiScoreModel
                 {
-                    TaskFulfilment = (int)result.Score.TaskFulfilment,
-                    Organization = (int)result.Score.Organization,
-                    Vocabulary = (int)result.Score.Vocabulary,
-                    Grammar = (int)result.Score.Grammar,
-                    Overall = result.Score.Overall
+                    TaskFulfilment = (int)result.TaskFulfilment.Score,
+                    Organization = (int)result.Organization.Score,
+                    Vocabulary = (int)result.Vocabulary.Score,
+                    Grammar = (int)result.Grammar.Score,
+                    Overall = result.TaskFulfilment.Score // Placeholder overall
                 };
 
                 var aiFeedback = new AiFeedbackModel
                 {
-                    Summary = result.Summary,
-                    Suggestions = result.Suggestions,
-                    Highlights = result.Annotations.Select(a => new HighlightModel
+                    SummaryEn = result.SummaryEn,
+                    SummaryVi = result.SummaryVi,
+                    Summary = result.SummaryVi,
+                    SuggestionsEn = result.ImprovementsEn.ToList(),
+                    SuggestionsVi = result.ImprovementsVi.ToList(),
+                    Suggestions = result.ImprovementsVi.ToList(),
+                    Highlights = result.InlineHighlights.Select(a => new HighlightModel
                     {
-                        Text = submission.EssayContent.Substring(
-                            Math.Min(a.StartIndex, submission.EssayContent.Length),
-                            Math.Min(a.EndIndex - a.StartIndex, submission.EssayContent.Length - a.StartIndex)),
-                        Issue = a.Message,
+                        Text = a.Quote,
+                        IssueEn = a.IssueEn,
+                        IssueVi = a.IssueVi,
+                        Issue = a.IssueVi,
                         Type = a.Type
                     }).ToList()
                 };
@@ -143,19 +160,29 @@ namespace VstepWritingLab.Business.Services
                     submission.QuestionId,
                     submission.TaskType,
                     DateTime.UtcNow,
-                    new TaskRelevance(true, 10, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>()),
-                    new CriterionScore(aiScore.TaskFulfilment, "Tốt", "", "", ""),
-                    new CriterionScore(aiScore.Organization, "Tốt", "", "", ""),
-                    new CriterionScore(aiScore.Vocabulary, "Tốt", "", "", ""),
-                    new CriterionScore(aiScore.Grammar, "Tốt", "", "", ""),
-                    Array.Empty<string>(), Array.Empty<string>(),
-                    Array.Empty<Correction>(), "gemini-flash",
-                    Array.Empty<InlineHighlight>(), Array.Empty<RecommendedStructure>(),
-                    Array.Empty<RewriteSample>(), new GradingRoadmap("", "", 0, Array.Empty<WeeklyPlanTask>()),
-                    Array.Empty<SentenceFeedback>(), null,
+                    result.Relevance,
+                    result.TaskFulfilment,
+                    result.Organization,
+                    result.Vocabulary,
+                    result.Grammar,
+                    result.StrengthsEn,
+                    result.StrengthsVi,
+                    result.ImprovementsEn,
+                    result.ImprovementsVi,
+                    result.Corrections,
+                    result.AiModel,
+                    result.InlineHighlights,
+                    result.RecommendedStructures,
+                    result.RewriteSamples,
+                    result.Roadmap,
+                    result.SentenceFeedback,
+                    result.ImprovementTracking,
                     submission.Mode,
                     submission.EssayContent,
-                    submission.WordCount);
+                    submission.WordCount,
+                    result.SummaryEn,
+                    result.SummaryVi,
+                    "Completed");
 
                 await _historyRepo.SaveAsync(domainResult);
 
@@ -218,6 +245,8 @@ namespace VstepWritingLab.Business.Services
                     BelowMinWords = false,
                     Status        = status,
                     OverallScore  = r.TotalScore,
+                    SummaryEn     = r.SummaryEn,
+                    SummaryVi     = r.SummaryVi,
                     CreatedAt     = r.GradedAt
                 };
             }).ToList();
@@ -300,17 +329,17 @@ namespace VstepWritingLab.Business.Services
                     Highlights  = r.InlineHighlights?.Select(h => new HighlightResponse
                     {
                         Text  = h.Quote,
-                        Issue = h.IssueVi ?? h.Issue,
+                        Issue = h.IssueVi,
                         Type  = h.Type,
                         Severity = h.Type == "strength" ? "good" : "error"
                     }).ToList() ?? new List<HighlightResponse>(),
-                    SentenceFeedback = r.SentenceFeedback?.Select(s => new SentenceFeedbackResponse
+                    SentenceFeedback = (r.SentenceFeedback ?? Array.Empty<SentenceFeedback>()).Select(s => new SentenceFeedbackResponse
                     {
                         Sentence = s.Sentence,
                         IsGood = s.IsGood,
-                        Explanation = s.Explanation,
-                        Suggestion = s.Suggestion
-                    }).ToList() ?? new List<SentenceFeedbackResponse>(),
+                        Explanation = !string.IsNullOrEmpty(s.ExplanationVi) ? s.ExplanationVi : s.ExplanationEn,
+                        Suggestion = !string.IsNullOrEmpty(s.SuggestionVi) ? s.SuggestionVi : s.SuggestionEn
+                    }).ToList(),
                     Roadmap = r.Roadmap == null ? null : new RoadmapResponse
                     {
                         CurrentLevel = r.Roadmap.CurrentLevel,
@@ -326,6 +355,50 @@ namespace VstepWritingLab.Business.Services
                     }
                 }
             };
+
+        public async Task<SubmissionResponse> TranslateAsync(string userId, string submissionId, string language = "vi")
+        {
+            var result = await _historyRepo.GetByIdAsync(submissionId);
+            if (result == null) throw new Exception("Submission not found");
+            if (result.StudentId != userId) throw new UnauthorizedAccessException("Not your submission");
+
+            // Check if already translated
+            if (language == "vi" && !string.IsNullOrEmpty(result.SummaryVi) && result.SentenceFeedback.Any(s => !string.IsNullOrEmpty(s.ExplanationVi)))
+            {
+                return MapDomainToResponse(result, "Writing Submission");
+            }
+
+            // Call AI to translate
+            var aiResult = await _aiGradingService.TranslateAnalysisAsync(new AiGradingOutput(
+                result.Relevance, result.TaskFulfilment, result.Organization, result.Vocabulary, result.Grammar,
+                result.StrengthsEn, result.StrengthsVi, result.ImprovementsEn, result.ImprovementsVi,
+                result.Corrections, result.InlineHighlights, result.RecommendedStructures, result.RewriteSamples,
+                result.Roadmap!, result.AiModel, result.SummaryEn, result.SummaryVi,
+                result.SentenceFeedback, result.ImprovementTracking!, result.Mode == "guide" ? new GuideOutput() : null
+            ), language);
+
+            if (!aiResult.IsSuccess) throw new Exception("Translation failed: " + aiResult.Error);
+
+            var translated = aiResult.Value;
+
+            // Update Domain object (Merge translations)
+            var updated = new GradingResult(
+                result.Id, result.StudentId, result.ExamId, result.TaskType, result.GradedAt,
+                result.Relevance, result.TaskFulfilment, result.Organization, result.Vocabulary, result.Grammar,
+                result.StrengthsEn, translated!.StrengthsVi!, result.ImprovementsEn, translated.ImprovementsVi!,
+                result.Corrections, result.AiModel, 
+                translated.InlineHighlights!, // Merged in translation
+                translated.RecommendedStructures!, 
+                translated.RewriteSamples!,
+                result.Roadmap!,
+                translated.SentenceFeedback!,
+                result.ImprovementTracking!,
+                result.Mode, result.EssayText, result.WordCount,
+                result.SummaryEn, translated.SummaryVi!);
+
+            await _historyRepo.SaveAsync(updated);
+            return MapDomainToResponse(updated, "Writing Submission");
+        }
 
         public async Task<SubmissionResponse> RetryAsync(
             string userId,
@@ -411,13 +484,13 @@ namespace VstepWritingLab.Business.Services
                 },
                 AiFeedback = s.AiFeedback == null ? null : new AiFeedbackResponse
                 {
-                    Summary     = s.AiFeedback.Summary,
-                    Suggestions = s.AiFeedback.Suggestions,
+                    Summary     = s.AiFeedback.SummaryVi,
+                    Suggestions = s.AiFeedback.SuggestionsVi,
                     Highlights  = s.AiFeedback.Highlights?.Select(h =>
                         new HighlightResponse
                         {
                             Text  = h.Text,
-                            Issue = h.Issue,
+                            Issue = h.IssueVi,
                             Type  = h.Type
                         }).ToList() ?? new List<HighlightResponse>()
                 },

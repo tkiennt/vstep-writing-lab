@@ -59,6 +59,8 @@ public class GradeEssayUseCase(
             new CriterionScore(0, "N/A", "", "", ""),
             Array.Empty<string>(),
             Array.Empty<string>(),
+            Array.Empty<string>(),
+            Array.Empty<string>(),
             Array.Empty<Correction>(),
             "", // AiModel
             Array.Empty<InlineHighlight>(),
@@ -70,7 +72,8 @@ public class GradeEssayUseCase(
             command.Mode,
             command.EssayText,
             command.WordCount,
-            "Đang chấm điểm...",
+            "", // summaryEn
+            "Đang chấm điểm...", // summaryVi
             "Pending"
         );
 

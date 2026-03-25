@@ -12,7 +12,9 @@ namespace VstepWritingLab.Shared.Models.DTOs.Responses
         public int WordCount { get; set; }
         public bool BelowMinWords { get; set; }
         public string Status { get; set; }
-        public double? OverallScore { get; set; }  // null if not yet scored
+        public double? OverallScore { get; set; }  
+        public string SummaryEn { get; set; } = string.Empty;
+        public string SummaryVi { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
 }

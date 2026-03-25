@@ -85,6 +85,11 @@ firestore-debug.log
 ui-debug.log
 firebase-adminsdk.json
 
+# GCP Service Account keys — NEVER commit these
+*-sa-key.json
+*-service-account.json
+vertex-sa-key.json
+
 # TypeScript
 *.tsbuildinfo
 

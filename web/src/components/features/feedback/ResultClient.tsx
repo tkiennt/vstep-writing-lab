@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import * as signalR from '@microsoft/signalr';
 import { auth } from '@/lib/firebase';
 import { getSubmissionById } from '@/lib/api';
+import { submissionService } from '@/services/submissionService';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5260';
 
@@ -19,9 +20,13 @@ interface ResultClientProps {
 }
 
 export function ResultClient({ essayId, examId }: ResultClientProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
   const [result, setResult] = useState<GradingResultDoc | null>(null);
-  const [status, setStatus] = useState<'pending' | 'ready' | 'error'>('pending');
+  const [status, setStatus] = useState<'pending' | 'scoring_ready' | 'ready' | 'error'>('pending');
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
   const connectionRef = useRef<signalR.HubConnection | null>(null);
 
   useEffect(() => {
@@ -59,6 +64,12 @@ export function ResultClient({ essayId, examId }: ResultClientProps) {
         }
 
         const mapped = mapRawToGradingResultDoc(data, essayId);
+        
+        if (data.status === 'Phase1Completed') {
+          if (isMounted) { setResult(mapped); setStatus('scoring_ready'); }
+          return false; // still waiting for Phase 2
+        }
+
         if (isMounted) { setResult(mapped); setStatus('ready'); }
         return true;
       } catch {
@@ -79,6 +90,13 @@ export function ResultClient({ essayId, examId }: ResultClientProps) {
         .withAutomaticReconnect()
         .configureLogging(signalR.LogLevel.Warning)
         .build();
+
+      connection.on('GradingScoresReady', async (payload: { resultId: string }) => {
+        if (payload.resultId !== essayId || !isMounted) return;
+        console.log('[SignalR] GradingScoresReady for', payload.resultId);
+        // Load the partial result to display scores immediately
+        await tryLoadResult();
+      });
 
       connection.on('GradingCompleted', async (payload: { resultId: string }) => {
         if (payload.resultId !== essayId || !isMounted) return;
@@ -141,6 +159,30 @@ export function ResultClient({ essayId, examId }: ResultClientProps) {
     };
   }, [essayId]);
 
+  // ── 4. Handle JIT Translation when language switches ──────────────────
+  useEffect(() => {
+    const handleTranslation = async () => {
+      if (i18n.language === 'vi' && result && !result.summaryVi && !isTranslating) {
+        setIsTranslating(true);
+        setTranslationError(null);
+        try {
+          const updatedRaw = await submissionService.translate(essayId, 'vi');
+          const mapped = mapRawToGradingResultDoc(updatedRaw, essayId);
+          setResult(mapped);
+          // Update cache
+          sessionStorage.setItem('lastGradingResult', JSON.stringify(updatedRaw));
+        } catch (err: any) {
+          console.error('Translation failed:', err);
+          setTranslationError(t('common.error'));
+        } finally {
+          setIsTranslating(false);
+        }
+      }
+    };
+
+    handleTranslation();
+  }, [i18n.language, result, essayId]);
+
   if (status === 'pending') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
@@ -179,13 +221,46 @@ export function ResultClient({ essayId, examId }: ResultClientProps) {
   }
 
 
+  const handleRetry = async () => {
+    try {
+      if (!essayId) return;
+      setIsRetrying(true);
+      await submissionService.retry(essayId);
+      setStatus('pending');
+      // The pending screen will show and SignalR/polling will wait for the new result
+    } catch (err: any) {
+      console.error('Retry failed:', err);
+      alert('Không thể thử chấm lại. Vui lòng tải lại trang.');
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   if (status === 'error' || !result) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center p-12 bg-white rounded-[2rem] shadow-sm border border-slate-100">
-           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-           <h3 className="text-xl font-bold text-slate-900">{t('common.error')}</h3>
-           <p className="text-slate-500 mt-2">{t('practiceList.empty.subtitle')}</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="text-center p-10 bg-white rounded-3xl shadow-sm border border-slate-200 max-w-sm w-full">
+           <AlertCircle className="w-14 h-14 text-rose-500 mx-auto mb-5" />
+           <h3 className="text-2xl font-bold text-slate-800 tracking-tight">Trục trặc AI</h3>
+           <p className="text-slate-500 mt-2 mb-8 leading-relaxed text-sm">
+             {result?.summaryVi || result?.summaryEn || "Hệ thống AI đang quá tải hoặc phản hồi không mong muốn. Mong bạn thông cảm!"}
+           </p>
+
+           <button
+             onClick={handleRetry}
+             disabled={isRetrying}
+             className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-2xl transition-all disabled:opacity-50 active:scale-[0.98]"
+           >
+             <RefreshCw className={`w-5 h-5 ${isRetrying ? 'animate-spin' : ''}`} />
+             {isRetrying ? "Đang gửi yêu cầu..." : "Thử chấm lại"}
+           </button>
+
+           <button
+             onClick={() => window.location.href = '/practice'}
+             className="w-full mt-3 px-6 py-3.5 bg-transparent text-slate-500 font-medium rounded-2xl transition-all hover:bg-slate-50 text-sm"
+           >
+             Quay lại danh sách bài tập
+           </button>
         </div>
       </div>
     );
@@ -228,22 +303,40 @@ export function ResultClient({ essayId, examId }: ResultClientProps) {
                 <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <FileText className="w-5 h-5 text-emerald-600" /> {t('feedback.detail')}
                 </h3>
+                {(isTranslating || status === 'scoring_ready') && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 animate-pulse bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-widest">
+                    <RefreshCw className="w-3 h-3 animate-spin" /> {status === 'scoring_ready' ? 'Đang phân tích chi tiết...' : t('common.loading') + '...'}
+                  </div>
+                )}
               </div>
               
-              <div className="p-10 bg-slate-50 dark:bg-slate-950 rounded-[2rem] border border-slate-100 dark:border-slate-800 relative group">
+              <div className={`p-10 bg-slate-50 dark:bg-slate-950 rounded-[2rem] border border-slate-100 dark:border-slate-800 relative group transition-opacity duration-500 ${(isTranslating || status === 'scoring_ready') ? 'opacity-40' : 'opacity-100'}`}>
                 <AnnotatedEssay 
                   text={result.essayText} 
-                  annotations={result.annotations} 
+                  annotations={result.annotations || []} 
                 />
                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-full text-[9px] font-bold text-slate-400 border border-slate-100 dark:border-slate-700 uppercase tracking-wider">
                       {result.wordCount} {t('common.words')}
                    </div>
                 </div>
+                
+                {(isTranslating || status === 'scoring_ready') && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-6 py-4 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-3">
+                      <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin" />
+                      <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest text-center">
+                        {status === 'scoring_ready' ? 'Đang phân tích và sửa lỗi chi tiết...' : t('common.loading') + '...'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-              <p className="mt-6 text-[11px] text-slate-400 dark:text-slate-500 font-medium italic flex items-center gap-2">
-                <RefreshCw className="w-3 h-3" /> * {t('common.loading')}
-              </p>
+              {(isTranslating || status === 'scoring_ready') && (
+                <p className="mt-6 text-[11px] text-slate-400 dark:text-slate-500 font-medium italic flex items-center gap-2">
+                  <RefreshCw className="w-3 h-3" /> * Hệ thống đang tải thêm dữ liệu...
+                </p>
+              )}
             </section>
           </div>
 
@@ -256,7 +349,7 @@ export function ResultClient({ essayId, examId }: ResultClientProps) {
                   <BrainCircuit className="w-5 h-5 text-emerald-600" /> {t('result.aiSummary.title')}
                 </h3>
                 <div className="p-6 bg-emerald-50/50 dark:bg-emerald-500/10 rounded-3xl border border-emerald-100/50 dark:border-emerald-500/20 text-slate-700 dark:text-slate-300 font-medium leading-[1.8] text-sm italic whitespace-pre-wrap">
-                  &quot;{result.summary}&quot;
+                  &quot;{isEn ? result.summaryEn : result.summaryVi}&quot;
                 </div>
               </div>
               <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-50 dark:bg-emerald-500/10 rounded-full blur-3xl opacity-50 group-hover:scale-110 transition-transform" />

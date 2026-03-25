@@ -12,7 +12,8 @@ interface AnnotatedEssayProps {
 }
 
 export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotations }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
   const [activeId, setActiveId] = useState<number | null>(null);
   const [activeEnd, setActiveEnd] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -104,7 +105,7 @@ export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotation
                           </div>
                         </div>
                         <div className="text-[13px] leading-relaxed font-bold text-slate-800 dark:text-slate-100 line-clamp-3">
-                          {a.message}
+                          {isEn ? (a.messageEn || a.message) : (a.messageVi || a.message)}
                         </div>
                       </div>
                     );
@@ -170,7 +171,7 @@ export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotation
                         </div>
 
                         <div className="text-lg font-medium text-slate-800 dark:text-slate-100 leading-relaxed bg-slate-50 dark:bg-slate-950 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 whitespace-pre-wrap">
-                          {a.message}
+                          {isEn ? (a.messageEn || a.message) : (a.messageVi || a.message)}
                         </div>
 
                         {a.suggestion && (
@@ -180,7 +181,7 @@ export const AnnotatedEssay: React.FC<AnnotatedEssayProps> = ({ text, annotation
                               <span className="text-xs font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">{t('feedback.aiUpgrade')}</span>
                             </div>
                             <div className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-[1.8] italic whitespace-pre-wrap">
-                               “{a.suggestion}”
+                               “{isEn ? (a.suggestionEn || a.suggestion) : (a.suggestionVi || a.suggestion)}”
                             </div>
                           </div>
                         )}

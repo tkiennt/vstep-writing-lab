@@ -27,4 +27,10 @@ export const submissionService = {
     const response = await api.post<SubmissionResponse>(`/submissions/${id}/retry`);
     return response.data;
   },
+
+  // Translate result on-demand
+  async translate(id: string, lang: string = 'vi'): Promise<SubmissionResponse> {
+    const response = await api.post<SubmissionResponse>(`/submissions/${id}/translate?lang=${lang}`);
+    return response.data;
+  },
 };
