@@ -31,7 +31,8 @@ if (!string.IsNullOrEmpty(credentialPath) && File.Exists(credentialPath))
     {
         FirebaseApp.Create(new AppOptions
         {
-            Credential = GoogleCredential.FromFile(credentialPath)
+            Credential = GoogleCredential.FromFile(credentialPath),
+            ProjectId = "vstep-writing-lab"
         });
     }
 }
@@ -42,7 +43,8 @@ else if (!string.IsNullOrEmpty(gcpCredentialEnv) && File.Exists(gcpCredentialEnv
     {
         FirebaseApp.Create(new AppOptions
         {
-            Credential = GoogleCredential.FromFile(gcpCredentialEnv)
+            Credential = GoogleCredential.FromFile(gcpCredentialEnv),
+            ProjectId = "vstep-writing-lab"
         });
     }
 }
@@ -53,7 +55,8 @@ else
     {
         FirebaseApp.Create(new AppOptions
         {
-            Credential = await GoogleCredential.GetApplicationDefaultAsync()
+            Credential = await GoogleCredential.GetApplicationDefaultAsync(),
+            ProjectId = "vstep-writing-lab"
         });
     }
 }
