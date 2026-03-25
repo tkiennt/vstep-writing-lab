@@ -34,17 +34,6 @@ jobs:
           gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
           gcloud config set project ${{ env.PROJECT_ID }}
 
-      - name: Ensure Artifact Registry repository exists
-        run: |
-          gcloud artifacts repositories describe vstep-repo \
-            --location=${{ env.REGION }} \
-            --project=${{ env.PROJECT_ID }} 2>/dev/null || \
-          gcloud artifacts repositories create vstep-repo \
-            --repository-format=docker \
-            --location=${{ env.REGION }} \
-            --project=${{ env.PROJECT_ID }} \
-            --description="VSTEP Writing Lab Docker images"
-
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
