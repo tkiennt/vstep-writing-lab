@@ -26,7 +26,6 @@ export default function LoginPage() {
     }
   }, [isLoading, isAuthenticated, userDoc, router]);
 
-  const [selectedRole, setSelectedRole] = useState('user');
   const [showPw, setShowPw]             = useState(false);
   const [email, setEmail]               = useState('');
   const [password, setPassword]         = useState('');
@@ -61,19 +60,14 @@ export default function LoginPage() {
     }
   };
 
-  const ROLE_TABS = [
-    { id: 'user',    label: t('auth.login.student') },
-    { id: 'teacher', label: t('auth.login.teacher') },
-    { id: 'admin',   label: t('auth.login.admin') },
-  ];
-
   return (
-    <div className="min-h-screen flex bg-[#0f172a]">
+    <div className="min-h-screen flex bg-background">
 
-      {/* Left Panel — Branding */}
-      <div className="hidden lg:flex w-1/2 relative flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#0f766e] p-14">
+      {/* Left Panel — Branding (Responsive hide on mobile) */}
+      <div className="hidden lg:flex w-1/2 relative flex-col items-center justify-center overflow-hidden bg-vstep-dark p-14">
+        {/* Abstract decorative elements */}
         <div className="absolute -top-24 -left-24 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -right-16 w-[28rem] h-[28rem] bg-teal-400/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -right-16 w-[28rem] h-[28rem] bg-emerald-400/10 rounded-full blur-3xl" />
 
         <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-sm font-medium text-white/60 hover:text-white transition-colors group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -86,7 +80,7 @@ export default function LoginPage() {
           </div>
           <h1 className="text-4xl font-extrabold text-white tracking-tight mb-4">VSTEP Writing</h1>
           <p className="text-white/60 text-sm leading-relaxed">
-            Unlock your writing potential with AI-driven precision feedback and advanced grammar analysis.
+            {t('auth.login.subtitle')}
           </p>
           <div className="mt-10 grid grid-cols-3 gap-6 w-full">
             {[['10k+', 'Students'], ['98%', 'Accuracy'], ['B1→C1', 'Levels']].map(([val, lbl]) => (
@@ -100,26 +94,26 @@ export default function LoginPage() {
         <p className="absolute bottom-6 text-white/30 text-xs">© 2026 VSTEP Writing Lab</p>
       </div>
 
-      {/* Right Panel — Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+      {/* Right Panel — Interactive Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-background">
         <div className="w-full max-w-sm">
 
-          <Link href="/" className="lg:hidden flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-200 mb-8 transition-colors group">
+          <Link href="/" className="lg:hidden flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-8 transition-colors group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             {t('auth.login.backHome')}
           </Link>
 
-          <div className="bg-slate-800/70 rounded-3xl shadow-2xl shadow-black/40 border border-white/5 p-8 backdrop-blur-sm">
+          <div className="bg-card rounded-3xl shadow-xl border border-border p-8 backdrop-blur-sm">
             <div className="mb-8">
-              <h2 className="text-2xl font-extrabold text-slate-100 tracking-tight">{t('auth.login.title')}</h2>
-              <p className="text-slate-500 text-sm mt-1">{t('auth.login.subtitle')}</p>
+              <h2 className="text-2xl font-extrabold text-foreground tracking-tight">{t('auth.login.title')}</h2>
+              <p className="text-muted-foreground text-sm mt-1">{t('auth.login.subtitle')}</p>
             </div>
 
-            {/* Google */}
+            {/* Google Social Login */}
             <button 
               onClick={handleGoogleLogin}
               disabled={isLoggingIn}
-              className="w-full flex items-center justify-center gap-3 py-3 bg-slate-900/60 border border-white/5 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-900 hover:border-white/10 transition-all shadow-sm mb-6 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 py-3 bg-muted border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-accent hover:border-accent-foreground/10 transition-all shadow-sm mb-6 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -131,58 +125,42 @@ export default function LoginPage() {
             </button>
 
             <div className="flex items-center gap-3 mb-6">
-              <div className="h-px bg-white/5 flex-1" />
-              <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest">{t('auth.login.orEmail')}</span>
-              <div className="h-px bg-white/5 flex-1" />
+              <div className="h-px bg-border flex-1" />
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{t('auth.login.orEmail')}</span>
+              <div className="h-px bg-border flex-1" />
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
               {error && (
-                <div className="p-3 rounded-xl bg-red-950/50 border border-red-500/20 text-red-400 text-xs font-bold animate-in fade-in slide-in-from-top-1">
+                <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold animate-in fade-in slide-in-from-top-1">
                   {error}
                 </div>
               )}
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">{t('auth.login.emailLabel')}</label>
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{t('auth.login.emailLabel')}</label>
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('auth.login.emailPlaceholder')}
-                  className="w-full px-4 py-3 rounded-xl border border-white/5 bg-slate-900/60 text-sm text-slate-200 placeholder:text-slate-600 outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-colors" />
+                  className="w-full px-4 py-3 rounded-xl border border-input bg-muted text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t('auth.login.passwordLabel')}</label>
-                  <Link href="/forgot-password" className="text-xs text-emerald-400 font-semibold hover:underline">{t('auth.login.forgotPassword')}</Link>
+                   <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('auth.login.passwordLabel')}</label>
+                   <Link href="/forgot-password" size="sm" className="text-xs text-primary font-semibold hover:underline">{t('auth.login.forgotPassword')}</Link>
                 </div>
                 <div className="relative">
                   <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
                     placeholder={t('auth.login.passwordPlaceholder')}
-                    className="w-full px-4 py-3 pr-11 rounded-xl border border-white/5 bg-slate-900/60 text-sm text-slate-200 outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-colors" />
-                  <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+                    className="w-full px-4 py-3 pr-11 rounded-xl border border-input bg-muted text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" />
+                  <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                     {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">{t('auth.login.loginAs')}</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {ROLE_TABS.map((role) => (
-                    <button key={role.id} type="button" onClick={() => setSelectedRole(role.id)}
-                      className={`py-2.5 rounded-xl text-xs font-bold transition-all border ${
-                        selectedRole === role.id
-                          ? 'border-vstep-dark bg-vstep-dark text-white shadow-sm'
-                          : 'border-white/5 bg-slate-900/60 text-slate-500 hover:border-white/10 hover:text-slate-300'
-                      }`}>
-                      {role.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <button type="submit" disabled={isLoggingIn}
-                className="w-full py-3.5 rounded-xl bg-vstep-dark hover:bg-emerald-900 text-white text-sm font-bold transition-all duration-200 mt-1 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                className="w-full py-3.5 rounded-xl bg-vstep-dark hover:bg-emerald-950 text-white text-sm font-bold transition-all duration-200 mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-vstep-dark/10">
                 {isLoggingIn ? (
                   <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t('auth.login.submitting')}</>
                 ) : t('auth.login.submitBtn')}
@@ -190,9 +168,9 @@ export default function LoginPage() {
             </form>
           </div>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-8 text-center text-sm text-muted-foreground">
             {t('auth.login.noAccount')}{' '}
-            <Link href="/register" className="text-emerald-400 font-semibold hover:underline">{t('auth.login.register')}</Link>
+            <Link href="/register" className="text-primary font-semibold hover:underline">{t('auth.login.register')}</Link>
           </p>
         </div>
       </div>

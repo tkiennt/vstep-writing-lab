@@ -1,0 +1,32 @@
+## Git
+.git
+.gitignore
+
+## Build Artifacts
+**/bin/
+**/obj/
+**/out/
+
+## Test projects
+**/*.Tests/
+
+## IDE files
+.vs/
+.vscode/
+**/*.user
+**/*.suo
+
+## Secrets — NEVER include in Docker image
+**/firebase-adminsdk.json
+**/vertex-sa-key.json
+**/*-sa-key.json
+**/*-service-account.json
+
+## Temporary debug files
+**/build_errors*.txt
+**/build_output.txt
+**/run_output.txt
+inspect_*.cs
+
+## Docs
+docs/

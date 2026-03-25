@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { X, CheckCircle, AlertCircle, Info, Loader2 } from 'lucide-react';
+import { X, CheckCircle, AlertCircle, Info, Loader2, Ban } from 'lucide-react';
 import { AuthProvider } from './AuthProvider';
 
 type ToastType = 'success' | 'error' | 'info' | 'loading';
@@ -79,32 +79,54 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
         ))}
       </div>
 
-      {/* ── Modal ── */}
-      {modal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-800 rounded-2xl shadow-2xl border border-white/5 w-full max-w-md p-6 m-4 animate-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-100 mb-2">{modal.title}</h3>
-            <p className="text-slate-400 text-sm mb-6 leading-relaxed bg-slate-900/50 p-3 rounded-xl border border-white/5">{modal.description}</p>
-            <div className="flex gap-3 justify-end">
-              <button 
-                onClick={hideModal}
-                className="px-4 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-700/60 hover:text-slate-200 rounded-xl transition-colors"
-              >
-                {modal.cancelText || 'Cancel'}
-              </button>
-              <button 
-                onClick={() => { modal.onConfirm(); hideModal(); }}
-                className={`px-4 py-2 text-sm font-bold text-white rounded-xl shadow-sm transition-all
-                  ${modal.type === 'danger'  ? 'bg-red-600 hover:bg-red-700' : 
-                    modal.type === 'warning' ? 'bg-amber-500 hover:bg-amber-600' : 
-                    'bg-vstep-dark hover:bg-emerald-900'}`}
-              >
-                {modal.confirmText || 'Confirm'}
-              </button>
-            </div>
+    {/* ✨ Premium Global Modal ✨ */}
+    {modal && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="bg-slate-900 border border-slate-800 rounded-[32px] w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.4)] animate-in zoom-in-95 duration-300 m-4 flex flex-col">
+          <div className="px-8 pt-8 pb-4 flex flex-col items-center text-center space-y-4">
+             <div className={`w-16 h-16 rounded-3xl flex items-center justify-center border ${
+                modal.type === 'danger' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' :
+                modal.type === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
+                'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+             }`}>
+                {modal.type === 'danger' && <Ban className="w-8 h-8" />}
+                {modal.type === 'warning' && <AlertCircle className="w-8 h-8" />}
+                {(modal.type === 'info' || !modal.type) && <Info className="w-8 h-8" />}
+             </div>
+             <div className="space-y-1">
+                <h3 className="text-xl font-black text-white uppercase tracking-tight">{modal.title}</h3>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">System Authorization Required</p>
+             </div>
+          </div>
+
+          <div className="px-8 py-6">
+             <div className="bg-slate-950/50 border border-slate-800 p-5 rounded-2xl">
+                <p className="text-sm font-medium text-slate-400 leading-relaxed text-center leading-6">
+                   {modal.description}
+                </p>
+             </div>
+          </div>
+
+          <div className="px-8 pb-8 flex gap-3">
+            <button 
+              onClick={hideModal}
+              className="flex-1 px-6 py-3.5 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-2xl transition-all"
+            >
+              {modal.cancelText || 'Cancel'}
+            </button>
+            <button 
+              onClick={() => { modal.onConfirm(); hideModal(); }}
+              className={`flex-1 px-6 py-3.5 text-xs font-black uppercase tracking-widest text-white rounded-2xl shadow-lg transition-all active:scale-95
+                ${modal.type === 'danger'  ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/40' : 
+                  modal.type === 'warning' ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-900/40' : 
+                  'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/40'}`}
+            >
+              {modal.confirmText || 'Confirm Action'}
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )}
     </GlobalContext.Provider>
   );
 }

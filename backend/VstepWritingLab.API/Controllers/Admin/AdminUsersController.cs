@@ -18,6 +18,13 @@ namespace VstepWritingLab.API.Controllers.Admin
             _adminUserService = adminUserService;
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
+        {
+            var user = await _adminUserService.CreateUserAsync(request);
+            return CreatedAtAction(nameof(GetAll), new { id = user.UserId }, user);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

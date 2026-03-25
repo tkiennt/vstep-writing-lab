@@ -105,7 +105,8 @@ namespace VstepWritingLab.Business.Services
                 Title        = q.Title,
                 Instructions = q.Instructions,
                 Requirements = q.Requirements,
-                Level        = q.Level
+                Level        = q.Level,
+                CreatedAt    = q.ImportedAt.ToDateTime()
             };
     }
 }
