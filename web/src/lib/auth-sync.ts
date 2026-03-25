@@ -21,7 +21,7 @@ export interface UserDoc {
 export async function syncUser(firebaseUser: FirebaseUser): Promise<UserDoc> {
   const token = await firebaseUser.getIdToken();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/auth/sync`, {

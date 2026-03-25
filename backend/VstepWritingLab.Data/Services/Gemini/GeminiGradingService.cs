@@ -229,7 +229,7 @@ Key points :
         try
         {
             using var aiCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-            var (rawJson, modelUsed) = await _client.GenerateAsync(systemPrompt, userPrompt, maxTokens: 16384, ct: aiCts.Token);
+            var (rawJson, modelUsed) = await _client.GenerateAsync(systemPrompt, userPrompt, maxTokens: 8192, ct: aiCts.Token);
             var parsed = ParseAiGradingOutput(rawJson, modelUsed);
             
             if (parsed == null)
@@ -552,7 +552,7 @@ RULES:
 
         try
         {
-            var (rawJson, modelUsed) = await _client.GenerateAsync(systemPrompt, userPrompt, maxTokens: 16384, ct: ct);
+            var (rawJson, modelUsed) = await _client.GenerateAsync(systemPrompt, userPrompt, maxTokens: 8192, ct: ct);
             var parsed = ParseAiGradingOutput(rawJson, modelUsed);
             
             if (parsed == null) return Result<AiGradingOutput>.Fail("Failed to parse translated AI response");
