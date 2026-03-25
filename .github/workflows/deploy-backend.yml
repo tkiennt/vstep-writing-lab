@@ -11,7 +11,8 @@ env:
   PROJECT_ID: vstep-writing-lab
   REGION: us-central1
   SERVICE_NAME: vstep-api
-  IMAGE_NAME: gcr.io/vstep-writing-lab/api
+  # Use Artifact Registry instead of legacy GCR
+  IMAGE_NAME: us-central1-docker.pkg.dev/vstep-writing-lab/vstep-repo/api
 
 jobs:
   deploy:
@@ -26,15 +27,26 @@ jobs:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
           if [ -z "$GCP_SA_KEY" ]; then
-            echo "::error::Secret GCP_SA_KEY is not set. Go to GitHub repo → Settings → Secrets and variables → Actions → New repository secret."
+            echo "::error::Secret GCP_SA_KEY is not set."
             exit 1
           fi
           echo "$GCP_SA_KEY" > /tmp/gcp-key.json
           gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
           gcloud config set project ${{ env.PROJECT_ID }}
 
-      - name: Configure Docker for GCR
-        run: gcloud auth configure-docker gcr.io --quiet
+      - name: Ensure Artifact Registry repository exists
+        run: |
+          gcloud artifacts repositories describe vstep-repo \
+            --location=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} 2>/dev/null || \
+          gcloud artifacts repositories create vstep-repo \
+            --repository-format=docker \
+            --location=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --description="VSTEP Writing Lab Docker images"
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
       - name: Build and Push Docker Image
         run: |
