@@ -34,7 +34,29 @@
       "title": "Xu hướng tiến bộ",
       "last30": "30 NGÀY GẦN ĐÂY",
       "last7": "7 BÀI GẦN NHẤT",
-      "allTime": "TẤT CẢ"
+      "allTime": "TẤT CẢ",
+      "suggestionsTitle": "Các điểm cần cải thiện",
+      "suggestionsSubtitle": "Dựa trên kết quả gần đây, đây là những phần bạn nên tập trung",
+      "studyTopicsTitle": "Chủ đề gợi ý ôn tập",
+      "studyTopicsSubtitle": "Làm chủ các phần này để bứt phá điểm số",
+      "skills": {
+        "taskFulfilment": "Hoàn thành nhiệm vụ",
+        "organization": "Tổ chức bài viết",
+        "vocabulary": "Vốn từ vựng",
+        "grammar": "Ngữ pháp"
+      },
+      "advice": {
+        "taskFulfilment": "Tập trung phát triển ý chi tiết hơn và bám sát các yêu cầu cụ thể của đề bài.",
+        "organization": "Sử dụng từ nối đa dạng hơn và đảm bảo bố cục 3 phần (Mở, Thân, Kết) rõ ràng.",
+        "vocabulary": "Trau dồi các cụm từ học thuật (collocations) và dùng từ đồng nghĩa để tránh lặp từ.",
+        "grammar": "Cố gắng sử dụng các cấu trúc câu phức và kiểm tra kỹ lỗi chia thì của động từ."
+      },
+      "topics": {
+        "taskFulfilment": "Kỹ thuật Brainstorming",
+        "organization": "Làm chủ tính mạch lạc (Cohesion)",
+        "vocabulary": "Danh mục từ vựng học thuật",
+        "grammar": "Hướng dẫn ngữ pháp nâng cao"
+      }
     },
     "loading": "Đang tải tiến trình của bạn...",
     "cta": {
@@ -159,6 +181,26 @@
       "upperInter": "Cao trung cấp",
       "advanced": "Nâng cao",
       "saveGoals": "Lưu mục tiêu"
+    },
+    "notifications": {
+      "title": "Cài đặt thông báo",
+      "email": "Thông báo qua Email",
+      "emailDesc": "Nhận báo cáo kết quả và tài liệu học tập qua email.",
+      "web": "Thông báo trình duyệt",
+      "webDesc": "Nhận thông báo tức thì khi có kết quả chấm bài."
+    },
+    "security": {
+      "title": "Bảo mật & Mật khẩu",
+      "currentPassword": "Mật khẩu hiện tại",
+      "newPassword": "Mật khẩu mới",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "btn": "Cập nhật mật khẩu",
+      "tips": {
+        "title": "Lời khuyên bảo mật",
+        "length": "Sử dụng ít nhất 8 ký tự",
+        "complexity": "Bao gồm cả chữ hoa, chữ thường và chữ số",
+        "common": "Không sử dụng mật khẩu quá phổ biến"
+      }
     },
     "danger": {
       "title": "Vùng nguy hiểm",

@@ -85,60 +85,6 @@ namespace VstepWritingLab.Business.Services
         public int TotalTokenCount { get; set; }
     }
 
-    // ── Structured Output from AI ───────────────────────────────────────────
-
-    public class AiGradingOutput
-    {
-        public AiGradingOutputScore Score { get; set; } = new();
-        public string Summary { get; set; } = string.Empty;
-        public List<string> Suggestions { get; set; } = new();
-        public List<AiAnnotation> Annotations { get; set; } = new();
-        public List<AiSentenceAnalysis> SentenceAnalysis { get; set; } = new();
-        public List<AiSuggestedStructure> SuggestedStructures { get; set; } = new();
-        public TaskRelevanceResult TaskRelevance { get; set; } = new();
-    }
-
-    public class AiGradingOutputScore
-    {
-        public int TaskFulfilment { get; set; }
-        public int Organization { get; set; }
-        public int Vocabulary { get; set; }
-        public int Grammar { get; set; }
-        public double Overall { get; set; }
-    }
-
-    public class AiAnnotation
-    {
-        public int StartIndex { get; set; }
-        public int EndIndex { get; set; }
-        public string Type { get; set; } = string.Empty; // "grammar"|"vocab_weak"|"vocab_repeat"|"off_topic"|"strength"
-        public string Message { get; set; } = string.Empty;
-        public string? Suggestion { get; set; }
-        public string Severity { get; set; } = "info"; // "error"|"warning"|"info"|"good"
-    }
-
-    public class AiSentenceAnalysis
-    {
-        public string Sentence { get; set; } = string.Empty;
-        public string Quality { get; set; } = "adequate"; // "strong"|"adequate"|"weak"
-        public string FeedbackVi { get; set; } = string.Empty;
-        public string? ImprovedVersion { get; set; }
-        public string StructureUsed { get; set; } = string.Empty;
-    }
-
-    public class AiSuggestedStructure
-    {
-        public string Structure { get; set; } = string.Empty;
-        public string Example { get; set; } = string.Empty;
-        public string UsageTip { get; set; } = string.Empty;
-    }
-
-    public class TaskRelevanceResult
-    {
-        public bool IsRelevant { get; set; }
-        public int RelevanceScore { get; set; }
-        public string VerdictVi { get; set; } = string.Empty;
-        public List<string> MissingPointsVi { get; set; } = new();
-        public List<string> OffTopicSentencesEn { get; set; } = new();
-    }
+    // Gemini API Response Models should remain for AI Client internal use
+    // but the structured output should be mapped to Domain.AiGradingOutput
 }

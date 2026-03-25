@@ -34,7 +34,29 @@
       "title": "Progress Trend",
       "last30": "LAST 30 DAYS",
       "last7": "LAST 7 ESSAYS",
-      "allTime": "ALL TIME"
+      "allTime": "ALL TIME",
+      "suggestionsTitle": "Areas for Improvement",
+      "suggestionsSubtitle": "Based on your recent performance, here's what you should focus on",
+      "studyTopicsTitle": "Suggested Study Topics",
+      "studyTopicsSubtitle": "Master these to boost your band score",
+      "skills": {
+        "taskFulfilment": "Task Fulfilment",
+        "organization": "Organization",
+        "vocabulary": "Vocabulary",
+        "grammar": "Grammar"
+      },
+      "advice": {
+        "taskFulfilment": "Focus on developing ideas with more details and sticking closer to the prompt requirements.",
+        "organization": "Use more varied transition words and ensure a clear 3-part structure (Intro, Body, Conclusion).",
+        "vocabulary": "Work on using more academic collocations and synonyms to avoid word repetition.",
+        "grammar": "Try incorporating complex sentence structures and double-check verb tense consistency."
+      },
+      "topics": {
+        "taskFulfilment": "Brainstorming Techniques",
+        "organization": "Cohesion & Coherence masterclass",
+        "vocabulary": "Academic Vocabulary list",
+        "grammar": "Advanced Grammar guide"
+      }
     },
     "loading": "Loading your progress...",
     "cta": {
@@ -159,6 +181,26 @@
       "upperInter": "Upper Intermediate",
       "advanced": "Advanced",
       "saveGoals": "Save Goals"
+    },
+    "notifications": {
+      "title": "Notification Settings",
+      "email": "Email Notifications",
+      "emailDesc": "Receive result reports and learning materials via email.",
+      "web": "Web Notifications",
+      "webDesc": "Receive instant notifications when results are ready."
+    },
+    "security": {
+      "title": "Security & Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "btn": "Update Password",
+      "tips": {
+        "title": "Security Tips",
+        "length": "Use at least 8 characters",
+        "complexity": "Include uppercase, lowercase, and numbers",
+        "common": "Avoid using common passwords"
+      }
     },
     "danger": {
       "title": "Danger Zone",

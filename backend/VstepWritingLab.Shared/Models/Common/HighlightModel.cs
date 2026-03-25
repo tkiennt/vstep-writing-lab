@@ -8,8 +8,9 @@ namespace VstepWritingLab.Shared.Models.Common
         [FirestoreProperty] public string Text { get; set; }
         // Exact phrase copied from student essay
 
-        [FirestoreProperty] public string Issue { get; set; }
-        // Specific description of the error
+        [FirestoreProperty] public string IssueEn { get; set; }
+        [FirestoreProperty] public string IssueVi { get; set; }
+        [FirestoreProperty] public string Issue { get; set; } // Legacy
 
         [FirestoreProperty] public string Type { get; set; }
         // "grammar" | "vocabulary" | "structure"

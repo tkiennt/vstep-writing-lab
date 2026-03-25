@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ExamPrompt } from '@/types/grading';
 import { useAuth } from '@/hooks/useAuth';
 import { gradeEssay, GradeEssayRequest, startSession, updateSession, ExamSession } from '@/lib/api';
@@ -22,11 +22,19 @@ type PracticeMode = 'selecting' | 'exam' | 'practice' | 'guide';
 
 export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, userDoc } = useAuth();
   const { i18n, t } = useTranslation();
 
   const [mode, setMode] = useState<PracticeMode>('selecting');
   const [isPromptExpanded, setIsPromptExpanded] = useState(true);
+
+  React.useEffect(() => {
+    if (searchParams.get('error') === 'grading_failed') {
+      setSubmitError('Hệ thống AI chấm điểm không thành công. Bạn vui lòng kiểm tra lại nội dung và thử nộp lại bằng nút bên dưới lúc khác nhé.');
+      setMode('exam'); // Skip the mode selector overlay when returning from an error
+    }
+  }, [searchParams]);
 
   const [essayText, setEssayText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -160,8 +168,9 @@ export const PracticeClient: React.FC<PracticeClientProps> = ({ exam }) => {
       // API call to the .NET backend API /api/Grading/grade
       const result = await gradeEssay(request, user.id);
 
-      // Save full result + essayText to sessionStorage
-      sessionStorage.setItem('lastGradingResult', JSON.stringify({ ...result, essayText }));
+      // Save full result + essayText to sessionStorage. Inject status = 'pending' 
+      // so ResultClient doesn't mistakenly render the 0-score defaults.
+      sessionStorage.setItem('lastGradingResult', JSON.stringify({ ...result, essayText, status: 'pending' }));
 
       if (mode === 'guide') {
         // Special handling for guide mode if needed, for now just go to result

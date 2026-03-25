@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, PenTool, FileText, BookOpen, Database,
-  Users, Cpu, LogOut, Settings, Languages
+  Users, Cpu, LogOut, Settings
 } from 'lucide-react';
 import { Role } from '@/config/routes';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,6 +39,7 @@ export function Sidebar({ role }: SidebarProps) {
     { titleKey: 'nav.systemPrompts', path: '/teacher/system-prompt', icon: Settings, roles: ['teacher'] },
     
     // Admin routes
+    { titleKey: 'nav.dashboard', path: '/admin/dashboard', icon: LayoutDashboard, roles: ['admin'] },
     { titleKey: 'nav.topicsManagement', path: '/admin/topics', icon: BookOpen, roles: ['admin'] },
     { titleKey: 'nav.resources', path: '/admin/resources', icon: Database, roles: ['admin'] },
     { titleKey: 'nav.systemPrompts', path: '/admin/system-prompt', icon: Settings, roles: ['admin'] },
@@ -84,38 +85,6 @@ export function Sidebar({ role }: SidebarProps) {
             </Link>
           );
         })}
-      </div>
-
-      {/* Language Switcher */}
-      <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-700/40">
-        <div className="flex items-center justify-between p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-           <button 
-             onClick={() => {
-               i18n.changeLanguage('vi');
-               localStorage.setItem(STORAGE_KEY, 'vi');
-             }}
-             className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 ${
-               i18n.language === 'vi' 
-                 ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm grow-[1.2]' 
-                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-             }`}
-           >
-             Tiếng Việt
-           </button>
-           <button 
-             onClick={() => {
-               i18n.changeLanguage('en');
-               localStorage.setItem(STORAGE_KEY, 'en');
-             }}
-             className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 ${
-               i18n.language === 'en' 
-                 ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm grow-[1.2]' 
-                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-             }`}
-           >
-             English
-           </button>
-        </div>
       </div>
 
       {/* Logout */}

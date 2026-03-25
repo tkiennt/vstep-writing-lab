@@ -21,6 +21,11 @@ public interface IGradingResultRepository
         string studentId, string? taskType = null,
         int limit = 20, CancellationToken ct = default);
     Task<GradingResult?> GetByIdAsync(string id, CancellationToken ct = default);
+    /// <summary>
+    /// Partial update – only touches the Status (and optionally Summary) field.
+    /// Used by the retry flow to reset a Failed record back to Pending.
+    /// </summary>
+    Task UpdateStatusAsync(string id, string status, string? summary = null, CancellationToken ct = default);
 }
 
 public interface IProgressRepository

@@ -42,4 +42,13 @@ public class FirestoreGradingResultRepository(FirestoreDb _db) : IGradingResultR
             .Select(d => d.ConvertTo<GradingResultDocument>().ToDomain())
             .ToList();
     }
+
+    public async Task UpdateStatusAsync(string id, string status, string? summary = null, CancellationToken ct = default)
+    {
+        var docRef = _db.Collection(COLLECTION).Document(id);
+        var updates = new Dictionary<string, object> { ["Status"] = status };
+        if (summary != null)
+            updates["Summary"] = summary;
+        await docRef.UpdateAsync(updates, cancellationToken: ct);
+    }
 }

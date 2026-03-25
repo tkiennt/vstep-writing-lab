@@ -19,8 +19,12 @@ export function mapFeedbackToAnnotations(
         startIndex,
         endIndex: startIndex + s.sentence.length,
         type: 'sentence',
-        message: s.explanation,
-        suggestion: s.suggestion || null,
+        messageEn: s.explanationEn || s.explanation || '',
+        messageVi: s.explanationVi || s.explanation || '',
+        message: s.explanation || s.explanationVi || '',
+        suggestionEn: s.suggestionEn || s.suggestion || null,
+        suggestionVi: s.suggestionVi || s.suggestion || null,
+        suggestion: s.suggestion || s.suggestionVi || null,
         severity: s.isGood ? 'good' : 'warning',
         isSentence: true
       });
@@ -42,8 +46,12 @@ export function mapFeedbackToAnnotations(
         startIndex,
         endIndex: startIndex + quote.length,
         type,
-        message: h.issueVi || h.issue || 'Cần chú ý',
-        suggestion: h.fix || h.correction || null,
+        messageEn: h.issueEn || h.issue || '',
+        messageVi: h.issueVi || h.issueEn || h.issue || '',
+        message: h.issueVi || h.issueEn || h.issue || 'Cần chú ý',
+        suggestionEn: h.fixEn || h.fix || h.correction || null,
+        suggestionVi: h.fixVi || h.fixEn || h.fix || h.correction || null,
+        suggestion: h.fix || h.fixVi || h.fixEn || h.correction || null,
         severity
       });
     }
@@ -121,8 +129,12 @@ export function mapRawToGradingResultDoc(raw: any, essayId: string): GradingResu
       grammar:        gra.score ?? gra.Score ?? (typeof gra === 'number' ? gra : 0),
       overall:        totalScore || apiScore.overall || apiScore.Overall || 0
     },
+    summaryEn: raw.summaryEn || raw.SummaryEn || apiFeedback.summaryEn || apiFeedback.SummaryEn || "",
+    summaryVi: raw.summaryVi || raw.SummaryVi || apiFeedback.summaryVi || apiFeedback.SummaryVi || "",
     summary: raw.summary || raw.Summary || apiFeedback.summary || apiFeedback.Summary || "Kết quả phân tích bài viết",
-    suggestions: raw.improvementsVi || raw.ImprovementsVi || apiFeedback.suggestions || apiFeedback.Suggestions || [],
+    suggestionsEn: raw.suggestionsEn || raw.SuggestionsEn || apiFeedback.suggestionsEn || apiFeedback.SuggestionsEn || [],
+    suggestionsVi: raw.suggestionsVi || raw.SuggestionsVi || apiFeedback.suggestionsVi || apiFeedback.SuggestionsVi || [],
+    suggestions: raw.suggestions || raw.Suggestions || apiFeedback.suggestions || apiFeedback.Suggestions || [],
     annotations: finalAnnotations,
     sentenceAnalysis: [],
     taskRelevance: {
@@ -132,13 +144,21 @@ export function mapRawToGradingResultDoc(raw: any, essayId: string): GradingResu
       missingPointsVi: rel.missingPointsVi || rel.MissingPointsVi || [],
       offTopicSentencesEn: rel.offTopicSentences || rel.OffTopicSentences || []
     },
-    sentenceFeedback: raw.sentenceFeedback || raw.SentenceFeedback || apiFeedback.sentenceFeedback || [],
+    sentenceFeedback: (raw.sentenceFeedback || raw.SentenceFeedback || apiFeedback.sentenceFeedback || []).map((s: any) => ({
+      ...s,
+      explanationEn: s.explanationEn || s.ExplanationEn || s.explanation || "",
+      explanationVi: s.explanationVi || s.ExplanationVi || s.explanation || "",
+      suggestionEn: s.suggestionEn || s.SuggestionEn || s.suggestion || "",
+      suggestionVi: s.suggestionVi || s.SuggestionVi || s.suggestion || ""
+    })),
     improvementTracking: raw.improvementTracking || raw.ImprovementTracking,
     guideMode: raw.guideMode || raw.GuideMode,
     suggestedStructures: (raw.recommendedStructures || raw.RecommendedStructures || []).map((s: any) => ({
       structure: s.structure_name || s.structureName || s.StructureName,
       example: s.example || s.Example,
-      usageTip: s.why_use_it_vi || s.whyUseItVi || s.WhyUseItVi || s.UsageTip
+      usageTipEn: s.usageTipEn || s.UsageTipEn || s.usageTip || "",
+      usageTipVi: s.usageTipVi || s.UsageTipVi || s.why_use_it_vi || s.whyUseItVi || s.usageTip || "",
+      usageTip: s.why_use_it_vi || s.whyUseItVi || s.WhyUseItVi || s.usageTip || ""
     })),
     roadmap: (raw.roadmap || raw.Roadmap || apiFeedback.roadmap) ? {
       currentCefr: raw.roadmap?.currentLevel || raw.Roadmap?.CurrentLevel || apiFeedback.roadmap?.currentLevel || raw.roadmap?.currentCefr,
@@ -147,6 +167,7 @@ export function mapRawToGradingResultDoc(raw: any, essayId: string): GradingResu
       weekly_plan: raw.roadmap?.weeklyPlan || raw.Roadmap?.WeeklyPlan || raw.roadmap?.weekly_plan || apiFeedback.roadmap?.weeklyPlan
     } : undefined,
     mode: (raw.mode || raw.Mode || 'exam') as any,
+    status: raw.status || raw.Status || (raw.id ? 'scored' : 'pending'),
   };
 
   return mapped;
@@ -157,8 +178,10 @@ export interface InlineHighlight {
   type?: 'error' | 'strength' | string;
   original?: string;
   quote?: string;
-  issue?: string;
+  issueEn?: string;
   issueVi?: string;
+  fixEn?: string;
+  fixVi?: string;
   fix?: string;
   correction?: string;
   category?: string;

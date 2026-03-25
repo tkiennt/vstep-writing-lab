@@ -5,6 +5,7 @@
     <ProjectReference Include="..\VstepWritingLab.Domain\VstepWritingLab.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" />
     <PackageReference Include="Google.Cloud.Firestore" />
     <PackageReference Include="Google.Cloud.Storage.V1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />

@@ -4,7 +4,7 @@ import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ResultClient } from '@/components/features/feedback/ResultClient';
 
-export default function ResultPage() {
+export default function ResultPage({ params }: { params: { examId: string } }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams.get('id');
@@ -25,5 +25,5 @@ export default function ResultPage() {
   }
 
   // The existing ResultClient takes an `essayId` prop (which represents the ID from `grading_results` table)
-  return <ResultClient essayId={id} />;
+  return <ResultClient essayId={id} examId={params.examId} />;
 }

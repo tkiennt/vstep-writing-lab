@@ -10,21 +10,13 @@ using System.Threading.Tasks;
 using VstepWritingLab.Shared.Models.Common;
 using VstepWritingLab.Shared.Models.Entities;
 using VstepWritingLab.Business.Interfaces;
+using VstepWritingLab.Domain.Interfaces;
+using VstepWritingLab.Domain.ValueObjects;
 
 namespace VstepWritingLab.Business.Services
 {
-    public class AiGradingResult
-    {
-        public AiGradingOutputScore Score { get; set; } = new();
-        public string Summary { get; set; } = string.Empty;
-        public List<string> Suggestions { get; set; } = new();
-        public List<AiAnnotation> Annotations { get; set; } = new();
-        public List<AiSentenceAnalysis> SentenceAnalysis { get; set; } = new();
-        public List<AiSuggestedStructure> SuggestedStructures { get; set; } = new();
-        public TaskRelevanceResult TaskRelevance { get; set; } = new();
-    }
 
-    public class AiGradingService
+    public class AiGradingService : IGradingAiService
     {
         private readonly IAiClient _aiClient;
         private readonly IConfiguration _config;
@@ -46,7 +38,7 @@ namespace VstepWritingLab.Business.Services
             _logger       = logger;
         }
 
-        public async Task<AiGradingResult> GradeAsync(
+        public async Task<AiGradingOutput> GradeAsync(
             SubmissionModel submission,
             QuestionModel question,
             TaskModel task)
@@ -59,7 +51,7 @@ namespace VstepWritingLab.Business.Services
                 var rubric = await _rubricRepo.GetByTaskTypeAsync(submission.TaskType);
                 if (rubric == null) throw new Exception($"Rubric not found for {submission.TaskType}");
 
-                var systemPrompt = ConstructSystemPrompt(rubric, submission.Language ?? "vi");
+                var systemPrompt = ConstructSystemPrompt(rubric);
                 var userPrompt = ConstructUserPrompt(submission, question, task);
 
                 // Call the unified Gemini/Vertex client
@@ -79,23 +71,12 @@ namespace VstepWritingLab.Business.Services
                 var output = JsonSerializer.Deserialize<AiGradingOutput>(jsonResult, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (output == null) throw new Exception("Failed to deserialize AI output");
 
-                var result = new AiGradingResult
-                {
-                    Score = output.Score,
-                    Summary = output.Summary,
-                    Suggestions = output.Suggestions,
-                    Annotations = output.Annotations,
-                    SentenceAnalysis = output.SentenceAnalysis,
-                    SuggestedStructures = output.SuggestedStructures,
-                    TaskRelevance = output.TaskRelevance
-                };
-
                 var latency = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;
                 // Dummy usage metadata since GenerateAsync returns raw text
                 var usage = new GeminiUsageMetadata { TotalTokenCount = 0 }; 
                 await LogUsageAsync(submission, modelUsed, usage, latency);
 
-                return result;
+                return output;
             }
             catch (Exception ex)
             {
@@ -105,9 +86,8 @@ namespace VstepWritingLab.Business.Services
             }
         }
 
-        private string ConstructSystemPrompt(RubricModel rubric, string language)
+        private string ConstructSystemPrompt(RubricModel rubric)
         {
-            var targetLang = language == "en" ? "English" : "Vietnamese";
             var prompt = $@"You are an expert VSTEP Writing Examiner. Your task is to grade a student's essay based on the official VSTEP Rating Scale.
 
 RUBRIC DATA:
@@ -135,30 +115,53 @@ You must return a valid JSON object strictly following this structure:
     ""grammar"": 0-10 integer,
     ""overall"": 0-10 number
   },
-  ""summary"": ""concise overall feedback"",
-  ""suggestions"": [""specific improvement 1"", ""specific improvement 2""],
+  ""summaryEn"": ""overall feedback in English"",
+  ""summaryVi"": ""tóm tắt nhận xét bằng tiếng Việt"",
+  ""suggestionsEn"": [""improvement 1 in English"", ""improvement 2""],
+  ""suggestionsVi"": [""gợi ý cải thiện 1 bằng tiếng Việt"", ""gợi ý 2""],
   ""annotations"": [
-    { ""startIndex"": number, ""endIndex"": number, ""type"": ""grammar|vocabulary|structure|off_topic|strength"", ""message"": ""error description"", ""suggestion"": ""suggested correction"", ""severity"": ""error|warning|info|good"" }
+    { 
+      ""startIndex"": number, 
+      ""endIndex"": number, 
+      ""type"": ""grammar|vocabulary|structure|off_topic|strength"", 
+      ""messageEn"": ""description in English"",
+      ""messageVi"": ""mô tả lỗi bằng tiếng Việt"",
+      ""suggestionEn"": ""fix in English"",
+      ""suggestionVi"": ""gợi ý sửa bằng tiếng Việt"",
+      ""severity"": ""error|warning|info|good"" 
+    }
   ],
   ""sentenceAnalysis"": [
-    { ""sentence"": ""full sentence"", ""quality"": ""strong|adequate|weak"", ""feedbackVi"": ""critique of this specific sentence"", ""improvedVersion"": ""better way to write it"", ""structureUsed"": ""name of grammar structure"" }
+    { 
+      ""sentence"": ""full sentence"", 
+      ""quality"": ""strong|adequate|weak"", 
+      ""feedbackEn"": ""critique in English"",
+      ""feedbackVi"": ""nhận xét bằng tiếng Việt"",
+      ""improvedVersion"": ""better way"", 
+      ""structureUsed"": ""grammar name"" 
+    }
   ],
   ""suggestedStructures"": [
-    { ""structure"": ""name"", ""example"": ""example sentence"", ""usageTip"": ""how to use it"" }
+    { 
+      ""structure"": ""name"", 
+      ""example"": ""example"", 
+      ""usageTipEn"": ""how to use in English"",
+      ""usageTipVi"": ""cách sử dụng bằng tiếng Việt"" 
+    }
   ],
   ""taskRelevance"": {
     ""isRelevant"": boolean,
     ""relevanceScore"": 0-100,
-    ""verdictVi"": ""explanation of relevance"",
-    ""missingPointsVi"": [""point 1"", ""point 2""],
+    ""verdictVi"": ""explanation in Vietnamese"",
+    ""missingPointsVi"": [""point 1""],
     ""offTopicSentencesEn"": []
   }
 }
 
 LANGUAGE RULE:
-You MUST provide all natural language fields (summary, suggestions, annotations.message, annotations.suggestion, sentenceAnalysis.feedbackVi, sentenceAnalysis.improvedVersion, suggestedStructures.structure, suggestedStructures.example, suggestedStructures.usageTip, taskRelevance.verdictVi, taskRelevance.missingPointsVi) strictly in " + targetLang + @". 
-Do NOT use any other language for these fields. 
-The names like 'feedbackVi' and 'verdictVi' must still be used in JSON keys, but their values must be in " + targetLang + @".
+You MUST provide parallel English and Vietnamese versions for all text fields as specified in the JSON keys (e.g., summaryEn AND summaryVi). 
+Ensure the translations are natural and professional for both languages.
+Keep 'verdictVi' and 'missingPointsVi' in Vietnamese as requested by the specific keys.
 
 GRADING RULES:
 1. Overall score is the average of the 4 criteria scores.
@@ -222,6 +225,38 @@ Grade this essay accurately according to the VSTEP rubric.";
                 CreatedAt    = Google.Cloud.Firestore.Timestamp.GetCurrentTimestamp()
             };
             await _aiLogRepo.CreateAsync(log);
+        }
+
+        public Task<Result<AiGradingOutput>> GradeAsync(
+            string rubricContext, string taskType, string instruction,
+            string[] keyPoints, int wordCount, string essayText,
+            string mode = "exam", Domain.ValueObjects.UserHistory? history = null,
+            string language = "vi", CancellationToken ct = default)
+        {
+            return Task.FromResult(Result<AiGradingOutput>.Fail("AiGradingService (Business) GradeAsync not implemented. Use Data layer GeminiGradingService."));
+        }
+
+        public Task<Result<AiGradingOutput>> GradePhase1Async(
+            string rubricContext, string taskType, string instruction,
+            string[] keyPoints, int wordCount, string essayText,
+            string mode = "exam", Domain.ValueObjects.UserHistory? history = null,
+            string language = "vi", CancellationToken ct = default)
+        {
+            return Task.FromResult(Result<AiGradingOutput>.Fail("AiGradingService (Business) GradePhase1Async not implemented. Use Data layer GeminiGradingService."));
+        }
+
+        public Task<Result<AiGradingOutput>> GradePhase2Async(
+            string rubricContext, string taskType, string instruction,
+            string[] keyPoints, int wordCount, string essayText,
+            string mode = "exam", Domain.ValueObjects.UserHistory? history = null,
+            string language = "vi", CancellationToken ct = default)
+        {
+            return Task.FromResult(Result<AiGradingOutput>.Fail("AiGradingService (Business) GradePhase2Async not implemented. Use Data layer GeminiGradingService."));
+        }
+
+        public Task<Result<AiGradingOutput>> TranslateAnalysisAsync(AiGradingOutput source, string targetLang = "vi", CancellationToken ct = default)
+        {
+            return Task.FromResult(Result<AiGradingOutput>.Fail("AiGradingService (Business) Translate not implemented."));
         }
     }
 }

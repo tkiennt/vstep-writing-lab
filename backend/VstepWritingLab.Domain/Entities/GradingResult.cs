@@ -25,7 +25,9 @@ public class GradingResult
     public string VstepComparison{ get; private set; } = string.Empty;
 
     // Feedback
+    public string[]    StrengthsEn    { get; private set; } = Array.Empty<string>();
     public string[]    StrengthsVi    { get; private set; } = Array.Empty<string>();
+    public string[]    ImprovementsEn { get; private set; } = Array.Empty<string>();
     public string[]    ImprovementsVi { get; private set; } = Array.Empty<string>();
     public Correction[] Corrections   { get; private set; } = Array.Empty<Correction>();
     public string       AiModel       { get; private set; } = string.Empty;
@@ -43,7 +45,10 @@ public class GradingResult
 
     public string EssayText { get; private set; } = string.Empty;
     public int    WordCount { get; private set; }
-    public string Summary   { get; private set; } = string.Empty;
+    public string SummaryEn { get; private set; } = string.Empty;
+    public string SummaryVi { get; private set; } = string.Empty;
+    public string Summary   { get; private set; } = string.Empty; // Legacy/Fallback
+    public string Status    { get; private set; } = "Completed"; // Pending, Completed, Failed
 
     // Constructor for mapping/deserialization
     public GradingResult(
@@ -51,15 +56,18 @@ public class GradingResult
         DateTime gradedAt, TaskRelevance relevance,
         CriterionScore taskFulfilment, CriterionScore organization,
         CriterionScore vocabulary, CriterionScore grammar,
-        string[] strengthsVi, string[] improvementsVi,
+        string[] strengthsEn, string[]? strengthsVi,
+        string[] improvementsEn, string[]? improvementsVi,
         Correction[] corrections, string aiModel,
         InlineHighlight[] highlights, RecommendedStructure[] structures,
         RewriteSample[] rewrites, GradingRoadmap roadmap,
-        SentenceFeedback[] sentenceFeedback, ImprovementTracking? improvementTracking,
+        SentenceFeedback[]? sentenceFeedback, ImprovementTracking? improvementTracking,
         string mode = "exam",
         string essayText = "",
         int wordCount = 0,
-        string summary = "")
+        string summaryEn = "",
+        string? summaryVi = "",
+        string status = "Completed")
     {
         this.Id = id;
         this.StudentId = studentId;
@@ -71,9 +79,11 @@ public class GradingResult
         this.Organization = organization;
         this.Vocabulary = vocabulary;
         this.Grammar = grammar;
-        this.StrengthsVi = strengthsVi;
-        this.ImprovementsVi = improvementsVi;
-        this.Corrections = corrections;
+        this.StrengthsEn = strengthsEn ?? Array.Empty<string>();
+        this.StrengthsVi = strengthsVi ?? Array.Empty<string>();
+        this.ImprovementsEn = improvementsEn ?? Array.Empty<string>();
+        this.ImprovementsVi = improvementsVi ?? Array.Empty<string>();
+        this.Corrections = corrections ?? Array.Empty<Correction>();
         this.AiModel = aiModel;
         
         this.InlineHighlights = highlights ?? Array.Empty<InlineHighlight>();
@@ -86,7 +96,10 @@ public class GradingResult
         this.Mode = mode;
         this.EssayText = essayText;
         this.WordCount = wordCount;
-        this.Summary = summary;
+        this.SummaryEn = summaryEn;
+        this.SummaryVi = summaryVi ?? "";
+        this.Summary   = summaryVi ?? ""; // Use Vi as default legacy summary
+        this.Status = status;
 
         TotalScore = ComputeTotal(
             taskFulfilment.Score, organization.Score,
@@ -111,4 +124,32 @@ public class GradingResult
         >= 4.5 => "Đạt B1 — Đạt yêu cầu cơ bản",
         _      => "Chưa đạt B1 — Cần cải thiện nhiều"
     };
+
+    public void UpdatePhase2Details(
+        string[] strengthsEn, string[] strengthsVi,
+        string[] improvementsEn, string[] improvementsVi,
+        Correction[] corrections, InlineHighlight[] highlights,
+        RecommendedStructure[] structures, RewriteSample[] rewrites,
+        GradingRoadmap roadmap, SentenceFeedback[] sentenceFeedback,
+        ImprovementTracking? tracking)
+    {
+        this.StrengthsEn = strengthsEn ?? Array.Empty<string>();
+        this.StrengthsVi = strengthsVi ?? Array.Empty<string>();
+        this.ImprovementsEn = improvementsEn ?? Array.Empty<string>();
+        this.ImprovementsVi = improvementsVi ?? Array.Empty<string>();
+        this.Corrections = corrections ?? Array.Empty<Correction>();
+        this.InlineHighlights = highlights ?? Array.Empty<InlineHighlight>();
+        this.RecommendedStructures = structures ?? Array.Empty<RecommendedStructure>();
+        this.RewriteSamples = rewrites ?? Array.Empty<RewriteSample>();
+        this.Roadmap = roadmap;
+        this.SentenceFeedback = sentenceFeedback ?? Array.Empty<SentenceFeedback>();
+        this.ImprovementTracking = tracking;
+        this.Status = "Completed";
+    }
+
+    public void MarkAsFailed(string summaryVi)
+    {
+        this.Status = "Failed";
+        this.SummaryVi = summaryVi;
+    }
 }

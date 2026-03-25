@@ -68,6 +68,8 @@ export interface SubmissionListItemResponse {
   belowMinWords:  boolean;
   status:         string;
   overallScore?:  number;
+  summaryEn?:     string;
+  summaryVi?:     string;
   createdAt:      string;
 }
 
@@ -96,8 +98,12 @@ export interface GradingResult {
     grammar: number;
     overall: number;
   };
-  summary: string;
-  suggestions: string[];
+  summaryEn: string;
+  summaryVi: string;
+  summary: string; // Legacy
+  suggestionsEn: string[];
+  suggestionsVi: string[];
+  suggestions: string[]; // Legacy
   annotations: Annotation[];
   sentenceAnalysis: SentenceAnalysis[];
   suggestedStructures: SuggestedStructure[];
@@ -184,8 +190,12 @@ export interface Annotation {
   startIndex:  number;
   endIndex:    number;
   type:        AnnotationType;
-  message:     string;
-  suggestion:  string | null;
+  messageEn:   string;
+  messageVi:   string;
+  message:     string; // Legacy
+  suggestionEn: string | null;
+  suggestionVi: string | null;
+  suggestion:  string | null; // Legacy
   severity:    AnnotationSeverity;
   isSentence?: boolean;
 }
@@ -200,11 +210,15 @@ export interface SentenceAnalysis {
 
 // NEW: Matching Backend Structures
 export interface SentenceFeedback {
-  sentence:    string;
-  isGood:      boolean;
-  issueType:   "grammar" | "vocab" | "coherence" | "task" | "none";
-  explanation: string;
-  suggestion:  string;
+  sentence:      string;
+  isGood:        boolean;
+  issueType:     "grammar" | "vocab" | "coherence" | "task" | "none";
+  explanationEn: string;
+  explanationVi: string;
+  explanation:   string; // Legacy
+  suggestionEn:  string;
+  suggestionVi:  string;
+  suggestion:    string; // Legacy
 }
 
 export interface ImprovementTracking {
@@ -226,9 +240,11 @@ export interface GuideOutput {
   };
 }
 export interface SuggestedStructure {
-  structure: string;
-  example:   string;
-  usageTip:  string;
+  structure:  string;
+  example:    string;
+  usageTipEn: string;
+  usageTipVi: string;
+  usageTip:   string; // Legacy
 }
 
 export interface LearningRoadmapItem {

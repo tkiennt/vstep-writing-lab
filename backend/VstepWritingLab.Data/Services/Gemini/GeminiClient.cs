@@ -1,3 +1,4 @@
+using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -11,16 +12,16 @@ public class GeminiClient(
     IConfiguration _config,
     ILogger<GeminiClient> _logger) : IAiClient
 {
-    private string ApiKey     => _config["Gemini:ApiKey"]     ?? "";
-    private string BaseModel  => _config["Gemini:BaseModel"]  ?? "gemini-2.5-flash";
-    private string TunedModel => _config["Gemini:TunedModel"] ?? "";
+    private string ApiKey     => _config["ApiKey"]     ?? _config["Gemini:ApiKey"] ?? "";
+    private string BaseModel  => _config["BaseModel"]  ?? _config["Gemini:BaseModel"] ?? "gemini-2.5-flash";
+    private string TunedModel => _config["TunedModel"] ?? _config["Gemini:TunedModel"] ?? "";
     private bool   UseVertex  => _config.GetValue<bool>("VertexAI:UseVertexAI");
     private string Location   => _config["VertexAI:Location"] ?? "us-central1";
 
     public async Task<(string Text, string ModelUsed)> GenerateAsync(
         string systemPrompt,
         string userPrompt,
-        int    maxTokens   = 4096,
+        int    maxTokens   = 16384,
         float  temperature = 0.1f,
         CancellationToken ct = default)
     {
@@ -50,13 +51,28 @@ public class GeminiClient(
         string sys, string user, int maxTokens, float temp, CancellationToken ct)
     {
         var token = await GetADCTokenAsync(ct);
-        // Vertex AI tuned model endpoint
-        var url   = $"https://{Location}-aiplatform.googleapis.com/v1/{TunedModel}:generateContent";
+
+        // ✅ Correct Vertex AI Endpoint prediction API (NOT :generateContent)
+        var url = $"https://{Location}-aiplatform.googleapis.com/v1/{TunedModel}:predict";
+
+        // ✅ Correct request body format for Vertex AI deployed endpoints
+        var body = new
+        {
+            instances = new[]
+            {
+                new { content = $"{sys}\n\n{user}" }
+            },
+            parameters = new
+            {
+                temperature    = temp,
+                maxOutputTokens = maxTokens
+            }
+        };
 
         using var req = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = new StringContent(
-                JsonSerializer.Serialize(BuildBody(sys, user, maxTokens, temp)),
+                JsonSerializer.Serialize(body),
                 Encoding.UTF8, "application/json")
         };
         req.Headers.Authorization =
@@ -68,7 +84,32 @@ public class GeminiClient(
             throw new HttpRequestException($"Vertex {resp.StatusCode}: {raw[..Math.Min(300,raw.Length)]}");
 
         _logger.LogInformation("Tuned model grading completed");
-        return ExtractText(raw);
+        return ExtractVertexPredictText(raw);
+    }
+
+    /// <summary>
+    /// Parses the Vertex AI :predict response format:
+    /// { "predictions": [{ "content": "..." }] }
+    /// Falls back to :generateContent format if predictions key is missing (for compatibility).
+    /// </summary>
+    private static string ExtractVertexPredictText(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        // :predict response format
+        if (root.TryGetProperty("predictions", out var predictions) &&
+            predictions.GetArrayLength() > 0)
+        {
+            var first = predictions[0];
+            if (first.TryGetProperty("content", out var content))
+                return content.GetString() ?? "";
+            // Some models return outputs as direct string
+            return first.GetString() ?? "";
+        }
+
+        // Fallback: try :generateContent format (candidates[0].content.parts[0].text)
+        return ExtractText(json);
     }
 
     // ── Gemini API (fallback) ─────────────────────────────────────────
@@ -127,10 +168,19 @@ public class GeminiClient(
         return sb.ToString().Trim();
     }
 
-    // ADC token — cached 55min, fetched via gcloud CLI
+    // ── Token acquisition via Application Default Credentials (ADC) ──────
+    // Best practice: set GOOGLE_APPLICATION_CREDENTIALS env var to the path of
+    // your Service Account JSON key. The Google auth library resolves it automatically.
+    // No key paths in config. No key files committed to git.
+    //
+    // Local dev:  set GOOGLE_APPLICATION_CREDENTIALS=D:\keys\vertex-sa-key.json
+    // Docker:     -e GOOGLE_APPLICATION_CREDENTIALS=/secrets/vertex-sa-key.json
+    // GCP (GCE/Cloud Run): no env var needed — uses the attached SA automatically
+
     private static string? _token;
     private static DateTime _tokenExpiry = DateTime.MinValue;
     private static readonly SemaphoreSlim _tokenLock = new(1, 1);
+    private static readonly string[] _scopes = ["https://www.googleapis.com/auth/cloud-platform"];
 
     private async Task<string> GetADCTokenAsync(CancellationToken ct)
     {
@@ -140,25 +190,33 @@ public class GeminiClient(
             if (_token != null && DateTime.UtcNow < _tokenExpiry)
                 return _token;
 
-            var psi = new System.Diagnostics.ProcessStartInfo
-            {
-                FileName               = "powershell",
-                Arguments              = "-Command \"gcloud auth application-default print-access-token\"",
-                RedirectStandardOutput = true,
-                UseShellExecute        = false,
-            };
-            using var proc = System.Diagnostics.Process.Start(psi)
-                ?? throw new InvalidOperationException(
-                    "Cannot start gcloud. Run: gcloud auth application-default login");
+            // GoogleCredential.GetApplicationDefaultAsync() resolves credentials in this order:
+            //   1. GOOGLE_APPLICATION_CREDENTIALS env var → your SA key JSON
+            //   2. gcloud ADC (~/.config/gcloud/application_default_credentials.json)
+            //   3. GCE/Cloud Run metadata server (when deployed on GCP)
+            var credential = (await GoogleCredential.GetApplicationDefaultAsync(ct))
+                .CreateScoped(_scopes);
 
-            var tok = (await proc.StandardOutput.ReadToEndAsync(ct)).Trim();
-            await proc.WaitForExitAsync(ct);
+            // ✅ Log which Service Account is actually being used — verify on startup
+            if (credential.UnderlyingCredential is Google.Apis.Auth.OAuth2.ServiceAccountCredential saCred)
+                _logger.LogInformation("Vertex AI: using Service Account {Email}", saCred.Id);
+            else
+                _logger.LogWarning("Vertex AI: credential is NOT a Service Account ({Type}). " +
+                    "Set GOOGLE_APPLICATION_CREDENTIALS to your SA key file.",
+                    credential.UnderlyingCredential.GetType().Name);
 
-            if (string.IsNullOrEmpty(tok))
+            var token = await credential
+                .UnderlyingCredential
+                .GetAccessTokenForRequestAsync(cancellationToken: ct);
+
+            if (string.IsNullOrEmpty(token))
                 throw new InvalidOperationException(
-                    "Empty ADC token. Run: gcloud auth application-default login");
+                    "Vertex AI: empty access token. " +
+                    "Set GOOGLE_APPLICATION_CREDENTIALS to a Service Account key file " +
+                    "that has roles/aiplatform.user on project vstep-writing-lab.");
 
-            _token       = tok;
+            _logger.LogInformation("Vertex AI: token acquired (valid ~55 min)");
+            _token       = token;
             _tokenExpiry = DateTime.UtcNow.AddMinutes(55);
             return _token;
         }

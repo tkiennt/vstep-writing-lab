@@ -156,6 +156,30 @@ export interface ExamSession {
   exitCount: number;
 }
 
+export interface UserProfileResponse {
+  userId: string;
+  email: string;
+  displayName: string;
+  avatarUrl?: string;
+  role: string;
+  currentLevel?: string;
+  targetLevel?: string;
+  emailNotificationsEnabled: boolean;
+  webNotificationsEnabled: boolean;
+  createdAt: string;
+  lastActiveAt: string;
+}
+
+export interface UpdateProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  targetLevel?: string;
+  emailNotificationsEnabled?: boolean;
+  webNotificationsEnabled?: boolean;
+}
+
 /**
  * Submit an essay for AI grading.
  * Timeout: 30 s (AI takes a while), 1 retry on 5xx/network error.
@@ -251,12 +275,32 @@ export async function getSubmissionById(id: string): Promise<GradingResult> {
 }
 
 /**
- * Retry a failed submission.
+ * Fetch authenticated user's profile.
  */
-export async function retrySubmission(id: string): Promise<GradingResult> {
-  return fetchWithRetry<GradingResult>(`/api/submissions/${id}/retry`, {
+export async function getProfile(): Promise<UserProfileResponse> {
+  return fetchWithRetry<UserProfileResponse>('/api/Users/me', {
+    timeoutMs: 5_000,
+  });
+}
+
+/**
+ * Update authenticated user's profile.
+ */
+export async function updateProfile(request: UpdateProfileRequest): Promise<UserProfileResponse> {
+  return fetchWithRetry<UserProfileResponse>('/api/Users/me', {
+    method: 'PUT',
+    body: request,
+    timeoutMs: 5_000,
+  });
+}
+
+/**
+ * Retry grading for a failed submission (AI timeout).
+ */
+export async function retryGrading(submissionId: string): Promise<GradingResult> {
+  return fetchWithRetry<GradingResult>(`/api/submissions/${submissionId}/retry`, {
     method: 'POST',
-    timeoutMs: 60_000, // Retrying involves AI, so give it time
+    timeoutMs: 10_000,
   });
 }
 

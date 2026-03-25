@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json.schemastore.org/sarif-1.0.0",
+  "version": "1.0.0",
+  "runs": [
+    {
+      "tool": {
+        "name": "Microsoft (R) Visual C# Compiler",
+        "version": "4.14.0.0",
+        "fileVersion": "4.14.0-3.26064.1 (450493a9)",
+        "semanticVersion": "4.14.0",
+        "language": "en-US"
+      },
+      "results": [
+        {
+          "ruleId": "CS1003",
+          "level": "error",
+          "message": "Syntax error, ',' expected",
+          "locations": [
+            {
+              "resultFile": {
+                "uri": "file:///D:/FPT%20STUDY/8_SPRING%202026/SWD392/vstep-writing-lab/backend/VstepWritingLab.Business/Services/SubmissionService.cs",
+                "region": {
+                  "startLine": 324,
+                  "startColumn": 32,
+                  "endLine": 324,
+                  "endColumn": 32
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "rules": {
+        "CS1003": {
+          "id": "CS1003",
+          "defaultLevel": "error",
+          "helpUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1003)",
+          "properties": {
+            "category": "Compiler",
+            "isEnabledByDefault": true,
+            "tags": [
+              "Compiler",
+              "Telemetry",
+              "NotConfigurable"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -10,6 +10,7 @@ using VstepWritingLab.Business.Interfaces;
 using VstepWritingLab.Business.UseCases;
 using Google.Cloud.Firestore;
 using Qdrant.Client;
+using VstepWritingLab.Business.Services;
 
 namespace VstepWritingLab.Data;
 

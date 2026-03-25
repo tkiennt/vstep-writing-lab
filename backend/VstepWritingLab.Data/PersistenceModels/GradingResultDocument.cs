@@ -25,7 +25,9 @@ public class GradingResultDocument
     [FirestoreProperty] public CriterionScore Vocabulary     { get; set; } = default!;
     [FirestoreProperty] public CriterionScore Grammar        { get; set; } = default!;
     
+    [FirestoreProperty] public string[]     StrengthsEn    { get; set; } = Array.Empty<string>();
     [FirestoreProperty] public string[]     StrengthsVi    { get; set; } = Array.Empty<string>();
+    [FirestoreProperty] public string[]     ImprovementsEn { get; set; } = Array.Empty<string>();
     [FirestoreProperty] public string[]     ImprovementsVi { get; set; } = Array.Empty<string>();
     [FirestoreProperty] public Correction[] Corrections    { get; set; } = Array.Empty<Correction>();
     [FirestoreProperty] public string       AiModel        { get; set; } = string.Empty;
@@ -41,7 +43,10 @@ public class GradingResultDocument
 
     [FirestoreProperty] public string EssayText { get; set; } = string.Empty;
     [FirestoreProperty] public int    WordCount { get; set; }
+    [FirestoreProperty] public string SummaryEn { get; set; } = string.Empty;
+    [FirestoreProperty] public string SummaryVi { get; set; } = string.Empty;
     [FirestoreProperty] public string Summary   { get; set; } = string.Empty;
+    [FirestoreProperty] public string Status    { get; set; } = "Completed";
 
     public static GradingResultDocument FromDomain(GradingResult domain) => new()
     {
@@ -59,7 +64,9 @@ public class GradingResultDocument
         Organization = domain.Organization,
         Vocabulary = domain.Vocabulary,
         Grammar = domain.Grammar,
+        StrengthsEn = domain.StrengthsEn,
         StrengthsVi = domain.StrengthsVi,
+        ImprovementsEn = domain.ImprovementsEn,
         ImprovementsVi = domain.ImprovementsVi,
         Corrections = domain.Corrections,
         AiModel = domain.AiModel,
@@ -72,7 +79,10 @@ public class GradingResultDocument
         Mode = domain.Mode,
         EssayText = domain.EssayText,
         WordCount = domain.WordCount,
-        Summary = domain.Summary
+        SummaryEn = domain.SummaryEn,
+        SummaryVi = domain.SummaryVi,
+        Summary = domain.SummaryVi,
+        Status = domain.Status
     };
 
     public GradingResult ToDomain()
@@ -88,7 +98,9 @@ public class GradingResultDocument
         return new GradingResult(
             Id, StudentId, ExamId, TaskType, GradedAt,
             relevance, tf, org, voc, gra, 
+            StrengthsEn ?? Array.Empty<string>(),
             StrengthsVi ?? Array.Empty<string>(), 
+            ImprovementsEn ?? Array.Empty<string>(),
             ImprovementsVi ?? Array.Empty<string>(),
             Corrections ?? Array.Empty<Correction>(), 
             AiModel ?? "", 
@@ -101,7 +113,9 @@ public class GradingResultDocument
             Mode ?? "exam",
             EssayText ?? "", 
             WordCount,
-            Summary ?? "Xem chi tiết đánh giá từng tiêu chí bên dưới."
+            SummaryEn ?? "",
+            SummaryVi ?? "Xem chi tiết đánh giá từng tiêu chí bên dưới.",
+            Status ?? "Completed"
         );
     }
 }
