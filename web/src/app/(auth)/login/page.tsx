@@ -147,7 +147,7 @@ export default function LoginPage() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                    <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('auth.login.passwordLabel')}</label>
-                   <Link href="/forgot-password" size="sm" className="text-xs text-primary font-semibold hover:underline">{t('auth.login.forgotPassword')}</Link>
+                   <Link href="/forgot-password" className="text-xs text-primary font-semibold hover:underline">{t('auth.login.forgotPassword')}</Link>
                 </div>
                 <div className="relative">
                   <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
