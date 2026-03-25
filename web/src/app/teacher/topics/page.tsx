@@ -49,8 +49,8 @@ export default function ExamStructureManager() {
     return topics.filter(topic => {
       const matchSearch = searchQuery === '' || 
         topic.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        topic.id?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchType = typeFilter === 'All' || topic.type === typeFilter;
+        topic.questionId?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchType = typeFilter === 'All' || topic.taskType === typeFilter;
       const matchLevel = levelFilter === 'All' || topic.level === levelFilter;
       return matchSearch && matchType && matchLevel;
     });
@@ -73,7 +73,7 @@ export default function ExamStructureManager() {
     if (confirm('Are you sure you want to delete this topic?')) {
       try {
         await adminQuestionService.delete(id);
-        setTopics(topics.filter(t => t.id !== id));
+        setTopics(topics.filter(t => t.questionId !== id));
       } catch (error) {
         console.error('Failed to delete topic', error);
         alert('Failed to delete topic');
