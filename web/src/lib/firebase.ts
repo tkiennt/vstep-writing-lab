@@ -20,8 +20,15 @@ const firebaseConfig = {
 };
 
 // Singleton guard — reuse existing app if already initialised
-const app: FirebaseApp =
-  getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+let app: FirebaseApp;
+if (getApps().length > 0) {
+  app = getApp();
+} else if (firebaseConfig.apiKey) {
+  app = initializeApp(firebaseConfig);
+} else {
+  // Fallback for SSR/Build when ENV is missing
+  app = initializeApp({ apiKey: "none", projectId: "none" }); 
+}
 
 export const auth: Auth = getAuth(app);
 

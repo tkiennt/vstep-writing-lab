@@ -13,7 +13,14 @@ const firebaseConfig = {
 };
 
 // Singleton pattern to prevent re-initialization error
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+let app: any;
+if (getApps().length > 0) {
+  app = getApp();
+} else if (firebaseConfig.apiKey) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = initializeApp({ apiKey: "none", projectId: "none" });
+}
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
