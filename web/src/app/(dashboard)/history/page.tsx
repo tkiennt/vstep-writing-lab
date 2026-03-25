@@ -38,9 +38,9 @@ export default function HistoryPage() {
     try {
       await retryGrading(submissionId);
       // Navigate to the result page so user can watch progress
-      const submission = submissions.find((s) => s.id === submissionId);
+      const submission = submissions.find((s) => (s.submissionId || s.id) === submissionId);
       if (submission) {
-        window.location.href = `/practice/${submission.questionId}/result?id=${submissionId}`;
+        window.location.href = `/results/${submission.submissionId || submission.id}`;
       }
     } catch (err) {
       console.error('Retry failed:', err);
@@ -158,11 +158,11 @@ export default function HistoryPage() {
                       </span>
                       <button
                         type="button"
-                        onClick={(e) => handleRetry(e, s.id)}
-                        disabled={retryingId === s.id}
+                        onClick={(e) => handleRetry(e, s.submissionId || s.id)}
+                        disabled={retryingId === (s.submissionId || s.id)}
                         className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-sm transition-all active:scale-95"
                       >
-                        {retryingId === s.id ? (
+                        {retryingId === (s.submissionId || s.id) ? (
                           <Loader2 className="w-3 h-3 animate-spin" />
                         ) : (
                           <RefreshCw className="w-3 h-3" />
@@ -188,11 +188,11 @@ export default function HistoryPage() {
 
             // Failed cards are NOT wrapped in Link to prevent navigation
             if (failed) {
-              return <div key={s.id}>{cardContent}</div>;
+              return <div key={s.submissionId || s.id}>{cardContent}</div>;
             }
 
             return (
-              <Link key={s.id} href={`/practice/${s.questionId}/result?id=${s.id}`}>
+              <Link key={s.submissionId || s.id} href={`/results/${s.submissionId || s.id}`}>
                 {cardContent}
               </Link>
             );
