@@ -109,20 +109,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        var allowedOrigins = new List<string>
-        {
-            "http://localhost:3000",
-            "http://localhost:3001",
-            "http://localhost:5173"
-        };
-
-        // Read additional production origins from environment
-        var prodOrigin = builder.Configuration["Cors:ProductionOrigin"]
-                      ?? Environment.GetEnvironmentVariable("CORS_PRODUCTION_ORIGIN");
-        if (!string.IsNullOrEmpty(prodOrigin))
-            allowedOrigins.Add(prodOrigin);
-
-        policy.WithOrigins(allowedOrigins.ToArray())
+        policy.SetIsOriginAllowed(origin => 
+                  origin.StartsWith("http://localhost") || 
+                  origin.EndsWith(".vercel.app"))
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // Required for SignalR
