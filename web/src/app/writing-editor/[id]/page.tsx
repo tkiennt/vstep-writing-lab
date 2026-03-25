@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { 
   ChevronDown,
   ChevronLeft,
@@ -18,9 +18,8 @@ import { useGlobal } from '@/components/GlobalProvider';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { questionService } from '@/services/questionService';
 import { submissionService } from '@/services/submissionService';
-import { Question, ExamPrompt, SentenceTemplate } from '@/types';
 
-export default function WritingEditor({ params }: { params: { id: string } }) {
+function WritingEditorInner({ params }: { params: { id: string } }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get('mode') || 'practice';
@@ -38,7 +37,6 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
       try {
         if (mode === 'exam') {
           const examPrompt = await questionService.getExamPromptById(params.id);
-          // Normalize ExamPrompt to common structure
           setData({
             id: examPrompt.id,
             title: examPrompt.topicKeyword || 'Official Exam Task',
@@ -63,7 +61,7 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
             minWords: question.task?.minWords || 250,
             sentenceTemplates: question.sentenceTemplates,
             category: question.category,
-            difficulty: 2 // default
+            difficulty: 2 
           });
           if (question.task) {
             setTimeLeft(question.task.duration * 60);
@@ -97,7 +95,6 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
 
   const wordCount = essayContent.trim() === '' ? 0 : essayContent.trim().split(/\s+/).length;
   const minWords = data?.minWords || 250;
-  const isSufficient = wordCount >= minWords * 0.5;
   const progress = Math.min((wordCount / minWords) * 100, 100);
   const isLowTime = timeLeft < 300; 
 
@@ -156,7 +153,7 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
              <Loader2 className="h-16 w-16 animate-spin text-emerald-600 dark:text-emerald-400" />
              <Target className="absolute inset-0 m-auto h-6 w-6 text-emerald-600 dark:text-emerald-400 animate-pulse" />
           </div>
-          <p className="font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-sm">Preparing Environment...</p>
+          <p className="font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-sm text-center">Preparing Environment...</p>
         </div>
       </div>
     );
@@ -166,8 +163,6 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden">
-      
-      {/* Dynamic Header */}
       <header className={`h-16 flex items-center justify-between px-6 shrink-0 relative z-20 shadow-lg transition-colors duration-500 ${mode === 'exam' ? 'bg-vstep-dark' : 'bg-emerald-900'} text-white`}>
          <div className="flex items-center gap-4">
             <button onClick={handleLeave} className="p-2 hover:bg-white/10 rounded-full transition-colors">
@@ -204,22 +199,17 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
          </div>
       </header>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
-         
-         {/* Left Side: Context Panel */}
          <div className="w-[35%] bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700/50 flex flex-col">
             <div className="p-8 overflow-y-auto flex-1 custom-scrollbar space-y-8">
-               
-               {/* Metadata Card */}
                <div className="grid grid-cols-2 gap-3">
                   <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-100 dark:border-slate-600">
-                     <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase block mb-1">Task Type</span>
-                     <span className="text-xs font-bold text-slate-900 dark:text-slate-200">{data.taskType}</span>
+                     <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase block mb-1 text-center">Task Type</span>
+                     <span className="text-xs font-bold text-slate-900 dark:text-slate-200 text-center block">{data.taskType}</span>
                   </div>
                   <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-100 dark:border-slate-600">
-                     <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase block mb-1">Difficulty</span>
-                     <div className="flex gap-1">
+                     <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase block mb-1 text-center text-center">Difficulty</span>
+                     <div className="flex gap-1 justify-center">
                         {[1,2,3].map(i => (
                            <Trophy key={i} className={`w-3 h-3 ${i <= data.difficulty ? 'text-amber-500' : 'text-slate-200 dark:text-slate-600'}`} />
                         ))}
@@ -227,7 +217,6 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
                   </div>
                </div>
 
-               {/* Instruction Box */}
                <div className="p-6 md:p-8 bg-emerald-50 dark:bg-emerald-500/10 rounded-3xl border-2 border-emerald-100 dark:border-emerald-500/20 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                      <div className="w-8 h-8 rounded-xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white shadow-lg">
@@ -242,7 +231,6 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
                   </div>
                </div>
 
-               {/* Sentence Templates (Practice Mode Only) */}
                {mode !== 'exam' && data.sentenceTemplates && data.sentenceTemplates.length > 0 && (
                  <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
                     <div className="flex items-center justify-between mb-4">
@@ -275,11 +263,11 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
                
                {mode === 'exam' && (
                   <div className="p-6 bg-red-50 rounded-3xl border border-red-100 text-center space-y-3">
-                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-600">
+                     <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-600 text-center">
                         <Clock className="w-6 h-6 animate-pulse" />
                      </div>
                      <h4 className="font-black text-red-900 text-sm">EXAM SECURITY LOCK</h4>
-                     <p className="text-[11px] text-red-700 font-medium leading-relaxed">
+                     <p className="text-[11px] text-red-700 font-medium leading-relaxed text-center">
                         AI assistance and hints are disabled for this official exam. Focus on your own original writing and grammar control.
                      </p>
                   </div>
@@ -287,9 +275,7 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
             </div>
          </div>
 
-         {/* Right Side: High-Performance Editor */}
          <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 relative">
-            {/* Editor Toolbar */}
             <div className="h-14 border-b border-slate-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md flex items-center justify-between px-8 shrink-0 relative z-10">
                <div className="flex items-center gap-10">
                   <div className="flex flex-col">
@@ -321,7 +307,6 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
                </div>
             </div>
 
-            {/* Premium Drafting Canvas */}
             <div className="flex-1 relative group">
                <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500/0 group-focus-within:bg-emerald-500/100 transition-all duration-300"></div>
                <textarea 
@@ -332,15 +317,21 @@ export default function WritingEditor({ params }: { params: { id: string } }) {
                   spellCheck={false}
                   autoFocus
                />
-               
-               {/* Contextual watermark */}
                <div className="absolute bottom-8 right-12 opacity-[0.03] pointer-events-none select-none">
                   <span className="text-8xl font-black italic tracking-tighter uppercase">{mode === 'exam' ? 'OFFICIAL' : 'PRACTICE'}</span>
                </div>
             </div>
          </div>
       </div>
-    
     </div>
+  );
+}
+
+// Fixed Export with Suspense to resolve Next.js Prerender Error
+export default function WritingEditor({ params }: { params: { id: string } }) {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen bg-slate-50">Loading Editor...</div>}>
+      <WritingEditorInner params={params} />
+    </Suspense>
   );
 }
