@@ -1,8 +1,9 @@
 export const dynamic = 'force-dynamic';
+
+import React, { Suspense } from 'react';
 import { getExamPrompt } from '@/lib/firestore';
 import { notFound } from 'next/navigation';
 import { PracticeClient } from './PracticeClient';
-import { ExamPrompt } from '@/types/grading';
 
 interface PageProps {
   params: {
@@ -10,7 +11,7 @@ interface PageProps {
   };
 }
 
-// Next.js Server Component
+// Fixed Server Component for VSTEP Practice
 export default async function PracticePage({ params }: PageProps) {
   const { examId } = params;
   
@@ -22,5 +23,9 @@ export default async function PracticePage({ params }: PageProps) {
     notFound();
   }
 
-  return <PracticeClient exam={exam} />;
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-slate-400">Loading Practice Environment...</div>}>
+      <PracticeClient exam={exam} />
+    </Suspense>
+  );
 }

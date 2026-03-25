@@ -1,10 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ResultClient } from '@/components/features/feedback/ResultClient';
 
+// Layout with Suspense to handle useSearchParams during prerender
 export default function ResultPage({ params }: { params: { examId: string } }) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-slate-400 italic italic">Đang tải kết quả...</div>}>
+      <ResultPageInner params={params} />
+    </Suspense>
+  );
+}
+
+function ResultPageInner({ params }: { params: { examId: string } }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams.get('id');
@@ -24,6 +33,5 @@ export default function ResultPage({ params }: { params: { examId: string } }) {
     );
   }
 
-  // The existing ResultClient takes an `essayId` prop (which represents the ID from `grading_results` table)
   return <ResultClient essayId={id} examId={params.examId} />;
 }
