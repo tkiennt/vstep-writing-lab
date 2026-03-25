@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getExamPrompt } from '@/lib/firestore';
 import { notFound } from 'next/navigation';
 import { PracticeClient } from './PracticeClient';
