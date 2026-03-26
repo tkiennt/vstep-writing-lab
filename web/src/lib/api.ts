@@ -11,8 +11,11 @@
 import { auth } from '@/lib/firebase';
 import type { GradingResult, ExamPrompt, UserHistoryType } from '@/types/grading';
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://localhost:7133';
+let BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+if (!BASE_URL && process.env.NEXT_PUBLIC_API_URL) {
+  BASE_URL = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
+}
+BASE_URL = BASE_URL ?? 'https://localhost:7133';
 
 // ── Error class ──────────────────────────────────────────────
 export class ApiError extends Error {
