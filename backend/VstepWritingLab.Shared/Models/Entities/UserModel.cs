@@ -26,6 +26,6 @@ namespace VstepWritingLab.Shared.Models.Entities
         [FirestoreProperty] public bool WebNotificationsEnabled { get; set; } = true;
 
         [FirestoreProperty] public Timestamp CreatedAt { get; set; }
-        [FirestoreProperty] public Timestamp LastActiveAt { get; set; }
+        [FirestoreProperty] public Timestamp LastActiveAt { get; set; } 
     }
 }

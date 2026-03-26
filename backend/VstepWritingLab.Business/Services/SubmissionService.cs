@@ -342,7 +342,7 @@ namespace VstepWritingLab.Business.Services
                     Highlights  = r.InlineHighlights?.Select(h => new HighlightResponse
                     {
                         Text  = h.Quote,
-                        Issue = h.IssueVi,
+                        Issue = !string.IsNullOrEmpty(h.IssueVi) ? h.IssueVi : h.IssueEn,
                         Type  = h.Type,
                         Severity = h.Type == "strength" ? "good" : "error"
                     }).ToList() ?? new List<HighlightResponse>(),

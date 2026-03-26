@@ -69,7 +69,18 @@ export const useAuth = () => {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      if (error.code === 'auth/popup-blocked') {
+        console.warn('Popup blocked, falling back to redirect');
+        import('firebase/auth').then(({ signInWithRedirect }) => {
+          signInWithRedirect(auth, provider);
+        });
+      } else {
+        throw error;
+      }
+    }
   };
 
   const signInWithEmail = async (email: string, password: string) => {

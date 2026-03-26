@@ -348,11 +348,16 @@ Key points :
 }
 RULES:
 - Provide strictly in ENGLISH.
+- sentence_feedback: Analyze max 10 most critical sentences. Do NOT analyze every single sentence to keep output short.
+- inline_highlights: highlight at least 3 errors and at least 1 strength.
 - Focus exclusively on sentence-by-sentence analysis, rewrite suggestions, and the roadmap.
 - Return ONLY valid JSON structure matching the exact template above.
 """;
 
         var userPrompt = $@"
+=== VSTEP RUBRIC ===
+{rubricContext}
+
 === EXAM PROMPT ===
 Type       : {taskType}
 Instruction: {instruction}
