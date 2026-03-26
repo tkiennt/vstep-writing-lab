@@ -1,31 +1,21 @@
-export const dynamic = 'force-dynamic';
+'use client';
 
-import React, { Suspense } from 'react';
-import { getExamPrompt } from '@/lib/firestore';
-import { notFound } from 'next/navigation';
-import { PracticeClient } from './PracticeClient';
+import React from 'react';
+import dynamic from 'next/dynamic';
+import { useParams } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
-interface PageProps {
-  params: {
-    examId: string;
-  };
+const PracticeClientWrapper = dynamic(() => import('./PracticeClientWrapper'), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen flex items-center justify-center font-bold text-slate-400 gap-3">
+      <Loader2 className="w-5 h-5 animate-spin" /> Loading Practice Environment...
+    </div>
+  )
+});
+
+export default function PracticePage() {
+  const params = useParams() as { examId: string };
+  return <PracticeClientWrapper examId={params.examId} />;
 }
 
-// Fixed Server Component for VSTEP Practice
-export default async function PracticePage({ params }: PageProps) {
-  const { examId } = params;
-  
-  // Await the fetch
-  const exam = await getExamPrompt(examId);
-
-  // Fallback if the examId is invalid
-  if (!exam) {
-    notFound();
-  }
-
-  return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-slate-400">Loading Practice Environment...</div>}>
-      <PracticeClient exam={exam} />
-    </Suspense>
-  );
-}
