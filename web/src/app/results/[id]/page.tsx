@@ -163,7 +163,7 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
                   </div>
                   <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
                      <TrendingUp className="w-4 h-4 text-emerald-300" />
-                     <span className="text-sm font-bold text-white">Target Level: {submission.taskType.includes('Task 2') ? 'B2/C1' : 'B1/B2'}</span>
+                     <span className="text-sm font-bold text-white">Target Level: {submission?.taskType?.includes('Task 2') ? 'B2/C1' : 'B1/B2'}</span>
                   </div>
                </div>
             </div>
@@ -250,9 +250,9 @@ export default function AIResultPage({ params }: { params: { id: string } }) {
             </div>
 
             <div className="lg:col-span-1 space-y-4 overflow-y-auto max-h-[665px] pr-1">
-               <h3 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2">Detailed Analysis ({aiFeedback?.highlights.length || 0})</h3>
+               <h3 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2">Detailed Analysis ({aiFeedback?.highlights?.length || 0})</h3>
                
-               {aiFeedback?.highlights.map((h, i) => (
+               {aiFeedback?.highlights?.map((h, i) => (
                  <div key={i} className={`bg-white dark:bg-slate-800 rounded-2xl p-5 border shadow-sm transition-all hover:shadow-md ${
                    h.type.toLowerCase().includes('grammar') ? 'border-red-100 dark:border-red-500/20 hover:border-red-200 dark:hover:border-red-500/30' :
                    h.type.toLowerCase().includes('vocabulary') ? 'border-amber-100 dark:border-amber-500/20 hover:border-amber-200 dark:hover:border-amber-500/30' :

@@ -33,7 +33,19 @@ let _tokenExpiresAt = 0;
 
 async function getIdToken(): Promise<string | null> {
   try {
-    const user = auth.currentUser;
+    let user = auth.currentUser;
+    
+    // If user is null on mount, wait for the first auth state change (Firebase init)
+    if (!user) {
+      await new Promise<void>((resolve) => {
+        const unsubscribe = auth.onAuthStateChanged((u) => {
+          user = u;
+          unsubscribe();
+          resolve();
+        });
+      });
+    }
+
     if (!user) return null;
     
     const now = Date.now();
@@ -51,6 +63,7 @@ async function getIdToken(): Promise<string | null> {
     return null;
   }
 }
+
 
 function buildHeaders(token: string | null): HeadersInit {
   const headers: Record<string, string> = {
