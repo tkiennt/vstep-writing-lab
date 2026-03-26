@@ -255,7 +255,7 @@ Key points :
         var systemPrompt = mode switch
         {
             "guide" => BuildSystemPrompt(mode, language),
-            _ => "You are an expert English writing tutor. Provide a FAST scoring evaluation in ENGLISH. Return ONLY the JSON object. Do not include any pre-text or post-text."
+            _ => "You are a STRICT and CRITICAL English writing examiner. Your task is to provide a preliminary VSTEP score (0-10) for each criterion based on the provided rubric. DO NOT be generous. If an essay is off-topic or very short, give low scores. Return ONLY the JSON object. No preamble."
         };
 
         var historyCtx = BuildHistoryContext(history);
@@ -348,11 +348,16 @@ Key points :
 }
 RULES:
 - Provide strictly in ENGLISH.
+- sentence_feedback: Analyze max 10 most critical sentences. Do NOT analyze every single sentence to keep output short.
+- inline_highlights: highlight at least 3 errors and at least 1 strength.
 - Focus exclusively on sentence-by-sentence analysis, rewrite suggestions, and the roadmap.
 - Return ONLY valid JSON structure matching the exact template above.
 """;
 
         var userPrompt = $@"
+=== VSTEP RUBRIC ===
+{rubricContext}
+
 === EXAM PROMPT ===
 Type       : {taskType}
 Instruction: {instruction}

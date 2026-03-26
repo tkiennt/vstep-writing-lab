@@ -64,9 +64,18 @@ export function useGradingAuth(): UseGradingAuthReturn {
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
       await upsertUserDoc(result.user);
-    } catch (error) {
-      console.error('[useGradingAuth] signInWithGoogle error:', error);
-      throw error; // re-throw so UI can handle
+    } catch (error: any) {
+      if (error.code === 'auth/popup-blocked') {
+        console.warn('[useGradingAuth] Popup blocked, falling back to redirect');
+        import('firebase/auth').then(({ signInWithRedirect }) => {
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+          signInWithRedirect(auth, provider);
+        });
+      } else {
+        console.error('[useGradingAuth] signInWithGoogle error:', error);
+        throw error; // re-throw so UI can handle
+      }
     }
   }, [upsertUserDoc]);
 

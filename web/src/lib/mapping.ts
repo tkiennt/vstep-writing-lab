@@ -34,24 +34,24 @@ export function mapFeedbackToAnnotations(
   // 2. Map Inline Highlights (using quotes or verbatim segments)
   inlineHighlights.forEach((h: any) => {
     // Some highlights might use 'quote', others 'text', 'original', etc.
-    const quote = h.text || h.Text || h.quote || h.original || '';
+    const quote = h.text || h.Text || h.quote || h.Quote || h.original || '';
     if (!quote) return;
 
     let startIndex = essayText.indexOf(quote);
     if (startIndex >= 0) {
       const type: AnnotationType = h.type === 'strength' ? 'strength' : (h.category as AnnotationType || 'grammar');
-      const severity: AnnotationSeverity = h.type === 'strength' ? 'good' : 'error';
+      const severity: AnnotationSeverity = h.type === 'strength' || h.Type === 'strength' || h.severity === 'good' || h.Severity === 'good' ? 'good' : 'error';
 
       annotations.push({
         startIndex,
         endIndex: startIndex + quote.length,
         type,
-        messageEn: h.issueEn || h.issue || '',
-        messageVi: h.issueVi || h.issueEn || h.issue || '',
-        message: h.issueVi || h.issueEn || h.issue || 'Cần chú ý',
-        suggestionEn: h.fixEn || h.fix || h.correction || null,
-        suggestionVi: h.fixVi || h.fixEn || h.fix || h.correction || null,
-        suggestion: h.fix || h.fixVi || h.fixEn || h.correction || null,
+        messageEn: h.issueEn || h.issue || h.Issue || '',
+        messageVi: h.issueVi || h.issueEn || h.issue || h.Issue || '',
+        message: h.issueVi || h.issueEn || h.issue || h.Issue || 'Cần chú ý',
+        suggestionEn: h.fixEn || h.fix || h.Fix || h.correction || null,
+        suggestionVi: h.fixVi || h.fixEn || h.fix || h.Fix || h.correction || null,
+        suggestion: h.fix || h.fixVi || h.fixEn || h.Fix || h.correction || null,
         severity
       });
     }
@@ -146,10 +146,12 @@ export function mapRawToGradingResultDoc(raw: any, essayId: string): GradingResu
     },
     sentenceFeedback: (raw.sentenceFeedback || raw.SentenceFeedback || apiFeedback.sentenceFeedback || []).map((s: any) => ({
       ...s,
-      explanationEn: s.explanationEn || s.ExplanationEn || s.explanation || "",
-      explanationVi: s.explanationVi || s.ExplanationVi || s.explanation || "",
-      suggestionEn: s.suggestionEn || s.SuggestionEn || s.suggestion || "",
-      suggestionVi: s.suggestionVi || s.SuggestionVi || s.suggestion || ""
+      sentence: s.sentence || s.Sentence || "",
+      isGood: s.isGood ?? s.IsGood ?? true,
+      explanationEn: s.explanationEn || s.ExplanationEn || s.explanation || s.Explanation || "",
+      explanationVi: s.explanationVi || s.ExplanationVi || s.explanation || s.Explanation || "",
+      suggestionEn: s.suggestionEn || s.SuggestionEn || s.suggestion || s.Suggestion || "",
+      suggestionVi: s.suggestionVi || s.SuggestionVi || s.suggestion || s.Suggestion || ""
     })),
     improvementTracking: raw.improvementTracking || raw.ImprovementTracking,
     guideMode: raw.guideMode || raw.GuideMode,

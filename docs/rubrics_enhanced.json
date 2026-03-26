@@ -1,0 +1,1327 @@
+{
+  "vstep_task1": {
+    "rubricId": "vstep_task1",
+    "taskType": "task1",
+    "name": "VSTEP Writing Rating Scale - Task 1",
+    "source": "ULIS-VNU",
+    "version": "2.0",
+    "updatedAt": "2026-03-17",
+    "scale": {
+      "min": 0,
+      "max": 10,
+      "step": 1
+    },
+    "criteria": {
+      "taskFulfilment": {
+        "weight": 1,
+        "subFactors": [
+          "requirements (format & length)",
+          "purposes (invitation/request/formal-informal)",
+          "tone (formal-informal)",
+          "key points"
+        ],
+        "descriptors": {
+          "10": {
+            "text_en": "Covers all the requirements of the task effectively; effectively fulfils all communicative purposes with tone consistent and appropriate; fully develops key points with all the details relevant",
+            "text_vi": "Đáp ứng đầy đủ và hiệu quả tất cả yêu cầu của nhiệm vụ; hoàn thành hiệu quả tất cả mục đích giao tiếp với giọng điệu nhất quán và phù hợp; phát triển đầy đủ các điểm chính với tất cả chi tiết có liên quan.",
+            "keywords": [
+              "covers all requirements",
+              "effectively",
+              "all communicative purposes",
+              "tone consistent",
+              "fully develops",
+              "all details relevant"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "9": {
+            "text_en": "Covers all the requirements of the task effectively; clearly fulfils all communicative purposes with tone consistent and appropriate; fully develops key points with all the details generally relevant",
+            "text_vi": "Đáp ứng đầy đủ và hiệu quả tất cả yêu cầu của nhiệm vụ; hoàn thành rõ ràng tất cả mục đích giao tiếp với giọng điệu nhất quán và phù hợp; phát triển đầy đủ các điểm chính với tất cả chi tiết nhìn chung có liên quan.",
+            "keywords": [
+              "covers all requirements",
+              "clearly fulfils",
+              "tone consistent",
+              "fully develops",
+              "generally relevant"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "8": {
+            "text_en": "Covers all the requirements of the task; presents generally clear communicative purposes with one or two minor inconsistencies and inappropriacies in tone; develops key points with most of the details generally relevant; one or two of the points could be more fully extended",
+            "text_vi": "Đáp ứng tất cả yêu cầu của nhiệm vụ; trình bày mục đích giao tiếp nhìn chung rõ ràng với một hoặc hai sự thiếu nhất quán và không phù hợp nhỏ về giọng điệu; phát triển các điểm chính với hầu hết chi tiết nhìn chung có liên quan; một hoặc hai điểm có thể được mở rộng đầy đủ hơn.",
+            "keywords": [
+              "covers all requirements",
+              "generally clear",
+              "minor inconsistencies",
+              "most details relevant",
+              "could be more fully extended"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "7": {
+            "text_en": "Covers all the requirements of the task; format may be inappropriate in places; presents generally clear communicative purposes with some inconsistencies (3-4 times) and inappropriacies in tone; adequately (fall 3-4 key points) presents key points but one or two details may be inappropriate",
+            "text_vi": "Đáp ứng tất cả yêu cầu của nhiệm vụ; định dạng có thể không phù hợp ở một số chỗ; trình bày mục đích giao tiếp nhìn chung rõ ràng với một số thiếu nhất quán (3–4 lần) và không phù hợp về giọng điệu; trình bày các điểm chính đủ mức (đạt 3–4 điểm chính) nhưng một hoặc hai chi tiết có thể không phù hợp.",
+            "keywords": [
+              "covers all",
+              "format inappropriate",
+              "some inconsistencies",
+              "adequately presents",
+              "one or two details inappropriate"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "6": {
+            "text_en": "Covers almost all (lack 10-15% words) the requirements of the task; the format may be inappropriate in places; presents generally clear communicative purposes with some inconsistencies (5-6 times) and inappropriacies; adequately presents key points but a few (3-4) details may be inappropriate",
+            "text_vi": "Đáp ứng gần như tất cả (thiếu 10–15% số từ) yêu cầu của nhiệm vụ; định dạng có thể không phù hợp ở một số chỗ; trình bày mục đích giao tiếp nhìn chung rõ ràng với một số thiếu nhất quán (5–6 lần) và không phù hợp; trình bày đủ các điểm chính nhưng một vài (3–4) chi tiết có thể không phù hợp.",
+            "keywords": [
+              "lack 10-15% words",
+              "format inappropriate",
+              "generally clear",
+              "a few details inappropriate"
+            ],
+            "common_errors": [
+              "Thiếu 10–15% số từ yêu cầu",
+              "Kết luận bị lặp lại hoặc mờ nhạt",
+              "3–4 chi tiết không phù hợp với yêu cầu"
+            ],
+            "exclude_from_training": false
+          },
+          "5": {
+            "text_en": "Partially (lack 16-25% words) covers the requirements of the task; presents communicative purposes which are unclear in places; there are some inconsistencies and inappropriacies in tone; inadequately (miss 1 key point) presents key points; there may be a tendency to focus on details",
+            "text_vi": "Đáp ứng một phần (thiếu 16–25% số từ) yêu cầu của nhiệm vụ; trình bày mục đích giao tiếp không rõ ràng ở một số chỗ; có một số thiếu nhất quán và không phù hợp về giọng điệu; trình bày các điểm chính chưa đầy đủ (bỏ sót 1 điểm chính); có xu hướng tập trung vào chi tiết.",
+            "keywords": [
+              "lack 16-25% words",
+              "unclear",
+              "inconsistencies",
+              "miss 1 key point",
+              "focus on details"
+            ],
+            "common_errors": [
+              "Bỏ sót 1 điểm chính trong 3 bullet points",
+              "Thiếu từ 16–25% số từ yêu cầu",
+              "Một số ý không liên quan đến đề bài"
+            ],
+            "exclude_from_training": false
+          },
+          "4": {
+            "text_en": "Partially (lack >25% words) covers the requirements of the task; fails to clearly present communicative purpose(s); the tone may be inappropriate",
+            "text_vi": "Đáp ứng một phần (thiếu hơn 25% số từ) yêu cầu của nhiệm vụ; không trình bày rõ ràng mục đích giao tiếp; giọng điệu có thể không phù hợp.",
+            "keywords": [
+              "lack >25% words",
+              "fails to clearly present",
+              "tone inappropriate"
+            ],
+            "common_errors": [
+              "Bài viết thiếu hơn 25% số từ yêu cầu",
+              "Không xác định được mục đích giao tiếp",
+              "Giọng điệu không phù hợp (formal/informal sai)"
+            ],
+            "exclude_from_training": false
+          },
+          "3": {
+            "text_en": "Does not address any part of the task; presents limited ideas which may be largely irrelevant/repetitive",
+            "text_vi": "Không đề cập đến bất kỳ phần nào của nhiệm vụ; trình bày ý tưởng hạn chế, phần lớn không liên quan hoặc lặp lại.",
+            "keywords": [
+              "does not address",
+              "limited ideas",
+              "irrelevant",
+              "repetitive"
+            ],
+            "common_errors": [
+              "Lặp lại ý mà không phát triển",
+              "Hiểu sai yêu cầu đề bài",
+              "Thiếu 2 trong 3 bullet points (Task 1)"
+            ],
+            "exclude_from_training": false
+          },
+          "2": {
+            "text_en": "Does not address any part of the task",
+            "text_vi": "Không đề cập đến bất kỳ phần nào của nhiệm vụ.",
+            "keywords": [
+              "does not address"
+            ],
+            "common_errors": [
+              "Không đề cập đến yêu cầu nào của đề bài",
+              "Viết không liên quan đến chủ đề"
+            ],
+            "exclude_from_training": false
+          },
+          "1": {
+            "text_en": "Answer is totally irrelevant; does not attend the exam; does not write any words; writes only a memorized response",
+            "text_vi": "Câu trả lời hoàn toàn không liên quan; không dự thi; không viết bất kỳ từ nào; chỉ viết câu trả lời đã học thuộc.",
+            "keywords": [
+              "totally irrelevant",
+              "memorized response"
+            ],
+            "common_errors": [
+              "Viết hoàn toàn lạc đề",
+              "Chép lại đề bài không viết gì thêm",
+              "Bỏ trắng hoặc chỉ viết vài từ"
+            ],
+            "exclude_from_training": false
+          },
+          "0": {
+            "text_en": "Does not attend the exam",
+            "text_vi": "Không dự thi.",
+            "keywords": [
+              "does not attend"
+            ],
+            "common_errors": [],
+            "exclude_from_training": true
+          }
+        }
+      },
+      "organization": {
+        "weight": 1,
+        "subFactors": [
+          "coherence",
+          "cohesion",
+          "ideas & info unified and well-developed",
+          "cohesive devices",
+          "paragraphing (main + supporting ideas)"
+        ],
+        "descriptors": {
+          "10": {
+            "text_en": "Organizes information and ideas logically (coherent; logical order); uses a variety (quantity) as well as a range (number of types and quality) of cohesive devices and organizational patterns flexibly (use smoothly); uses paragraphing sufficiently and appropriately",
+            "text_vi": "Tổ chức thông tin và ý tưởng một cách logic (mạch lạc; theo thứ tự logic); sử dụng đa dạng (về số lượng) cũng như nhiều loại (về số lượng loại và chất lượng) phương tiện liên kết và mô hình tổ chức một cách linh hoạt (dùng trơn tru); sử dụng đoạn văn đầy đủ và phù hợp.",
+            "keywords": [
+              "logically",
+              "variety",
+              "range of cohesive devices",
+              "flexibly",
+              "paragraphing sufficiently"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "9": {
+            "text_en": "Organizes information and ideas coherently; uses a variety as well as a range of cohesive devices and organizational patterns effectively (use successfully); uses paragraphing sufficiently and appropriately",
+            "text_vi": "Tổ chức thông tin và ý tưởng mạch lạc; sử dụng đa dạng cũng như nhiều loại phương tiện liên kết và mô hình tổ chức một cách hiệu quả (dùng thành công); sử dụng đoạn văn đầy đủ và phù hợp.",
+            "keywords": [
+              "coherently",
+              "variety",
+              "range",
+              "effectively",
+              "paragraphing sufficiently"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "8": {
+            "text_en": "Organizes information and ideas coherently; uses a range of linking words and cohesive devices appropriately, though there may be some under/over use; uses paragraphing appropriately",
+            "text_vi": "Tổ chức thông tin và ý tưởng mạch lạc; sử dụng nhiều loại từ nối và phương tiện liên kết phù hợp, dù có thể có một số dùng thiếu hoặc thừa; sử dụng đoạn văn phù hợp.",
+            "keywords": [
+              "coherently",
+              "range of linking words",
+              "appropriately",
+              "some under/over use",
+              "paragraphing appropriately"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "7": {
+            "text_en": "Organizes information and ideas coherently; uses a variety (quantity) of linking words and a number of cohesive devices accurately within and across sentences, but there may be occasional inappropriacies. Linking words: high frequency linking words: and, but, or. Cohesive devices: more sophisticated linking devices: ellipsis, substitution, reference pronouns, sophisticated phrases: for example, in addition, furthermore",
+            "text_vi": "Tổ chức thông tin và ý tưởng mạch lạc; sử dụng đa dạng (về số lượng) từ nối và một số phương tiện liên kết chính xác trong và giữa các câu, nhưng có thể có đôi lúc không phù hợp. Từ nối: từ nối tần số cao: and, but, or. Phương tiện liên kết: thiết bị liên kết tinh vi hơn: tỉnh lược, thay thế, đại từ quy chiếu, cụm từ phức tạp: for example, in addition, furthermore.",
+            "keywords": [
+              "coherently",
+              "variety of linking words",
+              "accurately",
+              "occasional inappropriacies",
+              "ellipsis",
+              "substitution"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "6": {
+            "text_en": "Organizes information and ideas generally coherently; uses linking words and a limited number of cohesive devices within and across sentences accurately, but there are some inappropriacies",
+            "text_vi": "Tổ chức thông tin và ý tưởng nhìn chung mạch lạc; sử dụng từ nối và một số hạn chế phương tiện liên kết trong và giữa các câu chính xác, nhưng có một số không phù hợp.",
+            "keywords": [
+              "generally coherently",
+              "limited number",
+              "accurately",
+              "some inappropriacies"
+            ],
+            "common_errors": [
+              "Một số phương tiện liên kết dùng không chính xác",
+              "Đoạn văn đôi khi quá ngắn hoặc quá dài",
+              "Thiếu coherence ở một số đoạn"
+            ],
+            "exclude_from_training": false
+          },
+          "5": {
+            "text_en": "Organizes information and ideas fairly coherently; uses linking words and some familiar cohesive devices within and across sentences accurately though there may be inaccuracies",
+            "text_vi": "Tổ chức thông tin và ý tưởng khá mạch lạc; sử dụng từ nối và một số phương tiện liên kết quen thuộc trong và giữa các câu chính xác, dù có thể có sai sót.",
+            "keywords": [
+              "fairly coherently",
+              "linking words",
+              "familiar cohesive devices",
+              "inaccuracies"
+            ],
+            "common_errors": [
+              "Dùng however, furthermore sai vị trí",
+              "Thiếu câu chủ đề ở một số đoạn",
+              "Transition giữa các đoạn chưa mượt"
+            ],
+            "exclude_from_training": false
+          },
+          "4": {
+            "text_en": "Presents information and ideas with some organization; uses linking words accurately and attempts a few familiar cohesive devices within and across sentences, though there may be repetitions or inaccuracies",
+            "text_vi": "Trình bày thông tin và ý tưởng với một ít tổ chức; sử dụng từ nối chính xác và cố gắng dùng một vài phương tiện liên kết quen thuộc trong và giữa các câu, dù có thể có sự lặp lại hoặc sai sót.",
+            "keywords": [
+              "some organization",
+              "linking words accurately",
+              "repetitions",
+              "inaccuracies"
+            ],
+            "common_errors": [
+              "Lặp lại từ nối (firstly... firstly...)",
+              "Không có topic sentence trong đoạn thân bài",
+              "Đoạn văn quá ngắn (1–2 câu)"
+            ],
+            "exclude_from_training": false
+          },
+          "3": {
+            "text_en": "Presents information and ideas in a series of simple sentences linked by only basic, high-frequency linking words",
+            "text_vi": "Trình bày thông tin và ý tưởng trong một loạt câu đơn giản chỉ được liên kết bằng từ nối cơ bản tần số cao.",
+            "keywords": [
+              "simple sentences",
+              "basic high-frequency linking words"
+            ],
+            "common_errors": [
+              "Chỉ dùng and, but, or để nối câu",
+              "Không có đoạn văn rõ ràng"
+            ],
+            "exclude_from_training": false
+          },
+          "2": {
+            "text_en": "Has very little control of organizational features",
+            "text_vi": "Hầu như không kiểm soát được các đặc điểm tổ chức văn bản.",
+            "keywords": [
+              "very little control",
+              "organizational features"
+            ],
+            "common_errors": [
+              "Hầu như không có từ nối",
+              "Ý tưởng rời rạc không liên kết"
+            ],
+            "exclude_from_training": false
+          },
+          "1": {
+            "text_en": "Has no organizational features",
+            "text_vi": "Không có bất kỳ đặc điểm tổ chức nào.",
+            "keywords": [
+              "no organizational features"
+            ],
+            "common_errors": [
+              "Không có cấu trúc nào — viết liền một khối",
+              "Không có câu mở đầu hay kết thúc"
+            ],
+            "exclude_from_training": false
+          },
+          "0": {
+            "text_en": "Does not write any words",
+            "text_vi": "Không viết bất kỳ từ nào.",
+            "keywords": [
+              "does not write"
+            ],
+            "common_errors": [],
+            "exclude_from_training": true
+          }
+        }
+      },
+      "vocabulary": {
+        "weight": 1,
+        "subFactors": [
+          "range (variety = level of frequency)",
+          "style & collocation",
+          "errors (slips vs errors)",
+          "accuracy"
+        ],
+        "descriptors": {
+          "10": {
+            "text_en": "Uses a wide range (5000 most popular words) of vocabulary including less common lexis; uses vocabulary precisely (fit context: appropriate meaning, tone, style) and flexibly (ability to adapt); shows full control (90% accurate & conveys intended meaning) of style and collocation; errors are very rare with just one or two minor slips (non-systematic)",
+            "text_vi": "Sử dụng vốn từ phong phú (5000 từ phổ biến nhất) bao gồm từ vựng ít phổ biến hơn; sử dụng từ vựng chính xác (phù hợp ngữ cảnh: nghĩa, giọng điệu, phong cách phù hợp) và linh hoạt (khả năng thích ứng); thể hiện khả năng kiểm soát đầy đủ (độ chính xác 90% và truyền đạt đúng ý định) về phong cách và kết hợp từ; lỗi rất hiếm gặp chỉ với một hoặc hai sai sót nhỏ (không có hệ thống).",
+            "keywords": [
+              "wide range",
+              "5000 words",
+              "precisely",
+              "flexibly",
+              "full control",
+              "90% accurate",
+              "rare errors",
+              "minor slips"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "9": {
+            "text_en": "Uses a wide range of vocabulary including less common lexis precisely; shows good control (80% accurate) of style and collocation, but there may be some inaccuracies; errors, if present, are non-systematic and non-impeding",
+            "text_vi": "Sử dụng vốn từ phong phú bao gồm từ vựng ít phổ biến một cách chính xác; thể hiện khả năng kiểm soát tốt (độ chính xác 80%) về phong cách và kết hợp từ, nhưng có thể có một số sai sót; lỗi, nếu có, là không có hệ thống và không cản trở giao tiếp.",
+            "keywords": [
+              "wide range",
+              "less common lexis",
+              "good control",
+              "80% accurate",
+              "non-systematic",
+              "non-impeding"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "8": {
+            "text_en": "Uses a good range (4000 most popular words) of vocabulary including some less common lexis appropriately (fit the context); shows limited control (70% accurate) of style and collocation; errors, if present, are non-systematic and non-impeding",
+            "text_vi": "Sử dụng vốn từ đa dạng (4000 từ phổ biến nhất) bao gồm một số từ vựng ít phổ biến phù hợp (phù hợp ngữ cảnh); thể hiện khả năng kiểm soát hạn chế (độ chính xác 70%) về phong cách và kết hợp từ; lỗi, nếu có, là không có hệ thống và không cản trở giao tiếp.",
+            "keywords": [
+              "good range",
+              "4000 words",
+              "less common lexis",
+              "limited control",
+              "70% accurate"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "7": {
+            "text_en": "Uses a sufficient range (3000 most popular words); attempts less common lexis with occasional inappropriacies (grammatically correct, wrong word/choice); errors do not impede (cause strain to understand) communication",
+            "text_vi": "Sử dụng vốn từ đủ dùng (3000 từ phổ biến nhất); cố gắng dùng từ vựng ít phổ biến hơn với đôi lúc không phù hợp (đúng ngữ pháp nhưng sai từ/lựa chọn); lỗi không cản trở (gây khó khăn cho việc hiểu) giao tiếp.",
+            "keywords": [
+              "sufficient range",
+              "3000 words",
+              "less common lexis",
+              "occasional inappropriacies",
+              "do not impede"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "6": {
+            "text_en": "Uses a sufficient range (3000 most popular words); attempts less common lexis but most are faulty (grammatically and semantically incorrect); errors do not impede communication",
+            "text_vi": "Sử dụng vốn từ đủ dùng (3000 từ phổ biến nhất); cố gắng dùng từ vựng ít phổ biến hơn nhưng hầu hết đều sai (sai cả ngữ pháp và ngữ nghĩa); lỗi không cản trở giao tiếp.",
+            "keywords": [
+              "sufficient range",
+              "3000 words",
+              "most are faulty",
+              "do not impede"
+            ],
+            "common_errors": [
+              "Cố dùng từ ít phổ biến nhưng sai cả ngữ pháp lẫn ngữ nghĩa",
+              "Lỗi spelling không thường xuyên nhưng đáng chú ý",
+              "Dùng sai từ đồng nghĩa (e.g. 'elderly' thay 'old' nhưng sai ngữ cảnh)"
+            ],
+            "exclude_from_training": false
+          },
+          "5": {
+            "text_en": "Uses an adequate range (2000 most popular words) of vocabulary but tends to overuse certain lexical items; errors occur and may impede comprehension at times",
+            "text_vi": "Sử dụng vốn từ đủ dùng (2000 từ phổ biến nhất) nhưng có xu hướng dùng quá nhiều một số đơn vị từ vựng nhất định; lỗi xuất hiện và đôi khi có thể cản trở sự hiểu.",
+            "keywords": [
+              "adequate range",
+              "2000 words",
+              "overuse",
+              "may impede comprehension"
+            ],
+            "common_errors": [
+              "Dùng quá nhiều lần: important, people, think, good",
+              "Cố dùng từ học thuật nhưng dùng sai nghĩa",
+              "Lỗi collocation phổ biến (make a decision ✓ vs do a decision ✗)"
+            ],
+            "exclude_from_training": false
+          },
+          "4": {
+            "text_en": "Uses basic vocabulary with acceptable control (60% correct word choice); errors are noticeable (30%) and impede comprehension",
+            "text_vi": "Sử dụng vốn từ cơ bản với khả năng kiểm soát chấp nhận được (60% lựa chọn từ đúng); lỗi rõ ràng (30%) và cản trở sự hiểu.",
+            "keywords": [
+              "basic vocabulary",
+              "60% correct",
+              "errors noticeable",
+              "30%",
+              "impede comprehension"
+            ],
+            "common_errors": [
+              "Chỉ dùng từ vựng cơ bản (good, bad, big, small)",
+              "Lỗi spelling rõ ràng chiếm 30% từ",
+              "Không dùng được từ đồng nghĩa"
+            ],
+            "exclude_from_training": false
+          },
+          "3": {
+            "text_en": "Uses a limited range (50%) of basic vocabulary; errors are frequent and distort the meaning (intended meaning changed)",
+            "text_vi": "Sử dụng vốn từ cơ bản hạn chế (50%); lỗi thường xuyên và làm méo ý nghĩa (ý nghĩa người viết muốn truyền đạt bị thay đổi).",
+            "keywords": [
+              "limited range",
+              "50%",
+              "frequent errors",
+              "distort the meaning"
+            ],
+            "common_errors": [
+              "Lặp lại cùng một từ hơn 5 lần trong bài",
+              "Sai word form thường xuyên (động từ/danh từ/tính từ)",
+              "Dùng từ Việt hóa sang tiếng Anh"
+            ],
+            "exclude_from_training": false
+          },
+          "2": {
+            "text_en": "Uses a very limited range of words and phrases; errors are dominant (>50%) and distort the meaning",
+            "text_vi": "Sử dụng vốn từ và cụm từ rất hạn chế; lỗi chiếm ưu thế (hơn 50%) và làm méo ý nghĩa.",
+            "keywords": [
+              "very limited range",
+              "errors dominant",
+              ">50%",
+              "distort the meaning"
+            ],
+            "common_errors": [
+              "Vốn từ dưới 500 từ",
+              "Lỗi chính tả làm người đọc không hiểu được"
+            ],
+            "exclude_from_training": false
+          },
+          "1": {
+            "text_en": "Uses only a few isolated words",
+            "text_vi": "Chỉ sử dụng một vài từ riêng lẻ.",
+            "keywords": [
+              "isolated words"
+            ],
+            "common_errors": [
+              "Chỉ biết dưới 200 từ tiếng Anh cơ bản",
+              "Lỗi chính tả nghiêm trọng trên 50% từ"
+            ],
+            "exclude_from_training": false
+          },
+          "0": {
+            "text_en": "Does not write any words",
+            "text_vi": "Không viết bất kỳ từ nào.",
+            "keywords": [
+              "does not write"
+            ],
+            "common_errors": [],
+            "exclude_from_training": true
+          }
+        }
+      },
+      "grammar": {
+        "weight": 1,
+        "subFactors": [
+          "range (variety and difficulty level)",
+          "accuracy"
+        ],
+        "descriptors": {
+          "10": {
+            "text_en": "Uses a wide range (variety and difficulty level) of structures precisely and flexibly; errors are very rare with just one or two minor slips",
+            "text_vi": "Sử dụng đa dạng (phong phú và độ khó) cấu trúc một cách chính xác và linh hoạt; lỗi rất hiếm gặp chỉ với một hoặc hai sai sót nhỏ.",
+            "keywords": [
+              "wide range",
+              "precisely",
+              "flexibly",
+              "very rare errors",
+              "minor slips"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "9": {
+            "text_en": "Uses a wide range of simple and complex structures precisely; the vast majority (80-90%) of the sentences are error-free; errors, if present, are non-systematic and non-impeding",
+            "text_vi": "Sử dụng đa dạng cấu trúc câu đơn giản và phức tạp một cách chính xác; đại đa số (80–90%) câu không có lỗi; lỗi, nếu có, là không có hệ thống và không cản trở giao tiếp.",
+            "keywords": [
+              "wide range",
+              "simple and complex",
+              "80-90%",
+              "error-free",
+              "non-systematic",
+              "non-impeding"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "8": {
+            "text_en": "Uses a variety of simple and complex structures with good control (70% accuracy); the majority (70%) of the sentences are error-free; errors, if present, are non-systematic and non-impeding",
+            "text_vi": "Sử dụng nhiều loại cấu trúc câu đơn giản và phức tạp với khả năng kiểm soát tốt (độ chính xác 70%); phần lớn (70%) câu không có lỗi; lỗi, nếu có, là không có hệ thống và không cản trở giao tiếp.",
+            "keywords": [
+              "variety",
+              "simple and complex",
+              "70% accuracy",
+              "70% error-free",
+              "non-systematic"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "7": {
+            "text_en": "Uses both simple and complex (passive, tense contrasts, subordination, relative clauses) structures in a relatively effective way (balanced); errors occur but they rarely lead to misunderstanding",
+            "text_vi": "Sử dụng cả cấu trúc câu đơn giản và phức tạp (câu bị động, đối lập thì, mệnh đề phụ, mệnh đề quan hệ) theo cách tương đối hiệu quả (cân bằng); lỗi xuất hiện nhưng hiếm khi dẫn đến hiểu nhầm.",
+            "keywords": [
+              "simple and complex",
+              "passive",
+              "tense contrasts",
+              "relative clauses",
+              "rarely misunderstanding"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "6": {
+            "text_en": "Uses both simple and complex structures; errors occur but they rarely lead to misunderstanding",
+            "text_vi": "Sử dụng cả cấu trúc câu đơn giản và phức tạp; lỗi xuất hiện nhưng hiếm khi dẫn đến hiểu nhầm.",
+            "keywords": [
+              "simple and complex",
+              "rarely misunderstanding"
+            ],
+            "common_errors": [
+              "Đôi khi sai subject-verb agreement với danh từ số nhiều",
+              "Lỗi tense shift không nhất quán trong bài",
+              "Relative clause đôi khi sai (which/who/that dùng sai)"
+            ],
+            "exclude_from_training": false
+          },
+          "5": {
+            "text_en": "Shows good control (70%) of simple structures; attempts complex structures but most are faulty; errors occur, but normally they do not impede comprehension",
+            "text_vi": "Kiểm soát tốt (70%) cấu trúc câu đơn giản; cố gắng dùng cấu trúc phức tạp nhưng hầu hết đều sai; lỗi xuất hiện, nhưng thông thường không cản trở sự hiểu.",
+            "keywords": [
+              "good control",
+              "70%",
+              "simple structures",
+              "complex structures faulty",
+              "do not impede"
+            ],
+            "common_errors": [
+              "Câu phức hầu hết đều sai cấu trúc",
+              "Lỗi article và preposition thường xuyên",
+              "Sai passive voice hoặc reported speech"
+            ],
+            "exclude_from_training": false
+          },
+          "4": {
+            "text_en": "Shows acceptable control (60%) of simple structures; attempts some complex structures, but handles them unsuccessfully",
+            "text_vi": "Kiểm soát ở mức chấp nhận được (60%) cấu trúc câu đơn giản; cố gắng dùng một số cấu trúc phức tạp nhưng xử lý không thành công.",
+            "keywords": [
+              "acceptable control",
+              "60%",
+              "simple structures",
+              "complex structures unsuccessful"
+            ],
+            "common_errors": [
+              "Chỉ dùng câu đơn giản S+V+O",
+              "Câu phức (relative clause, conditional) đều sai",
+              "Sai tense liên tục (present simple thay past simple)"
+            ],
+            "exclude_from_training": false
+          },
+          "3": {
+            "text_en": "Uses some simple structures correctly; frequently makes basic errors that distort the meaning",
+            "text_vi": "Sử dụng một số cấu trúc câu đơn giản đúng; thường xuyên mắc lỗi cơ bản làm méo ý nghĩa.",
+            "keywords": [
+              "some simple structures",
+              "basic errors",
+              "distort the meaning"
+            ],
+            "common_errors": [
+              "Sai subject-verb agreement thường xuyên",
+              "Không dùng được thì hiện tại hoàn thành hay quá khứ đúng cách",
+              "Lỗi article (a/an/the) trên 50% câu"
+            ],
+            "exclude_from_training": false
+          },
+          "2": {
+            "text_en": "Can only use some memorized structures; errors are dominant and distort the meaning",
+            "text_vi": "Chỉ có thể sử dụng một số cấu trúc đã học thuộc; lỗi chiếm ưu thế và làm méo ý nghĩa.",
+            "keywords": [
+              "memorized structures",
+              "errors dominant",
+              "distort the meaning"
+            ],
+            "common_errors": [
+              "Chỉ dùng cấu trúc đã học thuộc, không tự tạo câu mới",
+              "Lỗi ngữ pháp cơ bản trên 50% câu"
+            ],
+            "exclude_from_training": false
+          },
+          "1": {
+            "text_en": "Cannot use sentence forms at all",
+            "text_vi": "Hoàn toàn không thể sử dụng cấu trúc câu.",
+            "keywords": [
+              "cannot use sentence forms"
+            ],
+            "common_errors": [
+              "Không thể tạo câu hoàn chỉnh",
+              "Thiếu subject hoặc verb trong hầu hết câu"
+            ],
+            "exclude_from_training": false
+          },
+          "0": {
+            "text_en": "Does not write any words",
+            "text_vi": "Không viết bất kỳ từ nào.",
+            "keywords": [
+              "does not write"
+            ],
+            "common_errors": [],
+            "exclude_from_training": true
+          }
+        }
+      }
+    }
+  },
+  "vstep_task2": {
+    "rubricId": "vstep_task2",
+    "taskType": "task2",
+    "name": "VSTEP Writing Rating Scale - Task 2",
+    "source": "ULIS-VNU",
+    "version": "2.0",
+    "updatedAt": "2026-03-17",
+    "scale": {
+      "min": 0,
+      "max": 10,
+      "step": 1
+    },
+    "criteria": {
+      "taskFulfilment": {
+        "weight": 1,
+        "subFactors": [
+          "requirements (format, length, topic)",
+          "position (thesis statement)",
+          "main points"
+        ],
+        "descriptors": {
+          "10": {
+            "text_en": "Covers all the requirements of the task sufficiently and effectively; presents a fully-developed (well & convincingly) response with relevant, extended and well-supported ideas",
+            "text_vi": "Đáp ứng đầy đủ và hiệu quả tất cả yêu cầu của nhiệm vụ; trình bày phản hồi được phát triển hoàn toàn (tốt và thuyết phục) với các ý tưởng liên quan, được mở rộng và được hỗ trợ tốt.",
+            "keywords": [
+              "covers all requirements",
+              "effectively",
+              "all communicative purposes",
+              "tone consistent",
+              "fully develops",
+              "all details relevant"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "9": {
+            "text_en": "Covers all the requirements of the task sufficiently and effectively; presents a well-developed response with relevant, extended and well-supported ideas",
+            "text_vi": "Đáp ứng đầy đủ và hiệu quả tất cả yêu cầu của nhiệm vụ; trình bày phản hồi được phát triển tốt với các ý tưởng liên quan, được mở rộng và được hỗ trợ tốt.",
+            "keywords": [
+              "covers all requirements",
+              "clearly fulfils",
+              "tone consistent",
+              "fully develops",
+              "generally relevant"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "8": {
+            "text_en": "Covers all the requirements of the task; presents a generally clear position throughout the response; develops main ideas (topic sentence of each body paragraph) with most of the details relevant",
+            "text_vi": "Đáp ứng tất cả yêu cầu của nhiệm vụ; trình bày lập trường nhìn chung rõ ràng xuyên suốt bài viết; phát triển các ý tưởng chính (câu chủ đề của mỗi đoạn thân bài) với hầu hết chi tiết có liên quan.",
+            "keywords": [
+              "covers all requirements",
+              "generally clear",
+              "minor inconsistencies",
+              "most details relevant",
+              "could be more fully extended"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "7": {
+            "text_en": "Covers all the requirements of the task; presents a generally clear position, but in some parts the conclusions may be repeated or unclear; presents relevant main ideas but one or two ideas may be not fully-developed",
+            "text_vi": "Đáp ứng tất cả yêu cầu của nhiệm vụ; trình bày lập trường nhìn chung rõ ràng, nhưng ở một số phần kết luận có thể bị lặp lại hoặc không rõ ràng; trình bày các ý tưởng chính có liên quan nhưng một hoặc hai ý tưởng có thể chưa được phát triển đầy đủ.",
+            "keywords": [
+              "covers all",
+              "format inappropriate",
+              "some inconsistencies",
+              "adequately presents",
+              "one or two details inappropriate"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "6": {
+            "text_en": "Covers almost all (lack 10-15% words) the requirements of the task; presents a generally clear position, but in some parts the conclusions may be repeated or unclear; presents relevant main ideas but some may not be fully-developed or unclear",
+            "text_vi": "Đáp ứng gần như tất cả (thiếu 10–15% số từ) yêu cầu của nhiệm vụ; trình bày lập trường nhìn chung rõ ràng, nhưng ở một số phần kết luận có thể bị lặp lại hoặc không rõ ràng; trình bày các ý tưởng chính có liên quan nhưng một số có thể chưa được phát triển đầy đủ hoặc không rõ ràng.",
+            "keywords": [
+              "lack 10-15% words",
+              "format inappropriate",
+              "generally clear",
+              "a few details inappropriate"
+            ],
+            "common_errors": [
+              "Thiếu 10–15% số từ yêu cầu",
+              "Kết luận bị lặp lại hoặc mờ nhạt",
+              "3–4 chi tiết không phù hợp với yêu cầu"
+            ],
+            "exclude_from_training": false
+          },
+          "5": {
+            "text_en": "Partially (lack 20-25% words) covers the requirements of the task; presents a position but it is not always clear throughout the response; there may be no conclusion; presents some main ideas, but they are not fully-developed and there may be some irrelevant details",
+            "text_vi": "Đáp ứng một phần (thiếu 20–25% số từ) yêu cầu của nhiệm vụ; trình bày lập trường nhưng không phải lúc nào cũng rõ ràng xuyên suốt bài viết; có thể không có kết luận; trình bày một số ý tưởng chính, nhưng chúng chưa được phát triển đầy đủ và có thể có một số chi tiết không liên quan.",
+            "keywords": [
+              "lack 16-25% words",
+              "unclear",
+              "inconsistencies",
+              "miss 1 key point",
+              "focus on details"
+            ],
+            "common_errors": [
+              "Bỏ sót 1 điểm chính trong 3 bullet points",
+              "Thiếu từ 16–25% số từ yêu cầu",
+              "Một số ý không liên quan đến đề bài"
+            ],
+            "exclude_from_training": false
+          },
+          "4": {
+            "text_en": "Partially (lack >25% words) covers the requirements of the task; presents a position but it is not always clear throughout the response; there may be no conclusions; presents some main ideas, but they may be repetitive and are not sufficiently developed with relevant details",
+            "text_vi": "Đáp ứng một phần (thiếu hơn 25% số từ) yêu cầu của nhiệm vụ; trình bày lập trường nhưng không phải lúc nào cũng rõ ràng xuyên suốt bài viết; có thể không có kết luận; trình bày một số ý tưởng chính, nhưng chúng có thể lặp lại và chưa được phát triển đủ với các chi tiết liên quan.",
+            "keywords": [
+              "lack >25% words",
+              "fails to clearly present",
+              "tone inappropriate"
+            ],
+            "common_errors": [
+              "Bài viết thiếu hơn 25% số từ yêu cầu",
+              "Không xác định được mục đích giao tiếp",
+              "Giọng điệu không phù hợp (formal/informal sai)"
+            ],
+            "exclude_from_training": false
+          },
+          "3": {
+            "text_en": "Does not adequately address any part of the task, which may have been completely misunderstood; does not present a position; presents limited ideas which are largely undeveloped",
+            "text_vi": "Không đề cập đầy đủ đến bất kỳ phần nào của nhiệm vụ, có thể đã hiểu sai hoàn toàn; không trình bày lập trường; trình bày ý tưởng hạn chế, phần lớn chưa được phát triển.",
+            "keywords": [
+              "does not address",
+              "limited ideas",
+              "irrelevant",
+              "repetitive"
+            ],
+            "common_errors": [
+              "Lặp lại ý mà không phát triển",
+              "Hiểu sai yêu cầu đề bài",
+              "Thiếu 2 trong 3 bullet points (Task 1)"
+            ],
+            "exclude_from_training": false
+          },
+          "2": {
+            "text_en": "Barely responds to the task; does not present a position; presents one or two ideas which are not developed",
+            "text_vi": "Hầu như không phản hồi nhiệm vụ; không trình bày lập trường; trình bày một hoặc hai ý tưởng chưa được phát triển.",
+            "keywords": [
+              "does not address"
+            ],
+            "common_errors": [
+              "Không đề cập đến yêu cầu nào của đề bài",
+              "Viết không liên quan đến chủ đề"
+            ],
+            "exclude_from_training": false
+          },
+          "1": {
+            "text_en": "Answer is totally irrelevant or incomprehensible",
+            "text_vi": "Câu trả lời hoàn toàn không liên quan hoặc không thể hiểu được.",
+            "keywords": [
+              "totally irrelevant",
+              "memorized response"
+            ],
+            "common_errors": [
+              "Viết hoàn toàn lạc đề",
+              "Chép lại đề bài không viết gì thêm",
+              "Bỏ trắng hoặc chỉ viết vài từ"
+            ],
+            "exclude_from_training": false
+          },
+          "0": {
+            "text_en": "Does not attend the exam",
+            "text_vi": "Không dự thi.",
+            "keywords": [
+              "does not attend"
+            ],
+            "common_errors": [],
+            "exclude_from_training": true
+          }
+        }
+      },
+      "organization": {
+        "weight": 1,
+        "subFactors": [
+          "ideas & info unified and well-developed",
+          "paragraphing (main + supporting ideas)"
+        ],
+        "descriptors": {
+          "10": {
+            "text_en": "Organizes information and ideas clearly; uses a variety as well as a range of cohesive devices and organizational patterns flexibly; uses paragraphing sufficiently and appropriately (well organized and developed)",
+            "text_vi": "Tổ chức thông tin và ý tưởng rõ ràng; sử dụng đa dạng cũng như nhiều loại phương tiện liên kết và mô hình tổ chức một cách linh hoạt; sử dụng đoạn văn đầy đủ và phù hợp (tổ chức và phát triển tốt).",
+            "keywords": [
+              "logically",
+              "variety",
+              "range of cohesive devices",
+              "flexibly",
+              "paragraphing sufficiently"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "9": {
+            "text_en": "Organizes information and ideas coherently; uses a variety as well as a range of cohesive devices and organizational patterns effectively; uses paragraphing sufficiently and appropriately",
+            "text_vi": "Tổ chức thông tin và ý tưởng mạch lạc; sử dụng đa dạng cũng như nhiều loại phương tiện liên kết và mô hình tổ chức một cách hiệu quả; sử dụng đoạn văn đầy đủ và phù hợp.",
+            "keywords": [
+              "coherently",
+              "variety",
+              "range",
+              "effectively",
+              "paragraphing sufficiently"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "8": {
+            "text_en": "Organizes information and ideas coherently; uses a range of linking words and cohesive devices appropriately, though there may be some under/over use; uses paragraphing quite well",
+            "text_vi": "Tổ chức thông tin và ý tưởng mạch lạc; sử dụng nhiều loại từ nối và phương tiện liên kết phù hợp, dù có thể có một số dùng thiếu hoặc thừa; sử dụng đoạn văn khá tốt.",
+            "keywords": [
+              "coherently",
+              "range of linking words",
+              "appropriately",
+              "some under/over use",
+              "paragraphing appropriately"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "7": {
+            "text_en": "Organizes information and ideas coherently; uses a variety of linking words and a number of cohesive devices accurately, but there may be occasional inappropriacies; manages paragraphing well",
+            "text_vi": "Tổ chức thông tin và ý tưởng mạch lạc; sử dụng đa dạng từ nối và một số phương tiện liên kết chính xác, nhưng có thể có đôi lúc không phù hợp; quản lý đoạn văn tốt.",
+            "keywords": [
+              "coherently",
+              "variety of linking words",
+              "accurately",
+              "occasional inappropriacies",
+              "ellipsis",
+              "substitution"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "6": {
+            "text_en": "Organizes information and ideas generally coherently; uses linking words and a limited number of cohesive devices across sentences accurately, but there may be some inappropriacies; manages paragraphing relatively well",
+            "text_vi": "Tổ chức thông tin và ý tưởng nhìn chung mạch lạc; sử dụng từ nối và một số hạn chế phương tiện liên kết giữa các câu chính xác, nhưng có thể có một số không phù hợp; quản lý đoạn văn tương đối tốt.",
+            "keywords": [
+              "generally coherently",
+              "limited number",
+              "accurately",
+              "some inappropriacies"
+            ],
+            "common_errors": [
+              "Một số phương tiện liên kết dùng không chính xác",
+              "Đoạn văn đôi khi quá ngắn hoặc quá dài",
+              "Thiếu coherence ở một số đoạn"
+            ],
+            "exclude_from_training": false
+          },
+          "5": {
+            "text_en": "Organizes information and ideas fairly coherently; uses linking words and some familiar cohesive devices within and across sentences accurately though there may be inaccuracies; may not write in paragraphs, or paragraphing is not adequate",
+            "text_vi": "Tổ chức thông tin và ý tưởng khá mạch lạc; sử dụng từ nối và một số phương tiện liên kết quen thuộc trong và giữa các câu chính xác, dù có thể có sai sót; có thể không viết theo đoạn văn, hoặc đoạn văn chưa đủ.",
+            "keywords": [
+              "fairly coherently",
+              "linking words",
+              "familiar cohesive devices",
+              "inaccuracies"
+            ],
+            "common_errors": [
+              "Dùng however, furthermore sai vị trí",
+              "Thiếu câu chủ đề ở một số đoạn",
+              "Transition giữa các đoạn chưa mượt"
+            ],
+            "exclude_from_training": false
+          },
+          "4": {
+            "text_en": "Presents information and ideas with some organization; uses linking words accurately and attempts a few familiar cohesive devices within and across sentences, though there may be repetitions or inaccuracies; may not write in paragraphs, or paragraphing is confusing",
+            "text_vi": "Trình bày thông tin và ý tưởng với một ít tổ chức; sử dụng từ nối chính xác và cố gắng dùng một vài phương tiện liên kết quen thuộc trong và giữa các câu, dù có thể có sự lặp lại hoặc sai sót; có thể không viết theo đoạn văn, hoặc đoạn văn gây nhầm lẫn.",
+            "keywords": [
+              "some organization",
+              "linking words accurately",
+              "repetitions",
+              "inaccuracies"
+            ],
+            "common_errors": [
+              "Lặp lại từ nối (firstly... firstly...)",
+              "Không có topic sentence trong đoạn thân bài",
+              "Đoạn văn quá ngắn (1–2 câu)"
+            ],
+            "exclude_from_training": false
+          },
+          "3": {
+            "text_en": "Presents information and ideas in a series of simple sentences linked by only basic, high-frequency linking words",
+            "text_vi": "Trình bày thông tin và ý tưởng trong một loạt câu đơn giản chỉ được liên kết bằng từ nối cơ bản tần số cao.",
+            "keywords": [
+              "simple sentences",
+              "basic high-frequency linking words"
+            ],
+            "common_errors": [
+              "Chỉ dùng and, but, or để nối câu",
+              "Không có đoạn văn rõ ràng"
+            ],
+            "exclude_from_training": false
+          },
+          "2": {
+            "text_en": "Has very little control of organizational features",
+            "text_vi": "Hầu như không kiểm soát được các đặc điểm tổ chức văn bản.",
+            "keywords": [
+              "very little control",
+              "organizational features"
+            ],
+            "common_errors": [
+              "Hầu như không có từ nối",
+              "Ý tưởng rời rạc không liên kết"
+            ],
+            "exclude_from_training": false
+          },
+          "1": {
+            "text_en": "Has no organizational features",
+            "text_vi": "Không có bất kỳ đặc điểm tổ chức nào.",
+            "keywords": [
+              "no organizational features"
+            ],
+            "common_errors": [
+              "Không có cấu trúc nào — viết liền một khối",
+              "Không có câu mở đầu hay kết thúc"
+            ],
+            "exclude_from_training": false
+          },
+          "0": {
+            "text_en": "Does not write any words",
+            "text_vi": "Không viết bất kỳ từ nào.",
+            "keywords": [
+              "does not write"
+            ],
+            "common_errors": [],
+            "exclude_from_training": true
+          }
+        }
+      },
+      "vocabulary": {
+        "weight": 1,
+        "subFactors": [
+          "range",
+          "style & collocation",
+          "errors"
+        ],
+        "descriptors": {
+          "10": {
+            "text_en": "Uses a wide range of vocabulary including less common lexis precisely and flexibly; shows full control of style and collocation, but there may be occasional inappropriacies; errors are very rare with just one or two minor slips",
+            "text_vi": "Sử dụng vốn từ phong phú bao gồm từ vựng ít phổ biến một cách chính xác và linh hoạt; thể hiện khả năng kiểm soát đầy đủ về phong cách và kết hợp từ, nhưng có thể có đôi lúc không phù hợp; lỗi rất hiếm gặp chỉ với một hoặc hai sai sót nhỏ.",
+            "keywords": [
+              "wide range",
+              "5000 words",
+              "precisely",
+              "flexibly",
+              "full control",
+              "90% accurate",
+              "rare errors",
+              "minor slips"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "9": {
+            "text_en": "Uses a wide range of vocabulary including less common lexis precisely; shows good control of style and collocation, but there may be some inaccuracies; errors, if present, are non-systematic and non-impeding",
+            "text_vi": "Sử dụng vốn từ phong phú bao gồm từ vựng ít phổ biến một cách chính xác; thể hiện khả năng kiểm soát tốt về phong cách và kết hợp từ, nhưng có thể có một số sai sót; lỗi, nếu có, là không có hệ thống và không cản trở giao tiếp.",
+            "keywords": [
+              "wide range",
+              "less common lexis",
+              "good control",
+              "80% accurate",
+              "non-systematic",
+              "non-impeding"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "8": {
+            "text_en": "Uses a good range of vocabulary including some less common lexis appropriately; shows good control of style and collocation; errors, if present, are non-systematic and non-impeding",
+            "text_vi": "Sử dụng vốn từ đa dạng bao gồm một số từ vựng ít phổ biến phù hợp; thể hiện khả năng kiểm soát tốt về phong cách và kết hợp từ; lỗi, nếu có, là không có hệ thống và không cản trở giao tiếp.",
+            "keywords": [
+              "good range",
+              "4000 words",
+              "less common lexis",
+              "limited control",
+              "70% accurate"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "7": {
+            "text_en": "Uses a sufficient range of vocabulary; attempts less common lexis with occasional inappropriacies; errors do not impede communication",
+            "text_vi": "Sử dụng vốn từ đủ dùng; cố gắng dùng từ vựng ít phổ biến hơn với đôi lúc không phù hợp; lỗi không cản trở giao tiếp.",
+            "keywords": [
+              "sufficient range",
+              "3000 words",
+              "less common lexis",
+              "occasional inappropriacies",
+              "do not impede"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "6": {
+            "text_en": "Uses a sufficient range of vocabulary; attempts less common lexis but most are faulty; errors do not impede communication",
+            "text_vi": "Sử dụng vốn từ đủ dùng; cố gắng dùng từ vựng ít phổ biến hơn nhưng hầu hết đều sai; lỗi không cản trở giao tiếp.",
+            "keywords": [
+              "sufficient range",
+              "3000 words",
+              "most are faulty",
+              "do not impede"
+            ],
+            "common_errors": [
+              "Cố dùng từ ít phổ biến nhưng sai cả ngữ pháp lẫn ngữ nghĩa",
+              "Lỗi spelling không thường xuyên nhưng đáng chú ý",
+              "Dùng sai từ đồng nghĩa (e.g. 'elderly' thay 'old' nhưng sai ngữ cảnh)"
+            ],
+            "exclude_from_training": false
+          },
+          "5": {
+            "text_en": "Uses an adequate range of vocabulary but tends to overuse certain lexical items; errors occur and may impede comprehension at times",
+            "text_vi": "Sử dụng vốn từ đủ dùng nhưng có xu hướng dùng quá nhiều một số đơn vị từ vựng nhất định; lỗi xuất hiện và đôi khi có thể cản trở sự hiểu.",
+            "keywords": [
+              "adequate range",
+              "2000 words",
+              "overuse",
+              "may impede comprehension"
+            ],
+            "common_errors": [
+              "Dùng quá nhiều lần: important, people, think, good",
+              "Cố dùng từ học thuật nhưng dùng sai nghĩa",
+              "Lỗi collocation phổ biến (make a decision ✓ vs do a decision ✗)"
+            ],
+            "exclude_from_training": false
+          },
+          "4": {
+            "text_en": "Uses basic vocabulary with acceptable control; errors are noticeable and impede comprehension at times",
+            "text_vi": "Sử dụng vốn từ cơ bản với khả năng kiểm soát chấp nhận được; lỗi rõ ràng và đôi khi cản trở sự hiểu.",
+            "keywords": [
+              "basic vocabulary",
+              "60% correct",
+              "errors noticeable",
+              "30%",
+              "impede comprehension"
+            ],
+            "common_errors": [
+              "Chỉ dùng từ vựng cơ bản (good, bad, big, small)",
+              "Lỗi spelling rõ ràng chiếm 30% từ",
+              "Không dùng được từ đồng nghĩa"
+            ],
+            "exclude_from_training": false
+          },
+          "3": {
+            "text_en": "Uses a limited range of basic vocabulary; errors are frequent and distort the meaning",
+            "text_vi": "Sử dụng vốn từ cơ bản hạn chế; lỗi thường xuyên và làm méo ý nghĩa.",
+            "keywords": [
+              "limited range",
+              "50%",
+              "frequent errors",
+              "distort the meaning"
+            ],
+            "common_errors": [
+              "Lặp lại cùng một từ hơn 5 lần trong bài",
+              "Sai word form thường xuyên (động từ/danh từ/tính từ)",
+              "Dùng từ Việt hóa sang tiếng Anh"
+            ],
+            "exclude_from_training": false
+          },
+          "2": {
+            "text_en": "Uses a very limited range of words and phrases; errors are dominant and distort the meaning",
+            "text_vi": "Sử dụng vốn từ và cụm từ rất hạn chế; lỗi chiếm ưu thế và làm méo ý nghĩa.",
+            "keywords": [
+              "very limited range",
+              "errors dominant",
+              ">50%",
+              "distort the meaning"
+            ],
+            "common_errors": [
+              "Vốn từ dưới 500 từ",
+              "Lỗi chính tả làm người đọc không hiểu được"
+            ],
+            "exclude_from_training": false
+          },
+          "1": {
+            "text_en": "Uses only a few isolated words",
+            "text_vi": "Chỉ sử dụng một vài từ riêng lẻ.",
+            "keywords": [
+              "isolated words"
+            ],
+            "common_errors": [
+              "Chỉ biết dưới 200 từ tiếng Anh cơ bản",
+              "Lỗi chính tả nghiêm trọng trên 50% từ"
+            ],
+            "exclude_from_training": false
+          },
+          "0": {
+            "text_en": "Does not write any words",
+            "text_vi": "Không viết bất kỳ từ nào.",
+            "keywords": [
+              "does not write"
+            ],
+            "common_errors": [],
+            "exclude_from_training": true
+          }
+        }
+      },
+      "grammar": {
+        "weight": 1,
+        "subFactors": [
+          "range",
+          "accuracy"
+        ],
+        "descriptors": {
+          "10": {
+            "text_en": "Uses a wide range of structures precisely and flexibly; errors are very rare",
+            "text_vi": "Sử dụng đa dạng cấu trúc một cách chính xác và linh hoạt; lỗi rất hiếm gặp.",
+            "keywords": [
+              "wide range",
+              "precisely",
+              "flexibly",
+              "very rare errors",
+              "minor slips"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "9": {
+            "text_en": "Uses a wide range of simple and complex structures precisely; vast majority of sentences are error-free; errors are non-systematic and non-impeding",
+            "text_vi": "Sử dụng đa dạng cấu trúc câu đơn giản và phức tạp một cách chính xác; đại đa số câu không có lỗi; lỗi là không có hệ thống và không cản trở giao tiếp.",
+            "keywords": [
+              "wide range",
+              "simple and complex",
+              "80-90%",
+              "error-free",
+              "non-systematic",
+              "non-impeding"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "8": {
+            "text_en": "Uses a variety of simple and complex structures with good control; the majority of sentences are error-free; errors are non-systematic and non-impeding",
+            "text_vi": "Sử dụng nhiều loại cấu trúc câu đơn giản và phức tạp với khả năng kiểm soát tốt; phần lớn câu không có lỗi; lỗi là không có hệ thống và không cản trở giao tiếp.",
+            "keywords": [
+              "variety",
+              "simple and complex",
+              "70% accuracy",
+              "70% error-free",
+              "non-systematic"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "7": {
+            "text_en": "Uses both simple and complex structures in a relatively effective way; errors occur but rarely lead to misunderstanding",
+            "text_vi": "Sử dụng cả cấu trúc câu đơn giản và phức tạp theo cách tương đối hiệu quả; lỗi xuất hiện nhưng hiếm khi dẫn đến hiểu nhầm.",
+            "keywords": [
+              "simple and complex",
+              "passive",
+              "tense contrasts",
+              "relative clauses",
+              "rarely misunderstanding"
+            ],
+            "common_errors": [],
+            "exclude_from_training": false
+          },
+          "6": {
+            "text_en": "Uses both simple and complex structures; errors occur but rarely lead to misunderstanding",
+            "text_vi": "Sử dụng cả cấu trúc câu đơn giản và phức tạp; lỗi xuất hiện nhưng hiếm khi dẫn đến hiểu nhầm.",
+            "keywords": [
+              "simple and complex",
+              "rarely misunderstanding"
+            ],
+            "common_errors": [
+              "Đôi khi sai subject-verb agreement với danh từ số nhiều",
+              "Lỗi tense shift không nhất quán trong bài",
+              "Relative clause đôi khi sai (which/who/that dùng sai)"
+            ],
+            "exclude_from_training": false
+          },
+          "5": {
+            "text_en": "Shows good control of simple structures; attempts complex structures but most are faulty; errors occur but normally do not impede comprehension",
+            "text_vi": "Kiểm soát tốt cấu trúc câu đơn giản; cố gắng dùng cấu trúc phức tạp nhưng hầu hết đều sai; lỗi xuất hiện nhưng thông thường không cản trở sự hiểu.",
+            "keywords": [
+              "good control",
+              "70%",
+              "simple structures",
+              "complex structures faulty",
+              "do not impede"
+            ],
+            "common_errors": [
+              "Câu phức hầu hết đều sai cấu trúc",
+              "Lỗi article và preposition thường xuyên",
+              "Sai passive voice hoặc reported speech"
+            ],
+            "exclude_from_training": false
+          },
+          "4": {
+            "text_en": "Shows acceptable control of simple structures; attempts some complex structures but errors occur frequently and impede comprehension at times",
+            "text_vi": "Kiểm soát ở mức chấp nhận được cấu trúc câu đơn giản; cố gắng dùng một số cấu trúc phức tạp nhưng lỗi xuất hiện thường xuyên và đôi khi cản trở sự hiểu.",
+            "keywords": [
+              "acceptable control",
+              "60%",
+              "simple structures",
+              "complex structures unsuccessful"
+            ],
+            "common_errors": [
+              "Chỉ dùng câu đơn giản S+V+O",
+              "Câu phức (relative clause, conditional) đều sai",
+              "Sai tense liên tục (present simple thay past simple)"
+            ],
+            "exclude_from_training": false
+          },
+          "3": {
+            "text_en": "Uses some simple structures correctly; frequently makes basic errors that distort the meaning",
+            "text_vi": "Sử dụng một số cấu trúc câu đơn giản đúng; thường xuyên mắc lỗi cơ bản làm méo ý nghĩa.",
+            "keywords": [
+              "some simple structures",
+              "basic errors",
+              "distort the meaning"
+            ],
+            "common_errors": [
+              "Sai subject-verb agreement thường xuyên",
+              "Không dùng được thì hiện tại hoàn thành hay quá khứ đúng cách",
+              "Lỗi article (a/an/the) trên 50% câu"
+            ],
+            "exclude_from_training": false
+          },
+          "2": {
+            "text_en": "Can only use some memorized structures; errors are dominant and distort the meaning",
+            "text_vi": "Chỉ có thể sử dụng một số cấu trúc đã học thuộc; lỗi chiếm ưu thế và làm méo ý nghĩa.",
+            "keywords": [
+              "memorized structures",
+              "errors dominant",
+              "distort the meaning"
+            ],
+            "common_errors": [
+              "Chỉ dùng cấu trúc đã học thuộc, không tự tạo câu mới",
+              "Lỗi ngữ pháp cơ bản trên 50% câu"
+            ],
+            "exclude_from_training": false
+          },
+          "1": {
+            "text_en": "Cannot use sentence forms at all",
+            "text_vi": "Hoàn toàn không thể sử dụng cấu trúc câu.",
+            "keywords": [
+              "cannot use sentence forms"
+            ],
+            "common_errors": [
+              "Không thể tạo câu hoàn chỉnh",
+              "Thiếu subject hoặc verb trong hầu hết câu"
+            ],
+            "exclude_from_training": false
+          },
+          "0": {
+            "text_en": "Does not write any words",
+            "text_vi": "Không viết bất kỳ từ nào.",
+            "keywords": [
+              "does not write"
+            ],
+            "common_errors": [],
+            "exclude_from_training": true
+          }
+        }
+      }
+    }
+  }
+}

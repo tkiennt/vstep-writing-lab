@@ -52,7 +52,7 @@ public class GradeEssayUseCase(
             command.EssayId,
             command.TaskType,
             DateTime.UtcNow,
-            new TaskRelevance(true, 10, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>()),
+            new TaskRelevance(true, 0, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>()),
             new CriterionScore(0, "N/A", "", "", ""),
             new CriterionScore(0, "N/A", "", "", ""),
             new CriterionScore(0, "N/A", "", "", ""),
