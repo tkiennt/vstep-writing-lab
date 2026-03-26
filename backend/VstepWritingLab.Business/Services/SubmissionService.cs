@@ -322,9 +322,12 @@ namespace VstepWritingLab.Business.Services
                 },
                 AiFeedback = new AiFeedbackResponse
                 {
-                    Summary     = !string.IsNullOrEmpty(r.Summary) && r.Summary.Length > 20
-                        ? r.Summary 
-                        : $"Bài viết của bạn đạt mức điểm trung bình là {r.TotalScore}. Hãy xem chi tiết đánh giá về Bố cục, Từ vựng và Ngữ pháp bên dưới để cải thiện điểm số.",
+                    // Prefer SummaryVi (new AI output), fall back to Summary (legacy), then generate a default
+                    Summary = !string.IsNullOrEmpty(r.SummaryVi) && r.SummaryVi.Length > 20
+                        ? r.SummaryVi
+                        : !string.IsNullOrEmpty(r.Summary) && r.Summary.Length > 20
+                            ? r.Summary
+                            : $"Bài viết của bạn đạt mức điểm trung bình là {r.TotalScore:0.0}/9. Hãy xem chi tiết đánh giá về Bố cục, Từ vựng và Ngữ pháp bên dưới để cải thiện điểm số.",
                     Suggestions = r.ImprovementsVi?.ToList() ?? new List<string>(),
                     Highlights  = r.InlineHighlights?.Select(h => new HighlightResponse
                     {
