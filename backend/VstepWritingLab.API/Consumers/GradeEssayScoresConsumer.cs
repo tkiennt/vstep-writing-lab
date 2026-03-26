@@ -132,7 +132,7 @@ public class GradeEssayScoresConsumer(
     {
         var failed = new GradingResult(
             resultId, cmd.StudentId, cmd.EssayId, cmd.TaskType, DateTime.UtcNow,
-            new TaskRelevance(true, 10, [], [], []),
+            new TaskRelevance(true, 0, [], [], []),
             new CriterionScore(0, "N/A", "", "", ""),
             new CriterionScore(0, "N/A", "", "", ""),
             new CriterionScore(0, "N/A", "", "", ""),
