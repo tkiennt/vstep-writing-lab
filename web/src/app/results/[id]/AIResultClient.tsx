@@ -24,9 +24,8 @@ export default function AIResultClient() {
     try {
       const data = await submissionService.getById(params.id);
       setSubmission(data);
-      if (data.status === 'pending') {
-        setLoading(true);
-      } else {
+      // Only set loading false if we have data AND it's not pending
+      if (data.status !== 'pending') {
         setLoading(false);
       }
     } catch (error) {
@@ -39,10 +38,11 @@ export default function AIResultClient() {
   useEffect(() => {
     fetchSubmission();
     const interval = setInterval(() => {
-      if (loading || (submission && submission.status === 'pending')) {
+      // Continue polling if pending OR if it's only scored (Phase 1) but not completed (Phase 2)
+      if (loading || (submission && (submission.status === 'pending' || submission.status === 'scored'))) {
         fetchSubmission();
       }
-    }, 3000);
+    }, 4000); 
     return () => clearInterval(interval);
   }, [fetchSubmission, loading, submission]);
 
@@ -96,6 +96,7 @@ export default function AIResultClient() {
   }
 
   const { aiScore, aiFeedback } = submission;
+  const isDeepAnalysisReady = submission.status === 'completed' || (aiFeedback?.sentenceFeedback && aiFeedback.sentenceFeedback.length > 0);
 
   const renderHighlightedContent = () => {
     return <p className="whitespace-pre-line">{submission.essayContent}</p>;
@@ -104,7 +105,6 @@ export default function AIResultClient() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
       
-      {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
          <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -116,33 +116,11 @@ export default function AIResultClient() {
                </div>
             </div>
             <div className="flex items-center gap-3">
-               <Button 
-                 variant="outline" 
-                 onClick={handleExportPDF}
-                 disabled={exportStatus === 'loading'}
-                 className="h-9 px-4 rounded-xl text-xs font-bold border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hidden sm:flex items-center gap-2"
-               >
-                  {exportStatus === 'loading' ? (
-                    <><div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div> Exporting...</>
-                  ) : exportStatus === 'done' ? (
-                    <><Check className="w-3.5 h-3.5 text-emerald-600" /> Downloaded!</>
-                  ) : (
-                    <><Download className="w-3.5 h-3.5" /> Export PDF</>
-                  )}
+               <Button variant="outline" onClick={handleExportPDF} disabled={exportStatus === 'loading'} className="h-9 px-4 rounded-xl text-xs font-bold border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hidden sm:flex items-center gap-2">
+                  {exportStatus === 'loading' ? 'Exporting...' : exportStatus === 'done' ? 'Downloaded!' : 'Export PDF'}
                </Button>
-               <Button 
-                 onClick={handleShare}
-                 className={`h-9 px-4 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all ${
-                   shareStatus === 'copied' 
-                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                     : 'bg-emerald-600 dark:bg-vstep-dark hover:bg-emerald-700 dark:hover:bg-emerald-900 text-white'
-                 }`}
-               >
-                  {shareStatus === 'copied' ? (
-                    <><Check className="w-3.5 h-3.5" /> Link Copied!</>
-                  ) : (
-                    <><Share2 className="w-3.5 h-3.5" /> Share Result</>
-                  )}
+               <Button onClick={handleShare} className="h-9 px-4 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm bg-emerald-600 text-white hover:bg-emerald-700">
+                  {shareStatus === 'copied' ? 'Link Copied!' : 'Share Result'}
                </Button>
             </div>
          </div>
@@ -150,13 +128,20 @@ export default function AIResultClient() {
 
       <main className="max-w-5xl mx-auto px-6 pt-8 space-y-8 animate-in slide-in-from-bottom-8 duration-700">
          
-         {/* Top Section: Overall Score & Criteria */}
+         {submission.status === 'scored' && (
+           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-4 flex items-center gap-4 animate-pulse">
+              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <p className="text-sm font-bold text-blue-800 dark:text-blue-300">
+                Scores ready! AI is currently performing a deep sentence-by-sentence analysis... (ETA 20s)
+              </p>
+           </div>
+         )}
+
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Band Score Card — keep dark green intentionally */}
             <div className="lg:col-span-1 bg-gradient-to-br from-emerald-900 to-vstep-dark rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-emerald-900/20">
                <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
-               <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl"></div>
                <div className="relative z-10 flex flex-col h-full items-center justify-center text-center">
                   <span className="text-emerald-300 font-bold tracking-widest uppercase text-xs mb-4">Overall Band Score</span>
                   <div className="text-8xl font-black tracking-tighter mb-4 text-white drop-shadow-md">
@@ -169,7 +154,6 @@ export default function AIResultClient() {
                </div>
             </div>
 
-            {/* Criteria Breakdown Grid */}
             <div className="lg:col-span-2 grid grid-cols-2 gap-4">
                {[
                  { label: 'Task Fulfillment', score: aiScore?.taskFulfilment || 0, color: 'blue' },
@@ -186,27 +170,14 @@ export default function AIResultClient() {
                           c.color === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
                        }`}>{c.score}</span>
                     </div>
-                    <div className="space-y-2">
-                       <div className="flex items-center justify-between text-[10px] font-black uppercase text-slate-400 dark:text-slate-500">
-                          <span>0</span><span>Score</span><span>9</span>
-                       </div>
-                       <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                          <div 
-                             className={`h-full rounded-full ${
-                                c.color === 'blue' ? 'bg-blue-500' : 
-                                c.color === 'indigo' ? 'bg-indigo-500' : 
-                                c.color === 'emerald' ? 'bg-emerald-500' : 'bg-amber-500'
-                             }`}
-                             style={{ width: `${(c.score / 9) * 100}%` }}
-                          ></div>
-                       </div>
+                    <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mt-4">
+                       <div className={`h-full rounded-full ${c.color === 'blue' ? 'bg-blue-500' : c.color === 'indigo' ? 'bg-indigo-500' : c.color === 'emerald' ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${(c.score / 9) * 100}%` }}></div>
                     </div>
                  </div>
                ))}
             </div>
          </div>
 
-         {/* Middle Section */}
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-3xl p-8">
                <div className="flex items-center gap-3 mb-6">
@@ -220,63 +191,126 @@ export default function AIResultClient() {
                </div>
             </div>
 
-            <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-3xl p-8">
+            <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-3xl p-8 shadow-sm">
                <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                      <Lightbulb className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-lg">Key Suggestions</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-lg">Key Improvements</h3>
                </div>
                <ul className="space-y-4">
-                  {aiFeedback?.suggestions.map((suggestion, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                  {(aiFeedback?.suggestions && aiFeedback.suggestions.length > 0) ? aiFeedback.suggestions.map((suggestion, idx) => (
+                    <li key={idx} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium text-left">
                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0"></div>
                        {suggestion}
                     </li>
-                  )) || <li>No suggestions available.</li>}
+                  )) : (
+                    <li className="text-sm text-slate-400 italic">Deep analysis in progress...</li>
+                  )}
                </ul>
             </div>
          </div>
 
-         {/* Bottom Section */}
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
+            <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
+               <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-emerald-600" />
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100">Sentence-by-Sentence Analysis</h3>
+               </div>
+               {!isDeepAnalysisReady && (
+                 <span className="text-xs font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/40 px-3 py-1 rounded-full animate-pulse">Running Deep Analysis...</span>
+               )}
+            </div>
+            <div className="p-0">
+               {isDeepAnalysisReady ? (
+                 <div className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                    {aiFeedback?.sentenceFeedback?.map((item, idx) => (
+                       <div key={idx} className={`p-6 transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/20 ${!item.isGood ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
+                          <div className="flex flex-col md:flex-row gap-6">
+                             <div className="md:w-1/2">
+                                <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase mb-2 ${item.isGood ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600'}`}>
+                                   {item.isGood ? 'Strong Sentence' : 'Improvement Needed'}
+                                </span>
+                                <p className="text-slate-900 dark:text-slate-100 font-medium leading-relaxed italic text-left">&quot;{item.sentence}&quot;</p>
+                             </div>
+                             <div className="md:w-1/2 space-y-3">
+                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed text-left">{item.explanation}</p>
+                                {!item.isGood && (
+                                   <div className="space-y-1 p-3 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-amber-900/30 shadow-sm text-left">
+                                      <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1.5"><Lightbulb className="w-3 h-3" /> Suggested Phrasing</p>
+                                      <p className="text-sm text-emerald-700 dark:text-emerald-400 font-bold leading-relaxed">{item.suggestion}</p>
+                                   </div>
+                                )}
+                             </div>
+                          </div>
+                       </div>
+                    ))}
+                 </div>
+               ) : (
+                 <div className="p-12 text-center flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-full border-4 border-slate-100 border-t-blue-500 animate-spin mb-4"></div>
+                    <p className="text-slate-400 font-medium">Please wait a few seconds for deep analysis...</p>
+                 </div>
+               )}
+            </div>
+         </div>
+
+         {aiFeedback?.roadmap && (
+            <div className="bg-slate-900 dark:bg-black rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden text-left">
+               <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px]"></div>
+               <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-8">
+                     <TrendingUp className="w-6 h-6 text-emerald-400" />
+                     <h3 className="text-xl font-black tracking-tight">8-Week Excellence Roadmap</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    {[
+                      { l: 'Current', v: aiFeedback.roadmap.currentLevel, c: 'text-slate-400' },
+                      { l: 'Target', v: aiFeedback.roadmap.targetLevel, c: 'text-emerald-400' },
+                      { l: 'Duration', v: `${aiFeedback.roadmap.estimatedWeeks} Weeks`, c: 'text-blue-400' },
+                      { l: 'Intensity', v: 'Personalized', c: 'text-amber-400' }
+                    ].map((st, i) => (
+                      <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                         <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-1">{st.l}</p>
+                         <p className={`text-lg font-black ${st.c}`}>{st.v}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-4">
+                     {aiFeedback.roadmap.weeklyPlan.map((wp, i) => (
+                        <div key={i} className="flex items-start gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl">
+                           <div className="w-10 h-10 shrink-0 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-sm">W{wp.week}</div>
+                           <div className="space-y-1">
+                              <p className="font-bold text-white leading-tight">{wp.focus}</p>
+                              <p className="text-xs text-slate-400 font-medium leading-relaxed">{wp.goal}</p>
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
+         )}
+
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
             <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden flex flex-col">
                <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 flex items-center gap-3 bg-slate-50 dark:bg-slate-900/50">
                   <BookOpen className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-                  <h3 className="font-bold text-slate-900 dark:text-slate-100">Your Essay</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100">Your Full Essay</h3>
                </div>
-               <div className="p-8 lg:p-12 flex-1 text-slate-800 dark:text-slate-200 font-serif text-lg leading-loose overflow-y-auto max-h-[600px]">
+               <div className="p-8 lg:p-12 flex-1 text-slate-800 dark:text-slate-200 font-serif text-lg leading-loose overflow-y-auto max-h-[800px] text-left">
                   {renderHighlightedContent()}
                </div>
             </div>
 
-            <div className="lg:col-span-1 space-y-4 overflow-y-auto max-h-[665px] pr-1">
-               <h3 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2">Detailed Analysis ({aiFeedback?.highlights?.length || 0})</h3>
-               
+            <div className="lg:col-span-1 space-y-4 pr-1">
+               <h3 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 text-left">Detailed Highlights ({aiFeedback?.highlights?.length || 0})</h3>
                {aiFeedback?.highlights?.map((h, i) => (
-                 <div key={i} className={`bg-white dark:bg-slate-800 rounded-2xl p-5 border shadow-sm transition-all hover:shadow-md ${
-                   h.type.toLowerCase().includes('grammar') ? 'border-red-100 dark:border-red-500/20 hover:border-red-200 dark:hover:border-red-500/30' :
-                   h.type.toLowerCase().includes('vocabulary') ? 'border-amber-100 dark:border-amber-500/20 hover:border-amber-200 dark:hover:border-amber-500/30' :
-                   'border-blue-100 dark:border-blue-500/20 hover:border-blue-200 dark:hover:border-blue-500/30'
-                 }`}>
-                    <div className="flex items-center gap-2 mb-3">
-                       <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md ${
-                         h.type.toLowerCase().includes('grammar') ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400' :
-                         h.type.toLowerCase().includes('vocabulary') ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' :
-                         'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                       }`}>{h.type}</span>
-                    </div>
+                 <div key={i} className={`bg-white dark:bg-slate-800 rounded-2xl p-5 border shadow-sm text-left ${h.severity === 'good' ? 'border-emerald-100 dark:border-emerald-500/20' : h.type.toLowerCase().includes('grammar') ? 'border-red-100 dark:border-red-500/20' : 'border-amber-100 dark:border-amber-500/20'}`}>
+                    <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md mb-2 inline-block ${h.severity === 'good' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600' : h.type.toLowerCase().includes('grammar') ? 'bg-red-50 dark:bg-red-500/10 text-red-600' : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600'}`}>{h.type}</span>
                     <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-2 italic">&quot;{h.text}&quot;</p>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{h.issue}</p>
                  </div>
                ))}
-
-               {(!aiFeedback?.highlights || aiFeedback.highlights.length === 0) && (
-                 <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-8 border border-dashed border-slate-200 dark:border-slate-700 text-center">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
-                    <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No specific issues found. Great job!</p>
-                 </div>
-               )}
             </div>
          </div>
       </main>

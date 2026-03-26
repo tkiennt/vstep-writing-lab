@@ -48,7 +48,7 @@ public class GradeEssayScoresConsumer(
                 cmd.UserHistory.PastScores,
                 cmd.UserHistory.Level);
 
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120)); // Increased for slower AI responses
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken, cts.Token);
 
             var aiResult = await aiService.GradePhase1Async(

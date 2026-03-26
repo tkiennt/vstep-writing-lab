@@ -259,7 +259,11 @@ namespace VstepWritingLab.Business.Services
             if (string.IsNullOrWhiteSpace(submissionId))
                 throw new ArgumentException("Submission ID cannot be null or empty", nameof(submissionId));
 
-            _logger.LogInformation("Fetching result detail for {Id} (User: {Uid})", submissionId, userId);
+            // Log as Debug to avoid spamming the console during polling, but keep info for initial fetch
+            if (submissionId != "list")
+            {
+                _logger.LogDebug("Fetching result detail for {Id} (User: {Uid})", submissionId, userId);
+            }
 
             // 1. Check for obviously invalid IDs to prevent unintended polling (e.g. from /results/list)
             if (submissionId.Equals("list", StringComparison.OrdinalIgnoreCase))
@@ -308,7 +312,13 @@ namespace VstepWritingLab.Business.Services
                 QuestionTitle = questionTitle,
                 TaskType      = r.TaskType,
                 Mode          = r.Mode,
-                Status        = r.Status?.ToLower() == "pending" ? "pending" : r.Status?.ToLower() == "failed" ? "error" : "scored",
+                Status        = r.Status?.ToLower() switch {
+                                    "pending"         => "pending",
+                                    "phase1completed" => "scored",
+                                    "completed"       => "completed",
+                                    "failed"          => "error",
+                                    _                 => "completed"
+                                },
                 EssayContent  = r.EssayText,
                 WordCount     = r.WordCount,
                 CreatedAt     = r.GradedAt,

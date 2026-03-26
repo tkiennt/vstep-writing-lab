@@ -25,21 +25,45 @@ export interface Essay {
   status: EssayStatus;
 }
 
-export type EssayStatus = 'draft' | 'submitted' | 'evaluated' | 'pending' | 'scored' | 'failed';
+export type EssayStatus = 'draft' | 'submitted' | 'evaluated' | 'pending' | 'scored' | 'completed' | 'failed' | 'error';
 
-export type TaskType = 'opinion' | 'discussion' | 'problem-solution' | 'two-part';
+export type TaskType = 'opinion' | 'discussion' | 'problem-solution' | 'two-part' | string;
 
 // Feedback Types
 export interface EssayFeedback {
   summary: string;
   suggestions: string[];
   highlights: Highlight[];
+  sentenceFeedback?: SentenceFeedback[];
+  roadmap?: Roadmap;
 }
 
 export interface Highlight {
   text: string;
   issue: string;
   type: string;
+  severity?: 'error' | 'warning' | 'good';
+}
+
+export interface SentenceFeedback {
+  sentence: string;
+  isGood: boolean;
+  explanation: string;
+  suggestion: string;
+}
+
+export interface Roadmap {
+  currentLevel: string;
+  targetLevel: string;
+  estimatedWeeks: number;
+  weeklyPlan: WeeklyPlan[];
+}
+
+export interface WeeklyPlan {
+  week: number;
+  focus: string;
+  goal: string;
+  tasks: string[];
 }
 
 export interface AiScore {
@@ -175,9 +199,9 @@ export interface EssaySubmission {
 }
 
 export interface SubmissionResponse {
-  submissionId: string;
   id: string;
   questionId: string;
+  questionTitle?: string;
   taskType: string;
   mode: string;
   essayContent: string;
