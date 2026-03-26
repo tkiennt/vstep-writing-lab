@@ -255,7 +255,7 @@ Key points :
         var systemPrompt = mode switch
         {
             "guide" => BuildSystemPrompt(mode, language),
-            _ => "You are an expert English writing tutor. Provide a FAST scoring evaluation in ENGLISH. Return ONLY valid JSON."
+            _ => "You are an expert English writing tutor. Provide a FAST scoring evaluation in ENGLISH. Return ONLY the JSON object. Do not include any pre-text or post-text."
         };
 
         var historyCtx = BuildHistoryContext(history);
@@ -302,8 +302,8 @@ Key points :
 
         try
         {
-            using var aiCts = new CancellationTokenSource(TimeSpan.FromMinutes(1)); // Faster timeout for phase 1
-            var (rawJson, modelUsed) = await _client.GenerateAsync(systemPrompt, userPrompt, maxTokens: 4096, ct: aiCts.Token);
+            using var aiCts = new CancellationTokenSource(TimeSpan.FromMinutes(2)); // Faster timeout for phase 1 but still enough
+            var (rawJson, modelUsed) = await _client.GenerateAsync(systemPrompt, userPrompt, maxTokens: 8192, ct: aiCts.Token);
             var parsed = ParseAiGradingOutput(rawJson, modelUsed);
             
             if (parsed == null) return Result<AiGradingOutput>.Fail("Failed to parse AI Phase 1 response");
@@ -386,27 +386,34 @@ Key points :
         _logger.LogDebug("Raw AI JSON (first 500 chars): {Json}", json.Length > 500 ? json[..500] : json);
         try
         {
-            // Extract the outermost JSON object (strips ```json fences, preambles, etc.)
+            // First pass: try standard extraction (most stable for normal responses)
             var startIndex = json.IndexOf('{');
-            var endIndex = json.LastIndexOf('}');
-            if (startIndex >= 0 && endIndex >= startIndex)
+            var lastIndex = json.LastIndexOf('}');
+            
+            string jsonToParse = json;
+            if (startIndex >= 0 && lastIndex > startIndex)
             {
-                json = json.Substring(startIndex, endIndex - startIndex + 1);
+                jsonToParse = json.Substring(startIndex, lastIndex - startIndex + 1);
             }
-            else
-            {
-                json = json.Trim();
-            }
-
+            
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var output = JsonSerializer.Deserialize<InternalAiOutput>(json, options);
-
-            if (output != null)
+            try 
             {
-                output.ModelUsed = modelUsed;
+                var output = JsonSerializer.Deserialize<InternalAiOutput>(jsonToParse, options);
+                if (output != null) output.ModelUsed = modelUsed;
                 return output;
             }
-            return null;
+            catch (JsonException)
+            {
+                // Fallback: The JSON was truncated or malformed, attempt repair
+                _logger.LogWarning("JSON truncation detected, attempting repair...");
+                var repaired = JsonRepairHelper.RepairTruncatedJson(json);
+                _logger.LogDebug("Repaired JSON (last 200 chars): {Json}", repaired.Length > 200 ? repaired[^200..] : repaired);
+                
+                var output = JsonSerializer.Deserialize<InternalAiOutput>(repaired, options);
+                if (output != null) output.ModelUsed = $"{modelUsed} (repaired)";
+                return output;
+            }
         }
         catch (Exception ex)
         {

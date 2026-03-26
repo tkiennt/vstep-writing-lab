@@ -259,7 +259,11 @@ namespace VstepWritingLab.Business.Services
             if (string.IsNullOrWhiteSpace(submissionId))
                 throw new ArgumentException("Submission ID cannot be null or empty", nameof(submissionId));
 
-            _logger.LogInformation("Fetching result detail for {Id} (User: {Uid})", submissionId, userId);
+            // Log as Debug to avoid spamming the console during polling, but keep info for initial fetch
+            if (submissionId != "list")
+            {
+                _logger.LogDebug("Fetching result detail for {Id} (User: {Uid})", submissionId, userId);
+            }
 
             // 1. Check for obviously invalid IDs to prevent unintended polling (e.g. from /results/list)
             if (submissionId.Equals("list", StringComparison.OrdinalIgnoreCase))
@@ -308,7 +312,13 @@ namespace VstepWritingLab.Business.Services
                 QuestionTitle = questionTitle,
                 TaskType      = r.TaskType,
                 Mode          = r.Mode,
-                Status        = r.Status?.ToLower() == "pending" ? "pending" : r.Status?.ToLower() == "failed" ? "error" : "scored",
+                Status        = r.Status?.ToLower() switch {
+                                    "pending"         => "pending",
+                                    "phase1completed" => "scored",
+                                    "completed"       => "completed",
+                                    "failed"          => "error",
+                                    _                 => "completed"
+                                },
                 EssayContent  = r.EssayText,
                 WordCount     = r.WordCount,
                 CreatedAt     = r.GradedAt,
@@ -322,9 +332,12 @@ namespace VstepWritingLab.Business.Services
                 },
                 AiFeedback = new AiFeedbackResponse
                 {
-                    Summary     = !string.IsNullOrEmpty(r.Summary) && r.Summary.Length > 20
-                        ? r.Summary 
-                        : $"Bài viết của bạn đạt mức điểm trung bình là {r.TotalScore}. Hãy xem chi tiết đánh giá về Bố cục, Từ vựng và Ngữ pháp bên dưới để cải thiện điểm số.",
+                    // Prefer SummaryVi (new AI output), fall back to Summary (legacy), then generate a default
+                    Summary = !string.IsNullOrEmpty(r.SummaryVi) && r.SummaryVi.Length > 20
+                        ? r.SummaryVi
+                        : !string.IsNullOrEmpty(r.Summary) && r.Summary.Length > 20
+                            ? r.Summary
+                            : $"Bài viết của bạn đạt mức điểm trung bình là {r.TotalScore:0.0}/9. Hãy xem chi tiết đánh giá về Bố cục, Từ vựng và Ngữ pháp bên dưới để cải thiện điểm số.",
                     Suggestions = r.ImprovementsVi?.ToList() ?? new List<string>(),
                     Highlights  = r.InlineHighlights?.Select(h => new HighlightResponse
                     {

@@ -1,6 +1,10 @@
 import { User as FirebaseUser } from 'firebase/auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://localhost:7133';
+let API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+if (!API_BASE_URL && process.env.NEXT_PUBLIC_API_URL) {
+  API_BASE_URL = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
+}
+API_BASE_URL = API_BASE_URL ?? 'https://localhost:7133';
 
 export interface UserDoc {
   userId: string;

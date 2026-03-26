@@ -43,28 +43,26 @@ public class ExamPromptDocument
 
     public ExamPrompt ToDomain()
     {
-        var level = CefrLevel;
-        if (string.IsNullOrEmpty(level))
-        {
-            level = Difficulty switch
-            {
-                1 => "B1",
-                2 => "B2",
-                3 => "C1",
-                _ => "B1"
-            };
-        }
+        var level = string.IsNullOrEmpty(CefrLevel)
+            ? Difficulty switch { 1 => "B1", 2 => "B2", 3 => "C1", _ => "B1" }
+            : CefrLevel;
 
-        var result = ExamPrompt.Create(
-            TaskType, level, Instruction, KeyPoints, 
-            TopicCategory, TopicKeyword, EssayType, Difficulty);
-        
-        result.Value.Id = Id;
-        // In a real scenario, we might need a better way to set these private properties
-        // but for this task we can use reflection or assume the Create method or domain has a way.
-        // Since the domain fields are private set, we might need to add a method or use a constructor.
-        // I will assume for now we can use a helper or internal setter.
-        // Actually, let's keep it simple for now as the user didn't specify strict DDD enforcement.
-        return result.Value;
+        // Use Reconstitute (bypasses domain validation) — correct DDD pattern for DB hydration
+        return ExamPrompt.Reconstitute(
+            id: Id,
+            taskType: TaskType ?? "task2",
+            cefrLevel: level,
+            instruction: Instruction ?? string.Empty,
+            keyPoints: KeyPoints ?? Array.Empty<string>(),
+            topicCategory: TopicCategory ?? string.Empty,
+            topicKeyword: TopicKeyword ?? string.Empty,
+            essayType: EssayType ?? string.Empty,
+            difficulty: Difficulty,
+            isActive: IsActive,
+            usageCount: UsageCount,
+            createdAt: CreatedAt.ToDateTime(),
+            checklist: SuggestedChecklist ?? Array.Empty<string>(),
+            phrases: SuggestedPhrases ?? Array.Empty<string>(),
+            structures: SuggestedStructures ?? Array.Empty<string>());
     }
 }

@@ -11,8 +11,11 @@
 import { auth } from '@/lib/firebase';
 import type { GradingResult, ExamPrompt, UserHistoryType } from '@/types/grading';
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://localhost:7133';
+let BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+if (!BASE_URL && process.env.NEXT_PUBLIC_API_URL) {
+  BASE_URL = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
+}
+BASE_URL = BASE_URL ?? 'https://localhost:7133';
 
 // ── Error class ──────────────────────────────────────────────
 export class ApiError extends Error {
@@ -33,7 +36,19 @@ let _tokenExpiresAt = 0;
 
 async function getIdToken(): Promise<string | null> {
   try {
-    const user = auth.currentUser;
+    let user = auth.currentUser;
+    
+    // If user is null on mount, wait for the first auth state change (Firebase init)
+    if (!user) {
+      await new Promise<void>((resolve) => {
+        const unsubscribe = auth.onAuthStateChanged((u) => {
+          user = u;
+          unsubscribe();
+          resolve();
+        });
+      });
+    }
+
     if (!user) return null;
     
     const now = Date.now();
@@ -51,6 +66,7 @@ async function getIdToken(): Promise<string | null> {
     return null;
   }
 }
+
 
 function buildHeaders(token: string | null): HeadersInit {
   const headers: Record<string, string> = {

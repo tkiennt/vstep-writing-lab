@@ -38,7 +38,9 @@ public class ExamSessionDocument
         StartTime = StartTime.ToDateTime(),
         LastUpdatedAt = LastUpdatedAt.ToDateTime(),
         EssayText = EssayText,
-        Status = Enum.Parse<ExamSessionStatus>(Status),
+        Status = Enum.TryParse<ExamSessionStatus>(Status, ignoreCase: true, out var parsedStatus)
+                     ? parsedStatus
+                     : ExamSessionStatus.InProgress,
         ExitCount = ExitCount
     };
 }

@@ -22,26 +22,64 @@ public class ExamPrompt
 
     public ExamPrompt() { } // For deserialization
 
+    /// <summary>
+    /// Reconstitutes an ExamPrompt from persistence (bypasses domain validation).
+    /// Use ONLY when reading from the database.
+    /// </summary>
+    public static ExamPrompt Reconstitute(
+        string id, string taskType, string cefrLevel, string instruction,
+        string[] keyPoints, string topicCategory, string topicKeyword,
+        string essayType, int difficulty, bool isActive, int usageCount,
+        DateTime createdAt, string[] checklist, string[] phrases, string[] structures) => new()
+    {
+        Id = id,
+        TaskType = taskType,
+        CefrLevel = cefrLevel,
+        Instruction = instruction,
+        KeyPoints = keyPoints ?? Array.Empty<string>(),
+        TopicCategory = topicCategory ?? string.Empty,
+        TopicKeyword = topicKeyword ?? string.Empty,
+        EssayType = essayType ?? string.Empty,
+        Difficulty = Math.Clamp(difficulty, 0, 3),
+        IsActive = isActive,
+        UsageCount = usageCount,
+        CreatedAt = createdAt,
+        SuggestedChecklist = checklist ?? Array.Empty<string>(),
+        SuggestedPhrases = phrases ?? Array.Empty<string>(),
+        SuggestedStructures = structures ?? Array.Empty<string>(),
+    };
+
     public static Result<ExamPrompt> Create(
         string taskType, string cefrLevel, string instruction,
         string[] keyPoints, string topicCategory, string topicKeyword,
         string essayType, int difficulty)
     {
-        if (taskType is not ("task1" or "task2"))
-            return Result<ExamPrompt>.Fail("TaskType must be 'task1' or 'task2'");
-        if (cefrLevel is not ("B1" or "B2" or "C1"))
-            return Result<ExamPrompt>.Fail("CefrLevel must be B1, B2, or C1");
+        // Normalize: accept "Task1", "task1", "Task 1", etc.
+        var normalizedTask = (taskType ?? "").ToLowerInvariant().Replace(" ", "");
+        if (normalizedTask is not ("task1" or "task2"))
+            return Result<ExamPrompt>.Fail($"TaskType '{taskType}' must be 'task1' or 'task2'");
+        
+        // Normalize CEFR level: accept "b1", "b2", "c1"
+        var normalizedCefr = (cefrLevel ?? "").ToUpperInvariant().Trim();
+        if (normalizedCefr is not ("B1" or "B2" or "C1"))
+            normalizedCefr = "B1"; // Safe fallback instead of hard fail
+        
         if (string.IsNullOrWhiteSpace(instruction))
             return Result<ExamPrompt>.Fail("Instruction is required");
-        if (difficulty is < 1 or > 3)
-            return Result<ExamPrompt>.Fail("Difficulty must be 1, 2, or 3");
+        
+        // Clamp difficulty instead of hard failing
+        difficulty = Math.Clamp(difficulty, 1, 3);
+        
+        taskType = normalizedTask;
+        cefrLevel = normalizedCefr;
 
         return Result<ExamPrompt>.Ok(new ExamPrompt {
-            Id = Guid.NewGuid().ToString(), // Placeholder, will be set by Firestore if needed
+            Id = string.Empty, // Will be overwritten by Firestore document ID
             TaskType = taskType, CefrLevel = cefrLevel,
-            Instruction = instruction, KeyPoints = keyPoints,
-            TopicCategory = topicCategory, TopicKeyword = topicKeyword,
-            EssayType = essayType, Difficulty = difficulty,
+            Instruction = instruction, KeyPoints = keyPoints ?? Array.Empty<string>(),
+            TopicCategory = topicCategory ?? string.Empty,
+            TopicKeyword = topicKeyword ?? string.Empty,
+            EssayType = essayType ?? string.Empty, Difficulty = difficulty,
             SuggestedChecklist = Array.Empty<string>(),
             SuggestedPhrases = Array.Empty<string>(),
             SuggestedStructures = Array.Empty<string>(),
