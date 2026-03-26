@@ -43,34 +43,26 @@ public class ExamPromptDocument
 
     public ExamPrompt ToDomain()
     {
-        var level = CefrLevel;
-        if (string.IsNullOrEmpty(level))
-        {
-            level = Difficulty switch
-            {
-                1 => "B1",
-                2 => "B2",
-                3 => "C1",
-                _ => "B1"
-            };
-        }
+        var level = string.IsNullOrEmpty(CefrLevel)
+            ? Difficulty switch { 1 => "B1", 2 => "B2", 3 => "C1", _ => "B1" }
+            : CefrLevel;
 
-        var result = ExamPrompt.Create(
-            TaskType, level, Instruction, KeyPoints, 
-            TopicCategory, TopicKeyword, EssayType, Difficulty);
-        
-        // Guard: if Create() still fails (e.g. missing Instruction), build a minimal prompt directly
-        var prompt = result.IsSuccess && result.Value != null
-            ? result.Value
-            : new ExamPrompt
-            {
-                TaskType = TaskType, CefrLevel = level,
-                Instruction = Instruction ?? string.Empty,
-                TopicCategory = TopicCategory ?? string.Empty,
-                TopicKeyword = TopicKeyword ?? string.Empty,
-            };
-
-        prompt.Id = Id; // Always stamp the Firestore Document ID
-        return prompt;
+        // Use Reconstitute (bypasses domain validation) — correct DDD pattern for DB hydration
+        return ExamPrompt.Reconstitute(
+            id: Id,
+            taskType: TaskType ?? "task2",
+            cefrLevel: level,
+            instruction: Instruction ?? string.Empty,
+            keyPoints: KeyPoints ?? Array.Empty<string>(),
+            topicCategory: TopicCategory ?? string.Empty,
+            topicKeyword: TopicKeyword ?? string.Empty,
+            essayType: EssayType ?? string.Empty,
+            difficulty: Difficulty,
+            isActive: IsActive,
+            usageCount: UsageCount,
+            createdAt: CreatedAt.ToDateTime(),
+            checklist: SuggestedChecklist ?? Array.Empty<string>(),
+            phrases: SuggestedPhrases ?? Array.Empty<string>(),
+            structures: SuggestedStructures ?? Array.Empty<string>());
     }
 }

@@ -22,6 +22,33 @@ public class ExamPrompt
 
     public ExamPrompt() { } // For deserialization
 
+    /// <summary>
+    /// Reconstitutes an ExamPrompt from persistence (bypasses domain validation).
+    /// Use ONLY when reading from the database.
+    /// </summary>
+    public static ExamPrompt Reconstitute(
+        string id, string taskType, string cefrLevel, string instruction,
+        string[] keyPoints, string topicCategory, string topicKeyword,
+        string essayType, int difficulty, bool isActive, int usageCount,
+        DateTime createdAt, string[] checklist, string[] phrases, string[] structures) => new()
+    {
+        Id = id,
+        TaskType = taskType,
+        CefrLevel = cefrLevel,
+        Instruction = instruction,
+        KeyPoints = keyPoints ?? Array.Empty<string>(),
+        TopicCategory = topicCategory ?? string.Empty,
+        TopicKeyword = topicKeyword ?? string.Empty,
+        EssayType = essayType ?? string.Empty,
+        Difficulty = Math.Clamp(difficulty, 0, 3),
+        IsActive = isActive,
+        UsageCount = usageCount,
+        CreatedAt = createdAt,
+        SuggestedChecklist = checklist ?? Array.Empty<string>(),
+        SuggestedPhrases = phrases ?? Array.Empty<string>(),
+        SuggestedStructures = structures ?? Array.Empty<string>(),
+    };
+
     public static Result<ExamPrompt> Create(
         string taskType, string cefrLevel, string instruction,
         string[] keyPoints, string topicCategory, string topicKeyword,
