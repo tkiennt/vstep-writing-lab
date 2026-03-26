@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { 
   ArrowLeft, Share2, Download, Award, TrendingUp,
   AlertCircle, Lightbulb, CheckCircle2, ChevronRight, BookOpen, Check
@@ -11,8 +11,9 @@ import { submissionService } from '@/services/submissionService';
 import { SubmissionResponse } from '@/types';
 import { useGlobal } from '@/components/GlobalProvider';
 
-export default function AIResultPage({ params }: { params: { id: string } }) {
+export default function AIResultClient() {
   const router = useRouter();
+  const params = useParams() as { id: string };
   const { addToast } = useGlobal();
   const [loading, setLoading] = useState(true);
   const [submission, setSubmission] = useState<SubmissionResponse | null>(null);
