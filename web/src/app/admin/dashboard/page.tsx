@@ -223,7 +223,7 @@ export default function AdminDashboard() {
             </div>
             <div className="mt-8">
               <div className="flex items-end gap-1.5 h-40 px-2">
-                {stats.hourlyStats.length > 0 ? (
+                {stats.hourlyStats && stats.hourlyStats.length > 0 ? (
                   stats.hourlyStats.map((d, i) => {
                     const maxSub = Math.max(...stats.hourlyStats.map(x => x.submissions), 1);
                     const subH = (d.submissions / maxSub) * 100;

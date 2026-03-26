@@ -32,7 +32,7 @@ namespace VstepWritingLab.Business.Services
 
             var question = new QuestionModel
             {
-                QuestionId   = Guid.NewGuid().ToString("N")[..8], // e.g. "a1b2c3d4"
+                QuestionId   = Guid.NewGuid().ToString("N")[..8],
                 TaskType     = request.TaskType,
                 Category     = request.Category,
                 Title        = request.Title,
@@ -99,14 +99,19 @@ namespace VstepWritingLab.Business.Services
         private QuestionResponse MapToResponse(QuestionModel q) =>
             new QuestionResponse
             {
-                QuestionId   = q.QuestionId,
-                TaskType     = q.TaskType,
-                Category     = q.Category,
-                Title        = q.Title,
-                Instructions = q.Instructions,
-                Requirements = q.Requirements,
-                Level        = q.Level,
-                CreatedAt    = q.ImportedAt.ToDateTime()
+                QuestionId   = q.QuestionId ?? "",
+                TaskType     = q.TaskType     ?? "",
+                Category     = q.Category     ?? q.EssayType ?? "General",
+                Title        = !string.IsNullOrWhiteSpace(q.Title)        ? q.Title        :
+                               !string.IsNullOrWhiteSpace(q.TopicKeyword) ? q.TopicKeyword :
+                               !string.IsNullOrWhiteSpace(q.Scenario)     ? q.Scenario     :
+                               q.QuestionId ?? "",
+                Instructions = q.Instructions ?? q.Scenario ?? "",
+                Requirements = q.Requirements ?? new List<string>(),
+                Level        = q.Level        ?? "B1",
+                CreatedAt    = q.ImportedAt != default
+                                  ? q.ImportedAt.ToDateTime()
+                                  : DateTime.UtcNow,
             };
     }
 }

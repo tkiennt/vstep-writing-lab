@@ -6,9 +6,6 @@ import vi from './locales/vi.json';
 
 const STORAGE_KEY = 'vstep_language';
 
-const savedLang = 
-  (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null) ?? 'vi';
-
 i18n
   .use(initReactI18next)
   .init({
@@ -16,7 +13,7 @@ i18n
       en: { translation: en },
       vi: { translation: vi },
     },
-    lng: savedLang,
+    lng: 'vi',
     fallbackLng: 'vi',
     interpolation: {
       escapeValue: false, // React already escapes

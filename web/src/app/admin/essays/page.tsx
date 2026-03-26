@@ -319,9 +319,18 @@ export default function AdminEssaysPage() {
                              </div>
                           </td>
                           <td className="px-8 py-6">
-                             <div className="flex flex-col">
-                                <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">{essay.topicTitle}</span>
-                                <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">VSTEP {essay.taskType}</span>
+                             <div className="flex flex-col gap-1.5">
+                                <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs truncate max-w-[250px]" title={essay.topicTitle}>
+                                  {essay.taskType === 'task1' && essay.topicTitle?.includes('.')
+                                    ? essay.topicTitle.split('.')[0] + '.'
+                                    : essay.topicTitle}
+                                </span>
+                                <span className={`w-max text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded-md border
+                                  ${essay.taskType === 'task1' 
+                                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-500 border-blue-500/20' 
+                                    : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20'}`}>
+                                  VSTEP {essay.taskType}
+                                </span>
                              </div>
                           </td>
                           <td className="px-8 py-6 text-center">

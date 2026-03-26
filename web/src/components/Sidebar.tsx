@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, PenTool, FileText, BookOpen, Database,
-  Users, Cpu, LogOut, Settings, BarChart3, ShieldAlert, ListChecks, History
+  Users, Cpu, LogOut, Settings, BarChart3, ShieldAlert, ListChecks
 } from 'lucide-react';
 import { Role } from '@/config/routes';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,21 +33,16 @@ export function Sidebar({ role }: SidebarProps) {
     { titleKey: 'nav.myResults', path: '/history', icon: FileText, roles: ['user'] },
     { titleKey: 'nav.resources', path: '/resources', icon: Database, roles: ['user'] },
     
-    // Teacher routes
-    { titleKey: 'nav.topicsManagement', path: '/teacher/topics', icon: BookOpen, roles: ['teacher'] },
-    { titleKey: 'nav.resources', path: '/teacher/resources', icon: Database, roles: ['teacher'] },
-    { titleKey: 'nav.systemPrompts', path: '/teacher/system-prompt', icon: Settings, roles: ['teacher'] },
-    
     // Admin routes
     { titleKey: 'nav.dashboard', path: '/admin/dashboard', icon: LayoutDashboard, roles: ['admin'] },
     { titleKey: 'nav.userManagement', path: '/admin/user-management', icon: Users, roles: ['admin'] },
     { titleKey: 'nav.essaysManagement', path: '/admin/essays', icon: ListChecks, roles: ['admin'] },
     { titleKey: 'nav.topicsManagement', path: '/admin/topics', icon: BookOpen, roles: ['admin'] },
-    { titleKey: 'nav.aiMonitoring', path: '/admin/ai-monitoring', icon: ShieldAlert, roles: ['admin'] },
+    { titleKey: 'nav.resources', path: '/admin/resources', icon: Database, roles: ['admin'] },
+    // { titleKey: 'nav.systemPrompts', path: '/admin/system-prompt', icon: Settings, roles: ['admin'] },
+    // { titleKey: 'nav.aiMonitoring', path: '/admin/ai-monitoring', icon: ShieldAlert, roles: ['admin'] },
     { titleKey: 'nav.reports', path: '/admin/reports', icon: BarChart3, roles: ['admin'] },
-    { titleKey: 'nav.settings', path: '/admin/settings', icon: Settings, roles: ['admin'] },
-    { titleKey: 'nav.logs', path: '/admin/logs', icon: History, roles: ['admin'] },
-    { titleKey: 'nav.aiImportEngine', path: '/admin/ai-import', icon: Cpu, roles: ['admin'] },
+    // { titleKey: 'nav.aiImportEngine', path: '/admin/ai-import', icon: Cpu, roles: ['admin'] },
   ];
 
   const filteredMenuItems = MENU_ITEMS.filter(item => item.roles.includes(role));

@@ -5,7 +5,7 @@ using VstepWritingLab.Data.Repositories.Base;
 
 namespace VstepWritingLab.Data.Repositories;
 
-public class QuestionRepository(FirestoreDb db) : BaseRepository<QuestionModel>(db, "questions"), IQuestionRepository
+public class QuestionRepository(FirestoreDb db) : BaseRepository<QuestionModel>(db, "exam_prompts"), IQuestionRepository
 {
     public async Task<List<QuestionModel>> GetActiveAsync(
         string? taskType = null,

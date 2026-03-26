@@ -4,71 +4,65 @@ using System.Threading.Tasks;
 using VstepWritingLab.Business.Interfaces;
 using VstepWritingLab.Shared.Models.Entities;
 using Google.Cloud.Firestore;
+using VstepWritingLab.Domain.Interfaces;
 
 namespace VstepWritingLab.Business.Services
 {
     public class AdminEssayService
     {
-        private readonly ISubmissionRepository _submissionRepo;
+        private readonly IGradingResultRepository _gradingResultRepo;
         private readonly ILegacyUserRepository _userRepo;
-        private readonly IQuestionRepository _questionRepo;
+        private readonly IExamPromptRepository _examPromptRepo;
         private readonly AdminAuditLogService _auditLog;
         private readonly FirestoreDb _db;
 
         public AdminEssayService(
-            ISubmissionRepository submissionRepo, 
+            IGradingResultRepository gradingResultRepo, 
             ILegacyUserRepository userRepo,
-            IQuestionRepository questionRepo,
+            IExamPromptRepository examPromptRepo,
             AdminAuditLogService auditLog,
             FirestoreDb db)
         {
-            _submissionRepo = submissionRepo;
+            _gradingResultRepo = gradingResultRepo;
             _userRepo = userRepo;
-            _questionRepo = questionRepo;
+            _examPromptRepo = examPromptRepo;
             _auditLog = auditLog;
             _db = db;
         }
 
         public async Task<List<AdminEssayResponse>> GetAllEssaysAsync()
         {
-            var submissions = await _submissionRepo.GetAllAsync();
+            var submissions = await _gradingResultRepo.GetAllAsync(500); // Admin can view up to 500 records
             var results = new List<AdminEssayResponse>();
 
             foreach (var sub in submissions)
             {
                 UserModel? user = null;
-                if (!string.IsNullOrEmpty(sub.UserId))
-                    user = await _userRepo.GetByIdAsync(sub.UserId);
+                if (!string.IsNullOrEmpty(sub.StudentId))
+                    user = await _userRepo.GetByIdAsync(sub.StudentId);
 
-                QuestionModel? question = null;
-                if (!string.IsNullOrEmpty(sub.QuestionId))
+                Domain.Entities.ExamPrompt? prompt = null;
+                if (!string.IsNullOrEmpty(sub.ExamId))
                 {
-                    question = await _questionRepo.GetByIdAsync(sub.QuestionId);
-                    
-                    // Fallback to tasks collection if not in questions
-                    if (question == null)
-                    {
-                        var taskDoc = await _db.Collection("tasks").Document(sub.QuestionId).GetSnapshotAsync();
-                        if (taskDoc.Exists)
-                        {
-                            var taskName = taskDoc.GetValue<string>("name");
-                            question = new QuestionModel { Title = taskName, QuestionId = sub.QuestionId };
-                        }
-                    }
+                    prompt = await _examPromptRepo.GetByIdAsync(sub.ExamId);
                 }
+
+                // Make sure to normalize status string from domain layer ('Completed' -> 'completed')
+                string normalizedStatus = sub.Status?.ToLower() ?? "pending";
+                if (normalizedStatus == "completed") normalizedStatus = "scored";
 
                 results.Add(new AdminEssayResponse
                 {
-                    SubmissionId = sub.SubmissionId,
-                    UserId = sub.UserId,
+                    SubmissionId = sub.Id,
+                    UserId = sub.StudentId,
                     UserName = user?.DisplayName ?? "Unknown User",
                     UserEmail = user?.Email ?? "N/A",
-                    QuestionId = sub.QuestionId,
-                    TopicTitle = question?.Title ?? "Unknown Topic",
+                    QuestionId = sub.ExamId,
+                    TopicTitle = !string.IsNullOrEmpty(prompt?.TopicKeyword) ? prompt.TopicKeyword : prompt?.Instruction ?? "Unknown Topic",
                     TaskType = sub.TaskType,
-                    Status = sub.Status,
-                    OverallScore = sub.AiScore?.Overall ?? 0,
-                    CreatedAt = sub.CreatedAt.ToDateTime(),
+                    Status = normalizedStatus,
+                    OverallScore = sub.TotalScore,
+                    CreatedAt = sub.GradedAt,
                     WordCount = sub.WordCount
                 });
             }
@@ -78,62 +72,52 @@ namespace VstepWritingLab.Business.Services
 
         public async Task<AdminEssayDetailResponse?> GetEssayByIdAsync(string id)
         {
-            var sub = await _submissionRepo.GetByIdAsync(id);
+            var sub = await _gradingResultRepo.GetByIdAsync(id);
             if (sub == null) return null;
 
-            var user = await _userRepo.GetByIdAsync(sub.UserId);
-            var question = await _questionRepo.GetByIdAsync(sub.QuestionId);
+            var user = await _userRepo.GetByIdAsync(sub.StudentId);
+            var prompt = await _examPromptRepo.GetByIdAsync(sub.ExamId);
             
-            // Fallback for detail view title
-            string topicTitle = question?.Title ?? "Unknown Topic";
-            if (question == null && !string.IsNullOrEmpty(sub.QuestionId))
-            {
-                var taskDoc = await _db.Collection("tasks").Document(sub.QuestionId).GetSnapshotAsync();
-                if (taskDoc.Exists) topicTitle = taskDoc.GetValue<string>("name");
-            }
+            string topicTitle = !string.IsNullOrEmpty(prompt?.TopicKeyword) ? prompt.TopicKeyword : prompt?.Instruction ?? "Unknown Topic";
+
+            string normalizedStatus = sub.Status?.ToLower() ?? "pending";
+            if (normalizedStatus == "completed") normalizedStatus = "scored";
 
             return new AdminEssayDetailResponse
             {
-                SubmissionId = sub.SubmissionId,
-                UserId = sub.UserId,
+                SubmissionId = sub.Id,
+                UserId = sub.StudentId,
                 UserName = user?.DisplayName ?? "Unknown User",
                 UserEmail = user?.Email ?? "N/A",
                 TopicTitle = topicTitle,
                 TaskType = sub.TaskType,
-                Status = sub.Status,
-                EssayContent = sub.EssayContent,
+                Status = normalizedStatus,
+                EssayContent = sub.EssayText,
                 WordCount = sub.WordCount,
-                OverallScore = sub.AiScore?.Overall ?? 0,
-                CreatedAt = sub.CreatedAt.ToDateTime(),
+                OverallScore = sub.TotalScore,
+                CreatedAt = sub.GradedAt,
                 CriteriaScores = new Dictionary<string, double>
                 {
-                    { "Task Fulfilment", sub.AiScore?.TaskFulfilment ?? 0 },
-                    { "Organization", sub.AiScore?.Organization ?? 0 },
-                    { "Vocabulary", sub.AiScore?.Vocabulary ?? 0 },
-                    { "Grammar", sub.AiScore?.Grammar ?? 0 }
+                    { "Task Fulfilment", sub.TaskFulfilment?.Score ?? 0 },
+                    { "Organization", sub.Organization?.Score ?? 0 },
+                    { "Vocabulary", sub.Vocabulary?.Score ?? 0 },
+                    { "Grammar", sub.Grammar?.Score ?? 0 }
                 }
             };
         }
 
         public async Task UpdateEssayScoreAsync(string id, double newScore)
         {
-            var submission = await _submissionRepo.GetByIdAsync(id);
+            var submission = await _gradingResultRepo.GetByIdAsync(id);
             if (submission == null) throw new System.Exception("Submission not found");
-
-            var updates = new Dictionary<string, object>();
-            if (submission.AiScore != null)
-            {
-                updates["AiScore.Overall"] = newScore;
-                updates["AiScore"] = submission.AiScore;
-            }
             
-            await _submissionRepo.UpdateAsync(id, updates);
+            await _gradingResultRepo.UpdateScoreAsync(id, newScore);
             await _auditLog.LogActionAsync("admin-system", "admin@vstep.lab", "SCORE_OVERRIDDEN", id, $"Changed score to {newScore}");
         }
 
         public async Task DeleteEssayAsync(string id)
         {
-            await _submissionRepo.DeleteAsync(id);
+            await _gradingResultRepo.DeleteAsync(id);
             await _auditLog.LogActionAsync("admin-system", "admin@vstep.lab", "ESSAY_DELETED", id, "Deleted submission record");
         }
     }

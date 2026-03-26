@@ -51,4 +51,30 @@ public class FirestoreGradingResultRepository(FirestoreDb _db) : IGradingResultR
             updates["Summary"] = summary;
         await docRef.UpdateAsync(updates, cancellationToken: ct);
     }
+    
+    // --- Admin methods ---
+    public async Task<IReadOnlyList<GradingResult>> GetAllAsync(int limit = 50, CancellationToken ct = default)
+    {
+        var query = _db.Collection(COLLECTION).OrderByDescending("CreatedAt").Limit(limit);
+        var snapshots = await query.GetSnapshotAsync(ct);
+        
+        return snapshots.Documents
+            .Select(d => d.ConvertTo<GradingResultDocument>().ToDomain())
+            .ToList();
+    }
+
+    public async Task UpdateScoreAsync(string id, double newScore, CancellationToken ct = default)
+    {
+        var docRef = _db.Collection(COLLECTION).Document(id);
+        await docRef.UpdateAsync(new Dictionary<string, object>
+        {
+            { "TotalScore", newScore }
+        }, cancellationToken: ct);
+    }
+
+    public async Task DeleteAsync(string id, CancellationToken ct = default)
+    {
+        var docRef = _db.Collection(COLLECTION).Document(id);
+        await docRef.DeleteAsync(cancellationToken: ct);
+    }
 }

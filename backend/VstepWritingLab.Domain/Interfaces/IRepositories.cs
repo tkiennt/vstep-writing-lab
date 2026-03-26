@@ -26,6 +26,11 @@ public interface IGradingResultRepository
     /// Used by the retry flow to reset a Failed record back to Pending.
     /// </summary>
     Task UpdateStatusAsync(string id, string status, string? summary = null, CancellationToken ct = default);
+    
+    // Admin methods
+    Task<IReadOnlyList<GradingResult>> GetAllAsync(int limit = 50, CancellationToken ct = default);
+    Task UpdateScoreAsync(string id, double newScore, CancellationToken ct = default);
+    Task DeleteAsync(string id, CancellationToken ct = default);
 }
 
 public interface IProgressRepository
